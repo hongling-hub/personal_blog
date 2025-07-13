@@ -1,0 +1,63 @@
+@use "sass:color";
+/* 文章编辑页面样式 */
+$container-padding: 24px;
+$editor-margin-top: 16px;
+$primary-color: #1890ff;
+$border-color: #d9d9d9;
+
+.write-article-container {
+  padding: $container-padding;
+  background: #fff;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+
+  .write-article-header {
+    margin-bottom: 24px;
+
+    &-title {
+      font-size: 20px;
+      color: $primary-color;
+      margin-bottom: 8px;
+    }
+  }
+
+  .write-article-form {
+    .form-item {
+      margin-bottom: 16px;
+
+      &-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+      }
+
+      &-control {
+        width: 100%;
+
+        .title-input {
+          width: 100%;
+          padding: 8px 12px;
+          border: 1px solid $border-color;
+          border-radius: 4px;
+        }
+      }
+    }
+
+    .editor-wrapper {
+      margin-top: $editor-margin-top;
+      border: 1px solid $border-color;
+      border-radius: 4px;
+      min-height: 400px;
+    }
+
+    .submit-button {
+      margin-top: 24px;
+      background-color: $primary-color;
+      border-color: $primary-color;
+
+      &:hover {
+        background-color: color.adjust($primary-color, $lightness: -10%);
+      }
+    }
+  }
+}
