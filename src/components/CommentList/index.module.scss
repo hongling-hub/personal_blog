@@ -1,0 +1,30 @@
+.commentList {
+  margin-top: 20px;
+
+  .ant-comment {
+    margin-bottom: 16px;
+    padding: 16px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+    .ant-comment-content {
+      .ant-comment-content-author {
+        margin-bottom: 8px;
+      }
+
+      .ant-comment-content-detail {
+        font-size: 15px;
+        line-height: 1.6;
+      }
+    }
+
+    .ant-comment-actions {
+      margin-top: 12px;
+    }
+  }
+
+  textarea {
+    margin-bottom: 12px;
+  }
+}

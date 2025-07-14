@@ -1,10 +1,13 @@
 interface LoginParams {
   username: string;
   password: string;
-  captcha?: string; // 添加验证码字段
+  captcha: string;
+
 }
 
 interface RegisterParams {
+  captcha: string;
+
   username: string;
   password: string;
   // 其他注册字段...

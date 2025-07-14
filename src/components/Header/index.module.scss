@@ -1,0 +1,115 @@
+.header {
+  // background: #0066b3;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  background-color: #fff;
+  
+
+  .container {
+    width: 100%;
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+
+    .searchContainer {
+      flex: 1;
+      margin: 0 20px;
+
+      .ant-input-search {
+        width: 100%;
+        max-width: 500px;
+
+        .ant-input {
+          height: 32px;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.2);
+          border: none;
+          color: white;
+
+          &::placeholder {
+            color: rgba(255, 255, 255, 0.7);
+          }
+        }
+
+        .ant-input-search-button {
+          background: white;
+          color: #0066b3;
+          border-radius: 16px;
+          border: none;
+        }
+      }
+    }
+
+    .logo {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      margin-right: 15px;
+    }
+
+    .vipLink {
+      color: #ffd700 !important;
+      font-weight: bold;
+    }
+
+    .nav {
+      margin-left: 20px;
+      
+
+      .ant-menu-horizontal {
+        border-bottom: none;
+
+        .ant-menu-item {
+          font-size: 14px;
+          margin: 0 15px;
+          color: rgba(255, 255, 255, 0.9);
+          padding: 0 !important;
+
+          &:hover {
+            color: white;
+          }
+
+          &.ant-menu-item-selected {
+            color: white;
+            border-bottom: 2px solid white;
+          }
+        }
+      }
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+
+      .ant-btn-primary {
+        background: #ff7d00;
+        border-color: #ff7d00;
+        height: 32px;
+        padding: 0 20px;
+        border-radius: 4px;
+        font-weight: 500;
+      }
+
+      .ant-badge {
+        color: white;
+      }
+
+      .ant-badge-count {
+        background: #ff7d00;
+      }
+    }
+  }
+
+  
+}
