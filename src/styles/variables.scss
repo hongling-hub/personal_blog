@@ -15,3 +15,13 @@ $padding-lg: 24px;
 $border-radius-base: 4px;
 $border-radius-sm: 2px;
 $border-radius-lg: 8px;
+
+/* 文本行数限制 mixin - 支持标准属性和WebKit前缀 */
+@mixin line-clamp($lines) {
+  display: -webkit-box;
+  -webkit-line-clamp: $lines;
+  line-clamp: $lines;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Menu, Input, Space, Avatar, Dropdown, Button, Badge } from 'antd';
 import { SearchOutlined, BellOutlined, UserOutlined, HomeOutlined, FileTextOutlined, StarOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, QuestionCircleOutlined, ReadOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
@@ -8,6 +8,13 @@ const { Search } = Input;
 
 const Header: React.FC = () => {
   const navigate = useNavigate();
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  
+  useEffect(() => {
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
+  }, []);
+
   const userMenuItems = [
     {
       key: 'profile',
@@ -23,6 +30,11 @@ const Header: React.FC = () => {
       key: 'logout',
       icon: <LogoutOutlined />,
       label: '退出登录',
+      onClick: () => {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+        navigate('/');
+      }
     },
   ];
 
@@ -72,9 +84,26 @@ const Header: React.FC = () => {
             <Badge count={5}>
               <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
             </Badge>
-            <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
-              <Button type="default" shape="circle" size="large" className={styles.loginButton} onClick={() => navigate('/login')}>登录</Button>
-            </Dropdown>
+            {isLoggedIn ? (
+              <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
+                <Avatar 
+                  src="../src/assets/images/avatar/default.png" 
+                  size="large" 
+                  style={{ cursor: 'pointer' }}
+                  onClick={() => navigate('/profile')}
+                />
+              </Dropdown>
+            ) : (
+              <Button 
+                type="default" 
+                shape="circle" 
+                size="large" 
+                className={styles.loginButton} 
+                onClick={() => navigate('/login')}
+              >
+                登录
+              </Button>
+            )}
           </Space>
         </div>
       </div>

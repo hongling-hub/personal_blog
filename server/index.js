@@ -1,3 +1,4 @@
+require('dotenv').config();
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
@@ -24,12 +25,9 @@ const logger = winston.createLogger({
 });
 
 // 2. 连接MongoDB
-mongoose.connect('mongodb://localhost:27017/blog_db', {
-  retryWrites: true,
-  w: 'majority'
-})
-.then(() => logger.info('MongoDB connected successfully'))
-.catch(err => logger.error('MongoDB connection error:', err));
+mongoose.connect('mongodb://localhost:27017/blog_db')
+  .then(() => console.log('MongoDB连接成功'))
+  .catch(err => console.error('MongoDB连接失败:', err)); // 修复错误变量名
 
 // 3. 中间件配置
 app.use(helmet()); // 安全相关HTTP头

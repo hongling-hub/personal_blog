@@ -16,13 +16,6 @@ const UserSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
-  email: {
-    type: String,
-    required: true,
-    unique: true,
-    trim: true,
-    lowercase: true
-  },
   role: {
     type: String,
     enum: ['user', 'admin'],
@@ -40,8 +33,10 @@ const UserSchema = new mongoose.Schema({
 
 // 密码加密
 UserSchema.pre('save', async function(next) {
+  console.log('原始密码:', this.password);
   if (!this.isModified('password')) return next();
   this.password = await bcrypt.hash(this.password, 10);
+  console.log('加密后:', this.password);
   next();
 });
 
@@ -57,6 +52,12 @@ UserSchema.methods.generateAuthToken = function() {
     process.env.JWT_SECRET,
     { expiresIn: '1d' }
   );
+};
+
+UserSchema.methods.setPassword = async function(password) {
+  this.password = await bcrypt.hash(password, 10);
+  console.log('Password set to:', this.password); // 调试日志
+  return this; // 返回修改后的用户对象
 };
 
 module.exports = mongoose.model('User', UserSchema);
