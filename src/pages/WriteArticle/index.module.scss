@@ -1,63 +1,151 @@
-@use "sass:color";
-/* 文章编辑页面样式 */
-$container-padding: 24px;
-$editor-margin-top: 16px;
-$primary-color: #1890ff;
-$border-color: #d9d9d9;
-
-.write-article-container {
-  padding: $container-padding;
-  background: #fff;
-  border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-
-  .write-article-header {
-    margin-bottom: 24px;
-
-    &-title {
+.container {
+  padding: 0;
+  background: #f5f5f5;
+  min-height: 100vh;
+  
+  .header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 24px;
+    background: #fff;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    
+    h1 {
+      margin: 0;
       font-size: 20px;
-      color: $primary-color;
-      margin-bottom: 8px;
+      font-weight: 500;
+      color: #333;
     }
-  }
-
-  .write-article-form {
-    .form-item {
-      margin-bottom: 16px;
-
-      &-label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 500;
+    
+    .actions {
+      display: flex;
+      gap: 16px;
+      
+      .saveBtn {
+        background: #1e80ff;
+        border-color: #1e80ff;
+        
+        &:hover {
+          background: #1171ee;
+          border-color: #1171ee;
+        }
       }
-
-      &-control {
-        width: 100%;
-
-        .title-input {
-          width: 100%;
-          padding: 8px 12px;
-          border: 1px solid $border-color;
-          border-radius: 4px;
+      
+      .previewBtn {
+        color: #1e80ff;
+        border-color: #1e80ff;
+        
+        &:hover {
+          color: #1171ee;
+          border-color: #1171ee;
         }
       }
     }
-
-    .editor-wrapper {
-      margin-top: $editor-margin-top;
-      border: 1px solid $border-color;
-      border-radius: 4px;
-      min-height: 400px;
+  }
+  
+  .editorCard {
+    margin: 16px;
+    border-radius: 4px;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+    
+    .titleInput {
+      font-size: 16px;
+      padding: 12px;
     }
-
-    .submit-button {
-      margin-top: 24px;
-      background-color: $primary-color;
-      border-color: $primary-color;
-
-      &:hover {
-        background-color: color.adjust($primary-color, $lightness: -10%);
+    
+    .categorySelect {
+      width: 200px;
+    }
+    
+    .tagsContainer {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+      margin-bottom: 8px;
+      
+      .tag {
+        background: #f0f7ff;
+        color: #1e80ff;
+        border: 1px solid #d0e3ff;
+        border-radius: 4px;
+        padding: 0 8px;
+        height: 28px;
+        line-height: 26px;
       }
+      
+      .plusTag {
+        background: #fff;
+        color: #1e80ff;
+        border: 1px dashed #1e80ff;
+        cursor: pointer;
+      }
+      
+      .tagInput {
+        width: 100px;
+      }
+    }
+    
+    .popularTags {
+      margin-top: 8px;
+      
+      span {
+        color: #999;
+        font-size: 14px;
+      }
+      
+      .popularTag {
+        cursor: pointer;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        background: #f7f7f7;
+        color: #666;
+        
+        &:hover {
+          color: #1e80ff;
+          background: #f0f7ff;
+        }
+      }
+    }
+    
+    .editor {
+      border-radius: 4px;
+      overflow: hidden;
+      box-shadow: 0 0 0 1px #ddd;
+      
+      &:hover {
+        box-shadow: 0 0 0 1px #1e80ff;
+      }
+    }
+    
+    .wordCount {
+      margin-top: 8px;
+      text-align: right;
+      color: #999;
+      font-size: 14px;
+    }
+    
+    .visibility {
+      margin-top: 24px;
+      
+      .ant-radio-button-wrapper {
+        padding: 0 16px;
+        height: 32px;
+        line-height: 30px;
+      }
+    }
+  }
+  
+  .previewContent {
+    padding: 24px;
+    background: #fff;
+    min-height: 500px;
+    
+    .wmde-markdown {
+      max-width: 800px;
+      margin: 0 auto;
+      padding: 20px;
     }
   }
 }

@@ -1,6 +1,6 @@
 interface Article {
   title: string;
-  tags: string;
+  tags: string[];
   content: string;
   isPublic: boolean;
   markdown: string;

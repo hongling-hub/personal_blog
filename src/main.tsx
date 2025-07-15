@@ -18,6 +18,7 @@ const router = createBrowserRouter([
       { index: true, element: <Home /> }, // 根路径'/'会自动渲染Home组件
       { path: 'home', element: <Home /> },
       { path: 'article/:id', element: <ArticleDetail /> },
+      { path: 'write-article', element: <WriteArticle /> },
       { path: 'write', element: <WriteArticle /> },
       { path: 'admin', element: <AdminDashboard /> }
     ],

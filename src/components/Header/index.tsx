@@ -80,7 +80,7 @@ const Header: React.FC = () => {
 
         <div className={styles.actions}>
           <Space size="middle">
-            <Button type="primary" icon={<FileTextOutlined />}>写博客</Button>
+            <Button type="primary" icon={<FileTextOutlined />} onClick={() => navigate('/write-article')}>写博客</Button>
             <Badge count={5}>
               <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
             </Badge>

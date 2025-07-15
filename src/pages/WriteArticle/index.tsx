@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
-import { Button, Card, Form, Input, message, Radio, Space } from 'antd';
+import { Button, Card, Form, Input, message, Radio, Space, Modal, Select } from 'antd';
 import { SaveOutlined, EyeOutlined } from '@ant-design/icons';
-import MDEditor from '@uiw/react-md-editor';
+import MDEditor, { commands } from '@uiw/react-md-editor';
 import { useNavigate } from 'react-router-dom';
 import articleService from '@/services/articles';
 import styles from './index.module.scss';
 
 interface ArticleFormValues {
   title: string;
-  tags: string;
+  tags: string[];
   content: string;
   isPublic: boolean;
 }
@@ -20,6 +20,9 @@ const WriteArticle: React.FC = () => {
   const [content, setContent] = useState('');
   const [isPublic, setIsPublic] = useState(true);
   const [loading, setLoading] = useState(false);
+  const [previewVisible, setPreviewVisible] = useState(false);
+  const [previewContent, setPreviewContent] = useState('');
+  const [wordCount, setWordCount] = useState(0);
   const navigate = useNavigate();
 
   const onFinish = async (values: Omit<ArticleFormValues, 'content'>) => {
@@ -42,15 +45,20 @@ const WriteArticle: React.FC = () => {
   };
 
   const handlePreview = () => {
-    // 实现预览逻辑，可以跳转到预览页或打开弹窗
-    message.info('预览功能待实现');
+    setPreviewContent(content);
+    setPreviewVisible(true);
+  };
+
+  const handleWordCount = (value: string | undefined) => {
+    const text = value || '';
+    setWordCount(text.trim().length);
   };
 
   return (
     <div className={styles.container}>
       <Card 
         title="撰写文章" 
-        bordered={false}
+        style={{ border: 'none' }}
         className={styles.card}
       >
         <Form<ArticleFormValues>
@@ -79,17 +87,18 @@ const WriteArticle: React.FC = () => {
             rules={[
               { required: true, message: '请输入标签!' },
               { 
-                pattern: /^[\w\u4e00-\u9fa5]+(,[\w\u4e00-\u9fa5]+)*$/,
-                message: '多个标签请用英文逗号分隔' 
+                validator: (_, value) => 
+                  Array.isArray(value) && value.length > 0 
+                    ? Promise.resolve() 
+                    : Promise.reject(new Error('至少需要一个标签'))
               }
             ]}
-            extra="多个标签请用英文逗号分隔"
           >
-            <TextArea 
-              placeholder="例如：React,前端开发,TypeScript" 
-              autoSize={{ minRows: 1, maxRows: 3 }}
-              showCount
-              maxLength={200}
+            <Select
+              mode="tags"
+              placeholder="请输入标签，按回车确认"
+              style={{ width: '100%' }}
+              tokenSeparators={[',']}
             />
           </Form.Item>
 
@@ -100,11 +109,23 @@ const WriteArticle: React.FC = () => {
           >
             <MDEditor 
               value={content}
-              onChange={(val) => setContent(val || '')}
+              onChange={(val) => {
+                setContent(val || '');
+                handleWordCount(val);
+              }}
               height={500}
               preview="edit"
               visibleDragbar={false}
+              data-color-mode="light"
+              extraCommands={[
+                 commands.title1,
+                 commands.title2,
+                 commands.title3,
+               ]}
             />
+            <div style={{ marginTop: 8, color: '#666' }}>
+              字数统计: {wordCount}
+            </div>
           </Form.Item>
 
           <Form.Item 
@@ -140,6 +161,15 @@ const WriteArticle: React.FC = () => {
               >
                 预览
               </Button>
+              <Modal
+                title="文章预览"
+                open={previewVisible}
+                onCancel={() => setPreviewVisible(false)}
+                footer={null}
+                width="80%"
+              >
+                <MDEditor.Markdown source={previewContent} />
+              </Modal>
             </Space>
           </Form.Item>
         </Form>
