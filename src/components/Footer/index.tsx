@@ -1,9 +1,13 @@
 import React from 'react';
 import styles from './index.module.scss';
 
-export default function Footer() {
+interface FooterProps {
+  className?: string;
+}
+
+export default function Footer({ className }: FooterProps) {
   return (
-    <footer className={styles.footer}>
+    <footer className={`${styles.footer} ${className}`}>
       <div className={styles.container}>
         <div className={styles.footerColumns}>
           <div className={styles.footerColumn}>
@@ -31,7 +35,7 @@ export default function Footer() {
           </div>
         </div>
         <div className={styles.copyright}>
-          © {new Date().getFullYear()} CSDN博客. 保留所有权利
+          © {new Date().getFullYear()} yhl. 保留所有权利
           <div className={styles.links}>
             <a href="/terms">使用条款</a> | <a href="/privacy">隐私政策</a> | <a href="/cookies">Cookie政策</a>
           </div>

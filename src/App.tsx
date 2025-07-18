@@ -18,9 +18,8 @@ export default function App() {
       <Header />
       <Content className="app-content">
         <Outlet />
-      </Content>
-      <Footer />
-    </Layout>
+    </Content>
+  </Layout>
   );
 }
 

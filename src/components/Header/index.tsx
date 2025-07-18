@@ -106,9 +106,7 @@ const Header: React.FC = () => {
             )}
           </Space>
         </div>
-      </div>
-
-      <div className={styles.subHeader}>
+        <div className={styles.subHeader}>
         <div className={styles.searchContainer}>
           <Search
             placeholder="搜索文章、作者、标签"
@@ -118,6 +116,18 @@ const Header: React.FC = () => {
           />
         </div>
       </div>
+      </div>
+
+      {/* <div className={styles.subHeader}>
+        <div className={styles.searchContainer}>
+          <Search
+            placeholder="搜索文章、作者、标签"
+            allowClear
+            enterButton={<SearchOutlined />}
+            size="middle"
+          />
+        </div>
+      </div> */}
     </header>
   );
 };
