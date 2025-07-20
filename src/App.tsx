@@ -15,7 +15,7 @@ export default function App() {
   }
   return (
     <Layout className="app-container">
-      <Header />
+
       <Content className="app-content">
         <Outlet />
     </Content>

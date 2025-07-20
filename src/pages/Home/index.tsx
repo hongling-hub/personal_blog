@@ -1,9 +1,10 @@
 import styles from './index.module.scss';
 import { Layout, Card, List, Tabs, Menu, Tag, Button, Divider, Avatar } from 'antd';
 import Footer from '../../components/Footer';
+import Header from '../../components/Header';
 import { FireOutlined, StarOutlined, ThunderboltOutlined, AppstoreOutlined, CodeOutlined, MonitorOutlined, PhoneOutlined, AppleOutlined, RobotOutlined, ToolOutlined, BookOutlined, TrophyOutlined, ReloadOutlined } from '@ant-design/icons';
 
-const { Header, Content, Sider } = Layout;
+const { Header: AntHeader, Content, Sider } = Layout;
 
 export default function Home() {
   interface ArticleItem {
@@ -74,13 +75,12 @@ const articleData: ArticleItem[] = [
                     key={item.title}
                     className={styles.articleItem}
                   >
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex' }}>
                       <div style={{ flex: 1 }}>
                         <List.Item.Meta
                           title={<a href="#">{item.title}</a>}
                           description={
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              <div>{item.author}</div>
                               <div style={{ 
                                 display: '-webkit-box', 
                                 WebkitLineClamp: 3, 
@@ -88,7 +88,7 @@ const articleData: ArticleItem[] = [
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
                               }}>{item.desc}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                 <span>{item.date}</span>
                                 <span>{item.author}</span>
                                 <span>{item.views}浏览</span>
@@ -105,7 +105,7 @@ const articleData: ArticleItem[] = [
                         />
                       </div>
                       {item.image && (
-                        <div className={styles.articleImage} style={{ flexShrink: 0, width: '200px' }}>
+                        <div className={styles.articleImage} style={{ flexShrink: 0}}>
                           <img src={item.image} alt={item.title} style={{ width: '100%', height: 'auto' }} />
                         </div>
                       )}
@@ -136,13 +136,12 @@ const articleData: ArticleItem[] = [
                     key={item.title}
                     className={styles.articleItem}
                   >
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex' }}>
                       <div style={{ flex: 1 }}>
                         <List.Item.Meta
                           title={<a href="#">{item.title}</a>}
                           description={
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              <div>{item.author}</div>
                               <div style={{ 
                                 display: '-webkit-box', 
                                 WebkitLineClamp: 3, 
@@ -150,7 +149,7 @@ const articleData: ArticleItem[] = [
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
                               }}>{item.desc}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap'  }}>
                                 <span>{item.date}</span>
                                 <span>{item.author}</span>
                                 <span>{item.views}浏览</span>
@@ -167,7 +166,7 @@ const articleData: ArticleItem[] = [
                         />
                       </div>
                       {item.image && (
-                        <div className={styles.articleImage} style={{ flexShrink: 0, width: '200px' }}>
+                        <div className={styles.articleImage} style={{ flexShrink: 0}}>
                           <img src={item.image} alt={item.title} style={{ width: '100%', height: 'auto' }} />
                         </div>
                       )}
@@ -198,13 +197,12 @@ const articleData: ArticleItem[] = [
                     key={item.title}
                     className={styles.articleItem}
                   >
-                    <div style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
+                    <div style={{ display: 'flex' }}>
                       <div style={{ flex: 1 }}>
                         <List.Item.Meta
                           title={<a href="#">{item.title}</a>}
                           description={
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                              <div>{item.author}</div>
                               <div style={{ 
                                 display: '-webkit-box', 
                                 WebkitLineClamp: 3, 
@@ -212,7 +210,7 @@ const articleData: ArticleItem[] = [
                                 overflow: 'hidden',
                                 textOverflow: 'ellipsis'
                               }}>{item.desc}</div>
-                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap'  }}>
                                 <span>{item.date}</span>
                                 <span>{item.author}</span>
                                 <span>{item.views}浏览</span>
@@ -229,7 +227,7 @@ const articleData: ArticleItem[] = [
                         />
                       </div>
                       {item.image && (
-                        <div className={styles.articleImage} style={{ flexShrink: 0, width: '200px' }}>
+                        <div className={styles.articleImage} style={{ flexShrink: 0}}>
                           <img src={item.image} alt={item.title} style={{ width: '100%', height: 'auto' }} />
                         </div>
                       )}
@@ -268,6 +266,7 @@ const articleData: ArticleItem[] = [
       </Sider>
       <Layout>
         <Content className={styles.content}>
+      <Header />
           <Tabs
             defaultActiveKey="1"
             tabBarStyle={{ 
