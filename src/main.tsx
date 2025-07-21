@@ -8,6 +8,7 @@ import AuthPage from './pages/AuthPage';
 import ArticleDetail from './pages/ArticleDetail';
 import WriteArticle from './pages/WriteArticle';
 import AdminDashboard from './pages/AdminDashboard';
+import Profile from './pages/Profile';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -20,7 +21,8 @@ const router = createBrowserRouter([
       { path: 'article/:id', element: <ArticleDetail /> },
       { path: 'write-article', element: <WriteArticle /> },
       { path: 'write', element: <WriteArticle /> },
-      { path: 'admin', element: <AdminDashboard /> }
+      { path: 'admin', element: <AdminDashboard /> },
+      { path: 'profile', element: <Profile /> }
     ],
     errorElement: <ErrorPage /> // 添加错误处理页面
   },

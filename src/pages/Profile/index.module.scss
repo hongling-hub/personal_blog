@@ -1,0 +1,211 @@
+.profilePage {
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.topSection {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  .avatarWrapper {
+    flex-shrink: 0;
+  }
+
+  .userInfo {
+    flex-grow: 1;
+
+    .username {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .bio {
+      p {
+        margin: 4px 0;
+        color: #666;
+      }
+    }
+
+    .settingBtn {
+      margin-top: 10px;
+    }
+  }
+
+  .statsSide {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    text-align: right;
+
+    .statItem {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+
+      .statValue {
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+
+      .statLabel {
+        color: #999;
+    }
+  }
+  }
+}
+
+.badgeSection {
+  margin: 15px 0;
+  color: #666;
+}
+
+.tabs {
+  margin-top: 10px;
+
+  .ant-tabs-tab {
+    font-size: 14px;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  color: #999;
+
+  .emptyImg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+  }
+}
+@media (min-width: 768px) {
+
+  .Page{
+    display: flex;
+  }
+
+  // .statsSide{
+  //   width: 30%;
+  //   background: #f5f5f5;
+  // }
+
+  .profilePage {
+    // display: flex;
+  width: 60%;
+  max-width: 1200px;
+  background: #fff;
+  border-radius: 8px;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.topSection {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  .avatarWrapper {
+    flex-shrink: 0;
+  }
+
+  .userInfo {
+    flex-grow: 1;
+
+    .username {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 10px;
+    }
+
+    .bio {
+      p {
+        margin: 4px 0;
+        color: #666;
+      }
+    }
+
+    .settingBtn {
+      margin-top: 10px;
+    }
+  }
+
+  // .statsSide {
+  //   display: flex;
+  //   flex-direction: column;
+  //   gap: 10px;
+  //   text-align: right;
+
+    .statItem {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 6px;
+
+      .statValue {
+        font-weight: 600;
+        color: #1a1a1a;
+      }
+
+      .statLabel {
+        color: #999;
+      }
+  }
+}
+
+.badgeSection {
+  margin: 15px 0;
+  color: #666;
+}
+
+.tabs {
+  margin-top: 10px;
+
+  .ant-tabs-tab {
+    font-size: 14px;
+  }
+}
+
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+  text-align: center;
+  color: #999;
+
+  .emptyImg {
+    width: 80px;
+    height: 80px;
+    margin-bottom: 10px;
+  }
+}
+}
+
+@media (max-width: 767px) {
+  .profileCard {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+  }
+
+  .stats {
+    justify-content: center;
+  }
+}

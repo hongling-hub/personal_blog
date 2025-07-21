@@ -20,6 +20,7 @@ const Header: React.FC = () => {
       key: 'profile',
       icon: <UserOutlined />,
       label: '个人主页',
+      onClick: () => navigate('/profile'),
     },
     {
       key: 'settings',
@@ -90,7 +91,7 @@ const Header: React.FC = () => {
                   src="../src/assets/images/avatar/default.png" 
                   size="large" 
                   style={{ cursor: 'pointer' }}
-                  onClick={() => navigate('/profile')}
+
                 />
               </Dropdown>
             ) : (

@@ -237,6 +237,40 @@
   transition: all 0.2s;
 }
 
+.columnContainer {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 12px;
+  align-items: center;
+}
+
+.columnTag {
+  background-color: #1890ff;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.deleteColumn {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
+}
+
+.columnInput {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 120px;
+  outline: none;
+}
+
 .aiSummaryBtn:hover {
   background-color: #e6f7ff;
 }
@@ -776,6 +810,32 @@
   font-size: 14px;
   text-align: center;
   padding: 40px 0;
+}
+
+.columnInput {
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  width: 120px;
+  outline: none;
+}
+
+.columnTag {
+  background-color: #1890ff;
+  color: white;
+  padding: 4px 10px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+}
+
+.deleteColumn {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: bold;
 }
 
 }

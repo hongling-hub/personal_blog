@@ -10,7 +10,7 @@
   padding: 0 24px;
   background-color: #fff;
   height: 66px;
-  overflow-x: scroll;
+  overflow: hidden;
   
 
   .container {
@@ -119,5 +119,6 @@
 @media(min-width: 768px){
   .header {
   height: 70px;
+  overflow-x: auto;
 }
 }

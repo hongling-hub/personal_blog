@@ -13,6 +13,9 @@ const WriteArticle: React.FC = () => {
   const [content, setContent] = useState('');
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [editorImages, setEditorImages] = useState<string[]>([]);
+  const [columns, setColumns] = useState<string[]>([]);
+  const [isAddingColumn, setIsAddingColumn] = useState(false);
+  const [newColumnName, setNewColumnName] = useState('');
 
   // 处理封面上传
   const handleCoverUpload: UploadProps['beforeUpload'] = (file: RcFile, fileList: RcFile[]) => {
@@ -37,6 +40,24 @@ const WriteArticle: React.FC = () => {
         };
       reader.readAsDataURL(file);
     });
+  };
+
+    // 在组件中添加图片上传处理函数
+  const onUploadImg = async (files: FileList, callback: (urls: string[]) => void) => {
+    const urls = await Promise.all(
+      Array.from(files).map((file) => {
+        return new Promise<string>((resolve, reject) => {
+          // 这里模拟上传过程，实际应该调用你的API
+          const reader = new FileReader();
+          reader.onload = (e) => {
+            // 这里应该返回实际图片URL，而不是dataURL
+            resolve(e.target?.result as string);
+          };
+          reader.readAsDataURL(file);
+        });
+      })
+    );
+    callback(urls);
   };
 
   // 从编辑器内容提取图片
@@ -113,6 +134,7 @@ const WriteArticle: React.FC = () => {
             onChange={(val: string) => setContent(val || '')}
             preview={false}
              showCodeRowNumber={true}
+             onUploadImg={onUploadImg} 
             className={styles.editor}
             toolbar={[
               'bold', 'italic', 'strikethrough', 'hr', 'title', 'divider',
@@ -219,7 +241,53 @@ const WriteArticle: React.FC = () => {
               分类专栏
               <span className={styles.helpIcon}>ⓘ</span>
             </label>
-            <button className={styles.addColumnBtn}>+ 新建分类专栏</button>
+            <div className={styles.columnContainer}>
+              {columns.map((column, index) => (
+                <div key={index} className={styles.columnTag}>
+                  {column}
+                  <span
+                    className={styles.deleteColumn}
+                    onClick={() => {
+                      const newColumns = [...columns];
+                      newColumns.splice(index, 1);
+                      setColumns(newColumns);
+                    }}
+                  >
+                    ×
+                  </span>
+                </div>
+              ))}
+              {isAddingColumn ? (
+                <input
+                  type="text"
+                  className={styles.columnInput}
+                  value={newColumnName}
+                  onChange={(e) => setNewColumnName(e.target.value)}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter' && newColumnName.trim()) {
+                      setColumns([...columns, newColumnName.trim()]);
+                      setNewColumnName('');
+                      setIsAddingColumn(false);
+                    }
+                  }}
+                  onBlur={() => {
+                    if (newColumnName.trim()) {
+                      setColumns([...columns, newColumnName.trim()]);
+                    }
+                    setNewColumnName('');
+                    setIsAddingColumn(false);
+                  }}
+                  autoFocus
+                />
+              ) : (
+                <button
+                  className={styles.addColumnBtn}
+                  onClick={() => setIsAddingColumn(true)}
+                >
+                  + 新建分类专栏
+                </button>
+              )}
+            </div>
           </div>
 
           {/* 文章类型 */}
