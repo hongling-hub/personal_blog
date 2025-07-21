@@ -3,6 +3,40 @@ const router = express.Router();
 const User = require('../models/User');
 const svgCaptcha = require('svg-captcha');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+
+// 配置multer存储
+const storage = multer.diskStorage({
+  destination: function(req, file, cb) {
+    const uploadDir = path.join(__dirname, '../../public/uploads/avatars');
+    // 确保目录存在
+    require('fs').mkdirSync(uploadDir, { recursive: true });
+    cb(null, uploadDir);
+  },
+  filename: function(req, file, cb) {
+    // 生成唯一文件名
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = path.extname(file.originalname);
+    cb(null, 'avatar-' + uniqueSuffix + ext);
+  }
+});
+
+// 文件过滤
+const fileFilter = (req, file, cb) => {
+  // 只接受图片文件
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
+  } else {
+    cb(new Error('只允许上传图片文件'), false);
+  }
+};
+
+const upload = multer({
+  storage: storage,
+  limits: { fileSize: 5 * 1024 * 1024 }, // 5MB
+  fileFilter: fileFilter
+});
 
 // 生成验证码
 router.get('/captcha', (req, res) => {
@@ -85,6 +119,70 @@ router.post('/register', async (req, res) => {
       message: '注册失败', 
       error: process.env.NODE_ENV === 'development' ? err.message : null
     });
+  }
+});
+
+// 获取当前用户信息
+router.get('/me', async (req, res) => {
+  try {
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: '未登录' });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId).select('-password');
+    
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
+    
+    res.json({
+      username: user.username,
+      avatar: user.avatar,
+      joinDate: user.createdAt.toISOString(),
+      stats: {
+        followers: 0,
+        following: 0,
+        collections: 0,
+        tags: 0,
+        likes: 0,
+        posts: 0
+      }
+    });
+  } catch (error) {
+    res.status(401).json({ message: '无效的token' });
+  }
+});
+
+// 上传头像
+router.post('/upload-avatar', upload.single('avatar'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ message: '请上传头像文件' });
+    }
+    
+    const token = req.headers.authorization?.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ message: '未登录' });
+    }
+    
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.userId);
+    
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
+    
+    // 保存头像路径
+    const avatarUrl = `/uploads/avatars/${req.file.filename}`;
+    user.avatar = avatarUrl;
+    await user.save();
+    
+    res.json({ avatar: avatarUrl });
+  } catch (error) {
+    console.error('上传头像失败:', error);
+    res.status(500).json({ message: '上传头像失败' });
   }
 });
 

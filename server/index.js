@@ -9,7 +9,11 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const { errors } = require('celebrate');
 const winston = require('winston');
+const path = require('path');
 const app = express();
+
+// 配置静态文件服务
+app.use(express.static(path.join(__dirname, '../public')));
 
 // 1. 初始化日志记录器
 const logger = winston.createLogger({

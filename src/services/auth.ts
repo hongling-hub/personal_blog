@@ -21,6 +21,20 @@ interface RegisterResponse {
   message?: string;
 }
 
+interface UserInfoResponse {
+  username: string;
+  avatar: string;
+  joinDate: string;
+  stats: {
+    followers: number;
+    following: number;
+    collections: number;
+    tags: number;
+    likes: number;
+    posts: number;
+  }
+}
+
 export default {
   // 用户登录
   login: async (data: LoginParams): Promise<LoginResponse> => {
@@ -82,6 +96,64 @@ return {
       };
     } catch (error) {
       console.error('注册请求失败:', error);
+      throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
+    }
+  },
+
+  // 获取用户信息
+  getUserInfo: async (): Promise<UserInfoResponse> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登录');
+      }
+      
+      const res = await fetch('/api/auth/me', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        credentials: 'include'
+      });
+      
+      if (!res.ok) {
+        throw new Error('获取用户信息失败');
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error('获取用户信息失败:', error);
+      throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
+    }
+  },
+
+  // 上传头像
+  uploadAvatar: async (file: File): Promise<string> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登录');
+      }
+      
+      const formData = new FormData();
+      formData.append('avatar', file);
+      
+      const res = await fetch('/api/auth/upload-avatar', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        },
+        body: formData,
+        credentials: 'include'
+      });
+      
+      if (!res.ok) {
+        throw new Error('上传头像失败');
+      }
+      
+      const data = await res.json();
+      return data.avatar;
+    } catch (error) {
+      console.error('上传头像失败:', error);
       throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
     }
   }

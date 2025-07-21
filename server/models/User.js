@@ -16,6 +16,10 @@ const UserSchema = new mongoose.Schema({
     required: true,
     minlength: 6
   },
+  avatar: {
+    type: String,
+    default: 'https://cdn-icons-png.flaticon.com/512/2650/2650869.png'
+  },
   role: {
     type: String,
     enum: ['user', 'admin'],
@@ -24,12 +28,8 @@ const UserSchema = new mongoose.Schema({
   favorites: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Article'
-  }],
-  createdAt: {
-    type: Date,
-    default: Date.now
-  }
-});
+  }]
+}, { timestamps: true });
 
 // 密码加密
 UserSchema.pre('save', async function(next) {
