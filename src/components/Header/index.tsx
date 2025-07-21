@@ -22,6 +22,9 @@ const Header: React.FC = () => {
       label: '个人主页',
       onClick: () => navigate('/profile'),
     },
+    { key: 'articles', icon: <FileTextOutlined />, label: '创作者中心', onClick: () => navigate('/creator-center'),
+      
+    },
     {
       key: 'settings',
       icon: <SettingOutlined />,
@@ -82,15 +85,33 @@ const Header: React.FC = () => {
         <div className={styles.actions}>
           <Space size="middle">
             <Button type="primary" icon={<FileTextOutlined />} onClick={() => navigate('/write-article')}>写博客</Button>
-            <Badge count={5}>
-              <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
-            </Badge>
+            <Dropdown
+              menu={{
+                items: [
+                  { key: 'comment', label: '评论' },
+                  { key: 'like', label: '赞和收藏' },
+                  { key: 'follower', label: '新增粉丝' },
+                  { key: 'message', label: '私信' },
+                  { key: 'notification', label: (
+                    <span>
+                      系统通知 <Badge count={2} size="small" />
+                    </span>
+                  )}
+                ]
+              }}
+              trigger={['hover']}
+              placement="bottomRight"
+            >
+              <Badge count={5}>
+                <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
+              </Badge>
+            </Dropdown>
             {isLoggedIn ? (
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 <Avatar 
                   src="../src/assets/images/avatar/default.png" 
                   size="large" 
-                  style={{ cursor: 'pointer' }}
+                  style={{ cursor: 'pointer' ,marginLeft: '1rem'}}
 
                 />
               </Dropdown>

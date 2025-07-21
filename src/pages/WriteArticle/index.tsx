@@ -220,6 +220,15 @@ const WriteArticle: React.FC = () => {
             </div>
           </div>
 
+          {/* 文章标题 */}
+          <div className={styles.settingItem}>
+            <label className={styles.label}>
+              文章标题
+              <span className={styles.helpIcon}>ⓘ</span>
+            </label>
+           <input type="text" className={styles.titleInput} />
+          </div>
+
           {/* 文章摘要 */}
           <div className={styles.settingItem}>
             <label className={styles.label}>

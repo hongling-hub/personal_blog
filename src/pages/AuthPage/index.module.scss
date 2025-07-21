@@ -18,6 +18,29 @@
 
 .auth-container {
   max-width: 400px;
+  width: 100%;
+  padding: 2rem;
+  background-color: white;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  position: relative; 
+  z-index: 1; 
+}
+
+.captchaImg{
+  height: 40px;
+}
+
+.title {
+  text-align: center;
+  margin-bottom: 1rem;
+  color: #333;
+}
+
+@media (min-width: 768px) {
+  
+.auth-container {
+  max-width: 400px;
   width: 30%;
   padding: 2rem;
   background-color: white;
@@ -29,7 +52,7 @@
 
 .title {
   text-align: center;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   color: #333;
 }
 
@@ -84,4 +107,9 @@
   border: none;
   color: white;
   cursor: pointer;
+}
+
+.captchaImg{
+  height: 40px;
+}
 }

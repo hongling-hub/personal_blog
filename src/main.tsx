@@ -10,6 +10,7 @@ import ArticleDetail from './pages/ArticleDetail';
 import WriteArticle from './pages/WriteArticle';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
+import CreatorCenter from './pages/CreatorCenter';
 import './index.css';
 
 const router = createBrowserRouter([
@@ -25,7 +26,8 @@ const router = createBrowserRouter([
           { path: 'write-article', element: <WriteArticle /> },
           { path: 'write', element: <WriteArticle /> },
           { path: 'admin', element: <AdminDashboard /> },
-          { path: 'profile', element: <Profile /> }
+          { path: 'profile', element: <Profile /> },
+          { path: 'creator-center', element: <CreatorCenter /> }
         ]
       }
     ],
