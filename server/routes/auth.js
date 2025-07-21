@@ -46,10 +46,10 @@ router.post('/login', async (req, res) => {
   
   // 生成JWT
   const token = jwt.sign(
-    { userId: user._id, role: user.role },
-    process.env.JWT_SECRET,
-    { expiresIn: '1d' }
-  );
+  { userId: user._id, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: '2h' }
+);
   
   res.json({ 
     success: true,

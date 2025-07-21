@@ -2,6 +2,7 @@ import { ErrorPage } from '@/pages/ErrorPage';
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
+import PrivateRoute from './PrivateRoute';
 import App from './App';
 import Home from './pages/Home';
 import AuthPage from './pages/AuthPage';
@@ -18,11 +19,15 @@ const router = createBrowserRouter([
     children: [
       { index: true, element: <Home /> }, // 根路径'/'会自动渲染Home组件
       { path: 'home', element: <Home /> },
-      { path: 'article/:id', element: <ArticleDetail /> },
-      { path: 'write-article', element: <WriteArticle /> },
-      { path: 'write', element: <WriteArticle /> },
-      { path: 'admin', element: <AdminDashboard /> },
-      { path: 'profile', element: <Profile /> }
+      { element: <PrivateRoute />,
+        children: [
+          { path: 'article/:id', element: <ArticleDetail /> },
+          { path: 'write-article', element: <WriteArticle /> },
+          { path: 'write', element: <WriteArticle /> },
+          { path: 'admin', element: <AdminDashboard /> },
+          { path: 'profile', element: <Profile /> }
+        ]
+      }
     ],
     errorElement: <ErrorPage /> // 添加错误处理页面
   },

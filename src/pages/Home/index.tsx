@@ -1,4 +1,5 @@
 import styles from './index.module.scss';
+import { Link } from 'react-router-dom';
 import { Layout, Card, List, Tabs, Menu, Tag, Button, Divider, Avatar } from 'antd';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
@@ -8,6 +9,7 @@ const { Header: AntHeader, Content, Sider } = Layout;
 
 export default function Home() {
   interface ArticleItem {
+  id: string;
   title: string;
   desc: string;
   author: string;
@@ -21,6 +23,7 @@ export default function Home() {
 
 const articleData: ArticleItem[] = [
     {
+      id: '1',
       title: 'STM32--USART串口通信的应用（第一节串口通信的概念）',
       desc: '我们在发送的数据的时候，比如说我们的微控制器往外发送的时候，通过这。好，如果说你这个校验位你配置好了之后...',
       author: '金星娃儿',
@@ -32,6 +35,7 @@ const articleData: ArticleItem[] = [
       tags: ['嵌入式', 'STM32', '串口通信']
     },
     {
+      id: '2',
       title: 'C语言32个关键字',
       desc: '一共32个关键字分为。',
       author: '慈悲不渡自绝的人',
@@ -43,6 +47,7 @@ const articleData: ArticleItem[] = [
       tags: ['C语言', '编程基础', '关键字']
     },
     {
+      id: '3',
       title: '蓝桥杯 第十六届（2025）真题思路复盘解析',
       desc: '本文以洛谷平台所提供的题目描述及评测数据为基础进行讲解。前言：这是本人的蓝桥杯试卷...',
       author: 'apcipot_rain',
@@ -78,7 +83,7 @@ const articleData: ArticleItem[] = [
                     <div style={{ display: 'flex' }}>
                       <div style={{ flex: 1 }}>
                         <List.Item.Meta
-                          title={<a href="#">{item.title}</a>}
+                          title={<Link to={`/article/${item.id}`}>{item.title}</Link>}
                           description={
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                               <div style={{ 

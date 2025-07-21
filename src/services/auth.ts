@@ -36,11 +36,14 @@ export default {
 
       const response = await res.json();
 
-      if (!res.ok) {
-        throw new Error(response.message || '登录失败');
-      }
+if (!res.ok) {
+  throw new Error(response.message || '登录失败');
+}
 
-      return {
+// 保存token到本地存储
+localStorage.setItem('token', response.token);
+
+return {
         success: true,
         token: response.token,
         message: response.message || '登录成功'
