@@ -1,211 +1,504 @@
+// index.module.scss
 .profilePage {
   width: 90%;
   max-width: 1200px;
   margin: 20px auto;
   background: #fff;
-  border-radius: 8px;
-  padding: 20px;
+  border-radius: 12px;
+  padding: 24px;
   box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); // 轻微阴影增强卡片感
 }
 
+// 全局容器（内容区+侧边栏）
+.Page {
+  display: flex;
+  width: 92%;
+  max-width: 1400px;
+  margin: 0 auto;
+  gap: 24px; // 内容区与侧边栏间距
+  padding: 20px 0;
+}
+
+// 内容区（左侧）
+.contentArea {
+  flex: 65; // 占比65%
+}
+
+// 侧边栏（右侧统计区）
+.sidebar {
+  flex: 35; // 占比35%
+}
+
+// 顶部信息区域
 .topSection {
   display: flex;
   align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
   gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
 
   .avatarWrapper {
     flex-shrink: 0;
+    border: 2px solid #f0f2f5; // 头像边框增强质感
+    border-radius: 50%;
+    padding: 3px;
+
+    .avatar {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover .avatar {
+      transform: scale(1.03); // 头像hover微动效
+    }
   }
 
   .userInfo {
     flex-grow: 1;
+    min-width: 200px; // 避免过窄
 
     .username {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 10px;
+      font-size: 22px;
+      font-weight: 700;
+      color: #1d2129;
+      margin: 0 0 12px 0;
     }
 
     .bio {
+      margin-bottom: 16px;
+
       p {
-        margin: 4px 0;
-        color: #666;
+        margin: 6px 0;
+        color: #4e5969;
+        font-size: 14px;
+        line-height: 1.5;
       }
     }
 
     .settingBtn {
-      margin-top: 10px;
+      padding: 6px 16px;
+      font-size: 14px;
+      transition: all 0.2s;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+      }
     }
+  }
+}
+
+// 徽章区域
+.badgeSection {
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  span {
+    color: #1d2129;
+    font-size: 14px;
+  }
+
+  .badgeList {
+    display: flex;
+    gap: 8px;
+
+    .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e8f3ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1890ff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+// 标签栏区域
+.tabs {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0f2f5;
+  overflow: hidden;
+
+  .ant-tabs-nav {
+    padding-left: 16px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f2f5;
+  }
+
+  .ant-tabs-tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #4e5969;
+    margin-right: 8px;
+
+    &.ant-tabs-tab-active {
+      color: #1890ff;
+      font-weight: 500;
+    }
+  }
+
+  .ant-tabs-content-holder {
+    padding: 24px;
+  }
+}
+
+// 空状态样式
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  background: #fafafa;
+  border-radius: 8px;
+  color: #86909c;
+
+  .emptyImg {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  p {
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+// 侧边栏统计区域
+.statsSide {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  height: fit-content; // 自适应内容高度
+
+  .statItem {
+    display: flex;
+    justify-content: space-between; // 左右对齐
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f2f5;
+
+    &:last-child {
+      border-bottom: none; // 最后一项无下划线
+    }
+
+    .statLabel {
+      color: #4e5969;
+      font-size: 14px;
+    }
+
+    .statValue {
+      font-weight: 600;
+      color: #1d2129;
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: #fafafa;
+      border-radius: 6px;
+    }
+  }
+}
+
+@media (min-width:768px){
+  // index.module.scss
+.profilePage {
+  width: 90%;
+  max-width: 1200px;
+  margin: 20px auto;
+  background: #fff;
+  border-radius: 12px;
+  padding: 24px;
+  box-sizing: border-box;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05); // 轻微阴影增强卡片感
+}
+
+// 全局容器（内容区+侧边栏）
+.Page {
+  display: flex;
+  width: 92%;
+  max-width: 1400px;
+  margin: 0 auto;
+  gap: 24px; // 内容区与侧边栏间距
+  padding: 20px 0;
+}
+
+// 内容区（左侧）
+.contentArea {
+  flex: 65; // 占比65%
+}
+
+// 侧边栏（右侧统计区）
+.sidebar {
+  flex: 20; // 占比35%
+  margin-top: 20px;
+}
+
+// 顶部信息区域
+.topSection {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+
+  .avatarWrapper {
+    flex-shrink: 0;
+    border: 2px solid #f0f2f5; // 头像边框增强质感
+    border-radius: 50%;
+    padding: 3px;
+
+    .avatar {
+      transition: transform 0.3s ease;
+    }
+
+    &:hover .avatar {
+      transform: scale(1.03); // 头像hover微动效
+    }
+  }
+
+  .userInfo {
+    flex-grow: 1;
+    min-width: 200px; // 避免过窄
+
+    .username {
+      font-size: 22px;
+      font-weight: 700;
+      color: #1d2129;
+      margin: 0 0 12px 0;
+    }
+
+    .bio {
+      margin-bottom: 16px;
+
+      p {
+        margin: 6px 0;
+        color: #4e5969;
+        font-size: 14px;
+        line-height: 1.5;
+      }
+    }
+
+    .settingBtn {
+      padding: 6px 16px;
+      font-size: 14px;
+      transition: all 0.2s;
+
+      &:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 2px 8px rgba(24, 144, 255, 0.2);
+      }
+    }
+  }
+}
+
+// 徽章区域
+.badgeSection {
+  background: #f5f7fa;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  span {
+    color: #1d2129;
+    font-size: 14px;
+  }
+
+  .badgeList {
+    display: flex;
+    gap: 8px;
+
+    .badge {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background: #e8f3ff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #1890ff;
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+// 标签栏区域
+.tabs {
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #f0f2f5;
+  overflow: hidden;
+
+  .ant-tabs-nav {
+    padding-left: 16px;
+    background: #fafafa;
+    border-bottom: 1px solid #f0f2f5;
+  }
+
+  .ant-tabs-tab {
+    padding: 12px 20px;
+    font-size: 14px;
+    color: #4e5969;
+    margin-right: 8px;
+
+    &.ant-tabs-tab-active {
+      color: #1890ff;
+      font-weight: 500;
+    }
+  }
+
+  .ant-tabs-content-holder {
+    padding: 24px;
+  }
+}
+
+// 空状态样式
+.emptyState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 280px;
+  background: #fafafa;
+  border-radius: 8px;
+  color: #86909c;
+
+  .emptyImg {
+    width: 90px;
+    height: 90px;
+    margin-bottom: 16px;
+    opacity: 0.7;
+  }
+
+  p {
+    font-size: 14px;
+    margin: 0;
+  }
+}
+
+// 侧边栏统计区域
+.statsSide {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  height: fit-content; // 自适应内容高度
+
+  .statItem {
+    display: flex;
+    justify-content: space-between; // 左右对齐
+    padding: 12px 8px;
+    border-bottom: 1px solid #f0f2f5;
+
+    &:last-child {
+      border-bottom: none; // 最后一项无下划线
+    }
+
+    .statLabel {
+      color: #4e5969;
+      font-size: 14px;
+    }
+
+    .statValue {
+      font-weight: 600;
+      color: #1d2129;
+      font-size: 14px;
+    }
+
+    &:hover {
+      background: #fafafa;
+      border-radius: 6px;
+    }
+  }
+}
+}
+
+// 响应式适配 - 平板及以下
+@media (max-width: 991px) {
+  .Page {
+    flex-direction: column;
+    gap: 20px;
+    padding: 16px;
+  }
+
+  .contentArea,
+  .sidebar {
+    flex: none;
+    width: 100%;
   }
 
   .statsSide {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    text-align: right;
-
-    .statItem {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 6px;
-
-      .statValue {
-        font-weight: 600;
-        color: #1a1a1a;
-      }
-
-      .statLabel {
-        color: #999;
-    }
+    padding: 16px;
   }
+
+  .topSection {
+    gap: 16px;
   }
 }
 
-.badgeSection {
-  margin: 15px 0;
-  color: #666;
-}
-
-.tabs {
-  margin-top: 10px;
-
-  .ant-tabs-tab {
-    font-size: 14px;
-  }
-}
-
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  text-align: center;
-  color: #999;
-
-  .emptyImg {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 10px;
-  }
-}
-@media (min-width: 768px) {
-
-  .Page{
-    display: flex;
-  }
-
-  // .statsSide{
-  //   width: 30%;
-  //   background: #f5f5f5;
-  // }
-
-  .profilePage {
-    // display: flex;
-  width: 60%;
-  max-width: 1200px;
-  background: #fff;
-  border-radius: 8px;
-  padding: 20px;
-  box-sizing: border-box;
-}
-
-.topSection {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 20px;
-
-  .avatarWrapper {
-    flex-shrink: 0;
-  }
-
-  .userInfo {
-    flex-grow: 1;
-
-    .username {
-      font-size: 20px;
-      font-weight: 600;
-      margin-bottom: 10px;
-    }
-
-    .bio {
-      p {
-        margin: 4px 0;
-        color: #666;
-      }
-    }
-
-    .settingBtn {
-      margin-top: 10px;
-    }
-  }
-
-  // .statsSide {
-  //   display: flex;
-  //   flex-direction: column;
-  //   gap: 10px;
-  //   text-align: right;
-
-    .statItem {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 6px;
-
-      .statValue {
-        font-weight: 600;
-        color: #1a1a1a;
-      }
-
-      .statLabel {
-        color: #999;
-      }
-  }
-}
-
-.badgeSection {
-  margin: 15px 0;
-  color: #666;
-}
-
-.tabs {
-  margin-top: 10px;
-
-  .ant-tabs-tab {
-    font-size: 14px;
-  }
-}
-
-.emptyState {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  min-height: 200px;
-  text-align: center;
-  color: #999;
-
-  .emptyImg {
-    width: 80px;
-    height: 80px;
-    margin-bottom: 10px;
-  }
-}
-}
-
+// 响应式适配 - 手机端
 @media (max-width: 767px) {
-  .profileCard {
+  .profilePage {
+    padding: 16px;
+    width: 100%;
+  }
+
+  .topSection {
     flex-direction: column;
     align-items: center;
     text-align: center;
   }
 
-  .stats {
+  .userInfo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .badgeSection {
+    flex-wrap: wrap;
     justify-content: center;
+  }
+
+  .tabs {
+    .ant-tabs-nav {
+      padding-left: 8px;
+    }
+
+    .ant-tabs-tab {
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .ant-tabs-content-holder {
+      padding: 16px 8px;
+    }
+  }
+
+  .emptyState {
+    min-height: 200px;
+  }
+
+  .statsSide {
+    .statItem {
+      padding: 10px 6px;
+      font-size: 13px;
+    }
   }
 }

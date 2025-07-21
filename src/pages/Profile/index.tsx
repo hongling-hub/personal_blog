@@ -37,36 +37,42 @@ const ProfilePage: React.FC = () => {
     },
   };
 
-  return (
-    <div className={styles.Page}>
-      
-      {/* {内容区} */}
-    <div className={styles.profilePage}>
-      <div>
-      {/* 顶部信息区域 */}
+// 调整return部分的结构
+return (
+  <div className={styles.Page}>
+    {/* 内容区 */}
+    <div className={styles.contentArea}>
+      <div className={styles.profilePage}>
+        {/* 顶部信息区域 */}
         <div className={styles.topSection}>
-        <div className={styles.avatarWrapper}>
-          <Avatar src={userData.avatar} size={80} />
+          <div className={styles.avatarWrapper}>
+            <Avatar src={userData.avatar} size={80} className={styles.avatar} />
+          </div>
+          <div className={styles.userInfo}>
+            <h2 className={styles.username}>{userData.username}</h2>
+            <div className={styles.bio}>
+              {userData.bioItems.map((item, index) => (
+                <p key={index}>{item}</p>
+              ))}
+            </div>
+            <Button type="primary" className={styles.settingBtn}>
+              设置
+            </Button>
+          </div>
         </div>
-        <div className={styles.userInfo}>
-          <h2 className={styles.username}>{userData.username}</h2>
-          <div className={styles.bio}>
-            {userData.bioItems.map((item, index) => (
-              <p key={index}>{item}</p>
+
+        {/* 徽章区域 */}
+        <div className={styles.badgeSection}>
+          <span>获得徽章</span>
+          <div className={styles.badgeList}>
+            {/* 这里可以动态渲染徽章，暂时放一个示例 */}
+            {Array.from({ length: userData.stats.posts }).map((_, i) => (
+              <span key={i} className={styles.badge}>{i + 1}</span>
             ))}
           </div>
-          <Button type="primary" className={styles.settingBtn}>
-            设置
-          </Button>
         </div>
-      </div>
 
-      {/* 徽章区域 */}
-      <div className={styles.badgeSection}>
-        <span>获得徽章 {userData.stats.posts}</span>
-      </div>
-
-      {/* 标签栏区域 */}
+  {/* 标签栏区域 */}
       <Tabs className={styles.tabs}>
         <TabPane tab="动态" key="1">
           <div className={styles.emptyState}>
@@ -114,36 +120,37 @@ const ProfilePage: React.FC = () => {
           </div>
         </TabPane>
       </Tabs>
+        
       </div>
     </div>
 
-      {/* {侧边栏} */}
-      <div>
-        <div className={styles.statsSide}>
-          <div className={styles.statItem}>
-            <span className={styles.statValue}>{userData.stats.following}</span>
-            <span className={styles.statLabel}>关注了</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statValue}>{userData.stats.followers}</span>
-            <span className={styles.statLabel}>关注者</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statValue}>{userData.stats.collections}</span>
-            <span className={styles.statLabel}>收藏集</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statValue}>{userData.stats.tags}</span>
-            <span className={styles.statLabel}>关注标签</span>
-          </div>
-          <div className={styles.statItem}>
-            <span className={styles.statLabel}>加入于</span>
-            <span className={styles.statValue}>{userData.joinDate}</span>
-          </div>
+    {/* 侧边栏 */}
+    <div className={styles.sidebar}>
+      <div className={styles.statsSide}>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>关注了</span>
+          <span className={styles.statValue}>{userData.stats.following}</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>关注者</span>
+          <span className={styles.statValue}>{userData.stats.followers}</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>收藏集</span>
+          <span className={styles.statValue}>{userData.stats.collections}</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>关注标签</span>
+          <span className={styles.statValue}>{userData.stats.tags}</span>
+        </div>
+        <div className={styles.statItem}>
+          <span className={styles.statLabel}>加入于</span>
+          <span className={styles.statValue}>{userData.joinDate}</span>
         </div>
       </div>
     </div>
-  );
+  </div>
+);
 };
 
 export default ProfilePage;
