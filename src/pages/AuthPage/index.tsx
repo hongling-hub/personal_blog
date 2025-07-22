@@ -87,6 +87,7 @@ const AuthPage: React.FC = () => {
     }
   } catch (error) {
     // ...错误处理...
+    refreshCaptcha();
   } finally {
     setLoading(false);
   }

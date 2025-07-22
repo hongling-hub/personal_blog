@@ -20,9 +20,34 @@ const ArticleSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  isPublic: {
+  isDraft: {
     type: Boolean,
     default: true
+  },
+  isPublic: {
+    type: Boolean,
+    default: false
+  },
+  publishTime: {
+    type: Date
+  },
+  coverImage: {
+    type: String
+  },
+  desc: {
+    type: String,
+    maxlength: 200
+  },
+  views: {
+    type: Number,
+    default: 0
+  },
+  likes: {
+    type: Number,
+    default: 0
+  },
+  authorAvatar: {
+    type: String
   },
   likes: [{
     type: mongoose.Schema.Types.ObjectId,

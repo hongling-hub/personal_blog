@@ -4,6 +4,12 @@ interface Article {
   content: string;
   isPublic: boolean;
   markdown: string;
+  isDraft?: boolean;
+  publishTime?: string;
+  coverImage?: string;
+  desc?: string;
+  author?: string;
+  authorAvatar?: string;
 }
 
 export default {
@@ -16,6 +22,15 @@ export default {
   // 创建文章
   create: (data: Article) => fetch('/api/articles', {
     method: 'POST',
+    body: JSON.stringify(data),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(res => res.json()),
+
+  // 更新文章
+  update: (id: string, data: Partial<Article>) => fetch(`/api/articles/${id}`, {
+    method: 'PATCH',
     body: JSON.stringify(data),
     headers: {
       'Content-Type': 'application/json'

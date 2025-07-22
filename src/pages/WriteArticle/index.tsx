@@ -3,9 +3,14 @@ import { MdEditor } from 'md-editor-rt';
 import 'md-editor-rt/lib/style.css';
 import styles from './index.module.scss';
 import { useEffect } from 'react';
-import { Badge, Input, Tag, Upload, message } from 'antd';
+import { Badge, Input, Tag, Upload, Button } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
-import {BellOutlined} from '@ant-design/icons';
+import {BellOutlined, CalendarOutlined} from '@ant-design/icons';
+import { useUser } from '../../contexts/UserContext';
+import { DatePicker, message } from 'antd';
+import articlesService from '../../services/articles';
+import { useNavigate } from 'react-router-dom';
+import dayjs, { Dayjs } from 'dayjs';
 import SubHeader from '../../components/SubHeader';
 const WriteArticle: React.FC = () => {
   const [title, setTitle] = useState('');
@@ -14,6 +19,11 @@ const WriteArticle: React.FC = () => {
   const [content, setContent] = useState('');
   const [coverImage, setCoverImage] = useState<string | null>(null);
   const [editorImages, setEditorImages] = useState<string[]>([]);
+  const [publishTime, setPublishTime] = useState<Dayjs | null>(null);
+  const [showPublishTimePicker, setShowPublishTimePicker] = useState(false);
+  const { user } = useUser();
+  const navigate = useNavigate();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState<string[]>([]);
   const [isAddingColumn, setIsAddingColumn] = useState(false);
   const [newColumnName, setNewColumnName] = useState('');
@@ -91,9 +101,73 @@ const WriteArticle: React.FC = () => {
   };
 
 
-  const handleSubmit = () => {
-    // 提交文章逻辑
-    console.log({ title, tags, content });
+  // 生成文章摘要
+  const generateDesc = (content: string, maxLength = 200) => {
+    const plainText = content.replace(/[#*\[\]()_~`>]/g, '').replace(/\n/g, ' ');
+    return plainText.length > maxLength ? plainText.substring(0, maxLength) + '...' : plainText;
+  };
+
+  // 处理文章提交
+  const handleArticleSubmit = async (isDraft: boolean, publishImmediately: boolean = false) => {
+    if (!title.trim() || !content.trim()) {
+      message.error('标题和内容不能为空');
+      return;
+    }
+
+    if (!user) {
+      message.error('请先登录');
+      return;
+    }
+
+    setIsSubmitting(true);
+
+    try {
+      const articleData = {
+        title: title.trim(),
+        content: content.trim(),
+        markdown: content.trim(),
+        tags: tags,
+        isDraft: isDraft,
+        isPublic: !isDraft && (publishImmediately || (publishTime?.isBefore(dayjs()) ?? false)),
+        coverImage: coverImage || '',
+        desc: generateDesc(content),
+        author: user._id,
+        authorAvatar: user.avatar || '',
+        publishTime: !isDraft ? (publishImmediately ? new Date().toISOString() : publishTime?.toISOString()) : undefined
+      };
+
+      const result = await articlesService.create(articleData);
+
+      if (isDraft) {
+        message.success('草稿保存成功');
+      } else if (publishImmediately) {
+        message.success('文章发布成功');
+        navigate(`/article/${result._id}`);
+      } else {
+        message.success('定时发布设置成功');
+        navigate(`/article/${result._id}`);
+      }
+    } catch (error) {
+      console.error('提交文章失败:', error);
+      message.error('提交失败，请重试');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  // 保存草稿
+  const handleSaveDraft = () => handleArticleSubmit(true);
+
+  // 发布文章
+  const handlePublish = () => handleArticleSubmit(false, true);
+
+  // 定时发布
+  const handleSchedulePublish = () => {
+    if (!publishTime) {
+      setShowPublishTimePicker(true);
+      return;
+    }
+    handleArticleSubmit(false, false);
   };
 
   return (
@@ -127,7 +201,20 @@ const WriteArticle: React.FC = () => {
           />
         </div>
        
-               {/* 文章设置区域 */}
+               {/* 操作按钮区域 */}
+        <div className={styles.buttonGroup}>
+          <button className={styles.draftBtn} onClick={handleSaveDraft} disabled={isSubmitting}>
+            保存草稿
+          </button>
+          <button className={styles.timerBtn} onClick={handleSchedulePublish} disabled={isSubmitting}>
+            定时发布
+          </button>
+          <button className={styles.publishBtn} onClick={handlePublish} disabled={isSubmitting}>
+            发布文章
+          </button>
+        </div>
+
+        {/* 文章设置区域 */}
         <div className={styles.articleSettings}>
           {/* 文章标签 */}
           <div className={styles.settingItem}>
@@ -180,8 +267,22 @@ const WriteArticle: React.FC = () => {
                     </>
                   )}
                 </div>
-              </Upload>
-              <div className={styles.coverPreview}>
+      </Upload>
+      {showPublishTimePicker && (
+        <div className={styles.publishTimePicker}>
+          <DatePicker
+            showTime
+            value={publishTime}
+            onChange={(date) => setPublishTime(date)}
+            placeholder="选择发布时间"
+            format="YYYY-MM-DD HH:mm"
+            disabledDate={(current) => current && current < dayjs().subtract(1, 'day')}
+          />
+          <Button onClick={() => setShowPublishTimePicker(false)}>取消</Button>
+          <Button type="primary" onClick={handleSchedulePublish}>确认</Button>
+        </div>
+      )}
+      <div className={styles.coverPreview}>
                 {editorImages.length > 0 ? (
                   <div className={styles.imageGrid}>
                     {editorImages.map((img, index) => (

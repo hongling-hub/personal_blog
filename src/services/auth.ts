@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { message } from 'antd';
 interface LoginParams {
   username: string;
   password: string;
@@ -64,9 +65,11 @@ return {
         message: response.message || '登录成功'
       };
     } catch (error) {
-      console.error('登录请求失败:', error);
-      throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
-    }
+    console.error('登录请求失败:', error);
+    const errorMessage = error instanceof Error ? error.message : '登录失败';
+    message.error(errorMessage);
+    throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
+  }
   },
 
   // 用户注册
@@ -97,7 +100,16 @@ return {
       };
     } catch (error) {
       console.error('注册请求失败:', error);
-      throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
+      // 更详细的错误处理，提取可能的响应消息
+      let errorMessage = '网络错误，请稍后重试';
+      if (error instanceof Error) {
+        errorMessage = error.message;
+      } else if (typeof error === 'object' && error !== null && 'message' in error) {
+        errorMessage = String(error.message);
+      } else if (typeof error === 'string') {
+        errorMessage = error;
+      }
+      throw new Error(errorMessage);
     }
   },
 

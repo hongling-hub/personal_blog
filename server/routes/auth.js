@@ -58,7 +58,7 @@ router.post('/login', async (req, res) => {
   console.log('Session验证码:', req.session.captcha);
   
   // 验证验证码
-  if (captcha !== req.session.captcha) {
+  if (captcha.toLowerCase() !== req.session.captcha.toLowerCase()) {
     console.log('验证码不匹配:', { 输入: captcha, 预期: req.session.captcha });
     return res.status(400).json({ message: '验证码错误' });
   }
@@ -68,7 +68,7 @@ router.post('/login', async (req, res) => {
   const user = await User.findOne({ username });
   if (!user) {
     console.log('用户不存在:', username);
-    return res.status(401).json({ message: '用户名或密码错误' });
+    return res.status(401).json({ message: '用户不存在' });
   }
   
   console.log('验证密码...');
@@ -101,25 +101,28 @@ router.post('/register', async (req, res) => {
     const existingUser = await User.findOne({ username });
     if (existingUser) {
       console.log('用户名已存在:', username);
-      return res.status(400).json({ message: '用户名已存在' });
+      return res.status(400).json({ message: '当前用户名已被注册' });
     }
     
     console.log('创建新用户:', username);
     const newUser = new User({ username });
     
-    console.log('User model methods:', Object.keys(newUser.__proto__));
     console.log('设置密码...');
-    await newUser.setPassword(password);
+    newUser.password = password;
     await newUser.save();
     
     res.status(201).json({ message: '注册成功' });
   } catch (err) {
-    console.error('注册错误:', err.stack);
-    res.status(500).json({ 
-      message: '注册失败', 
-      error: process.env.NODE_ENV === 'development' ? err.message : null
-    });
+  console.error('注册错误:', err.stack);
+  // 检查是否是MongoDB重复键错误
+  if (err.code === 11000 && err.keyPattern && err.keyPattern.username) {
+    return res.status(400).json({ message: '当前用户名已被注册' });
   }
+  res.status(500).json({ 
+    message: '注册失败', 
+    error: process.env.NODE_ENV === 'development' ? err.message : null
+  });
+}
 });
 
 // 获取当前用户信息
