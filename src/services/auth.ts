@@ -1,3 +1,4 @@
+import axios from 'axios';
 interface LoginParams {
   username: string;
   password: string;
@@ -127,6 +128,17 @@ return {
   },
 
   // 上传头像
+  updateUsername: async (newUsername: string): Promise<{ success: boolean; username: string }> => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      throw new Error('未登录');
+    }
+    const response = await axios.patch('/api/auth/update-username',
+      { newUsername },
+      { headers: { Authorization: `Bearer ${token}` } }
+    );
+    return response.data;
+  },
   uploadAvatar: async (file: File): Promise<string> => {
     try {
       const token = localStorage.getItem('token');

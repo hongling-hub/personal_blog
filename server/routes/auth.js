@@ -186,4 +186,44 @@ router.post('/upload-avatar', upload.single('avatar'), async (req, res) => {
   }
 });
 
+// 在/update-username路由之前添加authenticateToken中间件
+const authenticateToken = (req, res, next) => {
+  const authHeader = req.headers['authorization'];
+  const token = authHeader && authHeader.split(' ')[1];
+  if (!token) return res.status(401).json({ message: '未授权访问' });
+
+  jwt.verify(token, process.env.JWT_SECRET, (err, decoded) => {
+    if (err) return res.status(403).json({ message: 'token无效或已过期' });
+    req.user = decoded;
+    next();
+  });
+};
+
+router.patch('/update-username', authenticateToken, async (req, res) => {
+  try {
+    const { newUsername } = req.body;
+    if (!newUsername || newUsername.trim().length < 3) {
+      return res.status(400).json({ message: '用户名长度不能少于3个字符' });
+    }
+
+    const existingUser = await User.findOne({ username: newUsername });
+    if (existingUser) {
+      return res.status(400).json({ message: '用户名已被占用' });
+    }
+
+    const user = await User.findById(req.user.userId);
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
+
+    user.username = newUsername;
+    await user.save();
+
+    res.json({ success: true, username: newUsername });
+  } catch (error) {
+    console.error('更新用户名错误:', error);
+    res.status(500).json({ message: '服务器错误，更新用户名失败' });
+  }
+});
+
 module.exports = router;

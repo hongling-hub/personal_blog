@@ -3,6 +3,7 @@ import React from 'react';
 import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
+import { UserProvider } from './contexts/UserContext';
 import App from './App';
 import Home from './pages/Home';
 import AuthPage from './pages/AuthPage';
@@ -18,9 +19,10 @@ const router = createBrowserRouter([
     path: '/',
     element: <App />,
     children: [
-      { index: true, element: <Home /> }, // 根路径'/'会自动渲染Home组件
+      { index: true, element: <Home /> },
       { path: 'home', element: <Home /> },
-      { element: <PrivateRoute />,
+      { 
+        element: <PrivateRoute />,
         children: [
           { path: 'article/:id', element: <ArticleDetail /> },
           { path: 'write-article', element: <WriteArticle /> },
@@ -31,16 +33,18 @@ const router = createBrowserRouter([
         ]
       }
     ],
-    errorElement: <ErrorPage /> // 添加错误处理页面
+    errorElement: <ErrorPage />
   },
   { path: 'login', element: <AuthPage /> },
   { path: 'register', element: <AuthPage /> }
 ],{
-  basename: '/' // 确保基础路径正确
+  basename: '/'
 });
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <RouterProvider router={router} />
+    <UserProvider>
+      <RouterProvider router={router} />
+    </UserProvider>
   </React.StrictMode>
 );

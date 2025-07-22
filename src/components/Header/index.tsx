@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useUser } from '../../contexts/UserContext';
 import { Menu, Input, Space, Avatar, Dropdown, Button, Badge } from 'antd';
 import { SearchOutlined, BellOutlined, UserOutlined, HomeOutlined, FileTextOutlined, StarOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, QuestionCircleOutlined, ReadOutlined } from '@ant-design/icons';
 import { Link, useNavigate } from 'react-router-dom';
@@ -7,12 +8,51 @@ import styles from './index.module.scss';
 const { Search } = Input;
 
 const Header: React.FC = () => {
+  const { user } = useUser();
   const navigate = useNavigate();
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   
-  useEffect(() => {
+  // 添加token验证函数
+  const isTokenValid = (token: string): boolean => {
+    try {
+      // 解码JWT payload检查过期时间
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      const currentTime = Date.now() / 1000;
+      return payload.exp > currentTime;
+    } catch (error) {
+      return false;
+    }
+  };
+  
+  const checkAuthStatus = () => {
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    if (token) {
+      const isValid = isTokenValid(token);
+      if (!isValid) {
+        localStorage.removeItem('token');
+        setIsLoggedIn(false);
+      } else {
+        setIsLoggedIn(true);
+      }
+    } else {
+      setIsLoggedIn(false);
+    }
+  };
+  
+  useEffect(() => {
+    checkAuthStatus();
+    
+    // 每30秒检查一次token状态
+    const intervalId = setInterval(checkAuthStatus, 30000);
+    
+    // 监听token过期事件
+    const handleTokenExpired = () => checkAuthStatus();
+    window.addEventListener('tokenExpired', handleTokenExpired);
+    
+    return () => {
+      clearInterval(intervalId);
+      window.removeEventListener('tokenExpired', handleTokenExpired);
+    };
   }, []);
 
   const userMenuItems = [
@@ -109,11 +149,10 @@ const Header: React.FC = () => {
             {isLoggedIn ? (
               <Dropdown menu={{ items: userMenuItems }} placement="bottomRight">
                 <Avatar 
-                  src="../src/assets/images/avatar/default.png" 
-                  size="large" 
-                  style={{ cursor: 'pointer' ,marginLeft: '1rem'}}
-
-                />
+                src={user?.avatar || "../src/assets/images/avatar/default.png"} 
+                size="large" 
+                style={{ cursor: 'pointer' ,marginLeft: '1rem'}}
+              />
               </Dropdown>
             ) : (
               <Button 
@@ -139,17 +178,6 @@ const Header: React.FC = () => {
         </div>
       </div>
       </div>
-
-      {/* <div className={styles.subHeader}>
-        <div className={styles.searchContainer}>
-          <Search
-            placeholder="搜索文章、作者、标签"
-            allowClear
-            enterButton={<SearchOutlined />}
-            size="middle"
-          />
-        </div>
-      </div> */}
     </header>
   );
 };

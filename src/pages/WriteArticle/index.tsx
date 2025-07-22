@@ -6,6 +6,7 @@ import { useEffect } from 'react';
 import { Badge, Input, Tag, Upload, message } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import {BellOutlined} from '@ant-design/icons';
+import SubHeader from '../../components/SubHeader';
 const WriteArticle: React.FC = () => {
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState<string[]>([]);
@@ -98,26 +99,7 @@ const WriteArticle: React.FC = () => {
   return (
       <div className={styles.container}>
         {/* 顶部导航 */}
-        <div className={styles.headerBar}>
-          <div className={styles.header}>
-            <div className={styles.headerLeft}>
-              <div className={styles.logo}>
-                <img src="../src/assets/images/logo/image.png" alt="CSDN Logo" className={styles.logoImg} />
-              </div>
-              <div style={{fontSize: '18px'}} className={styles.pushPage}>发布文章</div>
-            </div>
-         <div className={styles.headerRight}>
-           <div>
-            <img src="../src/assets/images/avatar/default.png" alt="CSDN Logo" className={styles.avatarImg} />
-          </div>
-          <div className={styles.bell}>
-            <Badge count={5}>
-              <BellOutlined style={{ fontSize: '18px', cursor: 'pointer' }} />
-            </Badge>
-          </div>
-         </div>
-          </div>
-        </div>
+        <SubHeader />
 
         
 

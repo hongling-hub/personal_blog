@@ -15,33 +15,6 @@
 //   font-size: 14px !important;
 // }
 
-.headerBar {
-  background-color: white;
-  border-bottom: 1px solid #e5e5e5;
-  margin-bottom: 10px;
-}
-.header{
-  height: 48px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.headerLeft{
-  display: flex;
-  align-items: center;
-}
-
-.headerRight{
-  display: flex;
-  align-items: center;
-}
-
-.avatarImg{
-    border-radius: 50%;
-    height: 48px;
-    width: 48px;
-}
 
 
 
@@ -380,34 +353,6 @@
   }
 
 @media (min-width: 768px){
-.headerBar {
-  background-color: white;
- 
-}
-.header{
- height: 60px;
-}
-
-.avatarImg{
-    border-radius: 50%;
-    height: 48px;
-    width: 48px;
-}
-
-.pushPage{
-  margin-left: 20px;
-}
-
-.bell{
-  margin: 0 20px;
-}
-
-
-.logo {
-  font-size: 57px;
-  font-weight: bold;
-  color: #0066b2;
-}
 
 .editorContainer{
   width: 100%;

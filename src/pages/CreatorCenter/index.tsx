@@ -2,58 +2,62 @@ import React, { useState } from 'react';
 import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { HomeOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
+import { useUser } from '../../contexts/UserContext';
 import styles from './index.module.scss';
-
+import SubHeader from '@/components/SubHeader';
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
-// 首页组件
-const HomePage = () => (
-  <div className={styles.homePage}>
-    <div className={styles.userInfo}>
-      <img
-        src="https://cdn-icons-png.flaticon.com/512/2650/2650869.png"
-        alt="用户头像"
-        className={styles.avatar}
-      />
-      <Title level={3}>用户879455850472</Title>
-      <Text>0 粉丝 | 0 关注 | 0 掘力值 | 在掘金创作的第 0 天</Text>
-    </div>
+// 首页组件 - 修正了箭头函数语法
+const HomePage = () => {
+  const { user } = useUser();
+  return (
+    <div className={styles.homePage}>
+      <div className={styles.userInfo}>
+        <img
+          src={user?.avatar || "../src/assets/images/avatar/default.png"}
+          alt="用户头像"
+          className={styles.avatar}
+        />
+        <Title level={3}>{user?.username || "用户879455850472"}</Title>
+        <Text>0 粉丝 | 0 关注 | 0 掘力值 | 在掘金创作的第 0 天</Text>
+      </div>
     
-    <div className={styles.dataCards}>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>总粉丝数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章展现数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章阅读数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章点赞数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章评论数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章收藏数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
+      <div className={styles.dataCards}>
+        <Card className={styles.dataCard}>
+          <Title level={2}>0</Title>
+          <Text>总粉丝数</Text>
+          <Text type="secondary">较前日 --</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>0</Title>
+          <Text>文章展现数</Text>
+          <Text type="secondary">较前日 --</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>0</Title>
+          <Text>文章阅读数</Text>
+          <Text type="secondary">较前日 --</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>0</Title>
+          <Text>文章点赞数</Text>
+          <Text type="secondary">较前日 --</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>0</Title>
+          <Text>文章评论数</Text>
+          <Text type="secondary">较前日 --</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>0</Title>
+          <Text>文章收藏数</Text>
+          <Text type="secondary">较前日 --</Text>
+        </Card>
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 // 内容管理页面组件 - 支持状态切换
 const ContentManagementPage = () => {
@@ -213,6 +217,8 @@ const CreatorCenter: React.FC = () => {
   };
 
   return (
+    <div>
+       <SubHeader />
     <Layout className={styles.layout}>
       <Sider width={200} theme="light" className={styles.sider}>
         <Menu
@@ -238,6 +244,8 @@ const CreatorCenter: React.FC = () => {
         </Content>
       </Layout>
     </Layout>
+    </div>
+     
   );
 };
 
