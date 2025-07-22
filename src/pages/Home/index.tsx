@@ -25,7 +25,7 @@ const articleData: ArticleItem[] = [
     {
       id: '1',
       title: 'STM32--USART串口通信的应用（第一节串口通信的概念）',
-      desc: '我们在发送的数据的时候，比如说我们的微控制器往外发送的时候，通过这。好，如果说你这个校验位你配置好了之后...',
+      desc: '我们在发送的数据的时候，比如说我们的微控制器往外发送的时候，通过这。好，如果说你这个校验位你配置好了之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后之后',
       author: '金星娃儿',
       authorAvatar: 'https://picsum.photos/id/1/40/40',
       date: '2023-06-15',
@@ -49,13 +49,13 @@ const articleData: ArticleItem[] = [
     {
       id: '3',
       title: '蓝桥杯 第十六届（2025）真题思路复盘解析',
-      desc: '本文以洛谷平台所提供的题目描述及评测数据为基础进行讲解。前言：这是本人的蓝桥杯试卷...',
+      desc: '本文以洛谷平台所提供的题目描述及评测数据为基础进行讲解。前言：这是本人的蓝桥杯试卷,这是本人的蓝桥杯试卷,这是本人的蓝桥杯试卷,这是本人的蓝桥杯试卷,这是本人的蓝桥杯试卷,这是本人的蓝桥杯试卷,这是本人的蓝桥杯试卷',
       author: 'apcipot_rain',
       authorAvatar: 'https://picsum.photos/id/3/40/40',
       date: '2023-06-05',
       views: 5400,
       likes: 63,
-      image: 'https://img-blog.csdnimg.cn/img_convert/5c6d7e8f9a0b1c2d3e4f5a6b7c8d9e0f.png',
+      image: '',
       tags: ['算法', '蓝桥杯', '竞赛']
     }
   ];

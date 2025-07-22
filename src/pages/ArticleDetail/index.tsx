@@ -1,248 +1,400 @@
-import React, { useState } from 'react';
-import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag } from 'antd';
-import { useNavigate } from 'react-router-dom';
-import { HomeOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
-import { useUser } from '../../contexts/UserContext';
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { 
+  message, 
+  Spin, 
+  Avatar, 
+  Tag, 
+  Button, 
+  Divider, 
+  Input, 
+  Tooltip, 
+  Dropdown, 
+  Menu, 
+  Badge 
+} from 'antd';
+import {
+  LikeOutlined,
+  MessageOutlined,
+  StarOutlined,
+  ShareAltOutlined,
+  BookOutlined,
+  MoreOutlined,
+  ArrowLeftOutlined,
+  EyeOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  CopyOutlined,
+  UserOutlined
+} from '@ant-design/icons';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import styles from './index.module.scss';
+import articlesService from '../../services/articles';
+import { useUser } from '../../contexts/UserContext';
+import CommentList from '../../components/CommentList';
+import RenderKatex from '../../components/RenderKatex';
 
-const { Sider, Content } = Layout;
-const { Title, Text } = Typography;
+dayjs.extend(relativeTime);
 
-// 首页组件 - 修正了箭头函数语法
-const HomePage = () => {
+interface ArticleData {
+  _id: string;
+  title: string;
+  content: string;
+  markdown: string;
+  tags: string[];
+  author: {
+    _id: string;
+    username: string;
+    avatar: string;
+    bio?: string;
+    isVerified?: boolean;
+  };
+  authorAvatar: string;
+  coverImage?: string;
+  publishTime: string;
+  readCount: number;
+  likeCount: number;
+  commentCount: number;
+  isLiked: boolean;
+  isCollected: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export default function ArticleDetail() {
+  const { id } = useParams<{ id: string }>();
+  const [article, setArticle] = useState<ArticleData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [likeCount, setLikeCount] = useState(0);
+  const [isLiked, setIsLiked] = useState(false);
+  const [collectCount, setCollectCount] = useState(0);
+  const [isCollected, setIsCollected] = useState(false);
   const { user } = useUser();
-  return (
-    <div className={styles.homePage}>
-      <div className={styles.userInfo}>
-        <img
-          src={user?.avatar || "../src/assets/images/avatar/default.png"}
-          alt="用户头像"
-          className={styles.avatar}
-        />
-        <Title level={3}>{user?.username || "用户879455850472"}</Title>
-        <Text>0 粉丝 | 0 关注 | 0 掘力值 | 在掘金创作的第 0 天</Text>
-      </div>
-    
-      <div className={styles.dataCards}>
-        <Card className={styles.dataCard}>
-          <Title level={2}>0</Title>
-          <Text>总粉丝数</Text>
-          <Text type="secondary">较前日 --</Text>
-        </Card>
-        <Card className={styles.dataCard}>
-          <Title level={2}>0</Title>
-          <Text>文章展现数</Text>
-          <Text type="secondary">较前日 --</Text>
-        </Card>
-        <Card className={styles.dataCard}>
-          <Title level={2}>0</Title>
-          <Text>文章阅读数</Text>
-          <Text type="secondary">较前日 --</Text>
-        </Card>
-        <Card className={styles.dataCard}>
-          <Title level={2}>0</Title>
-          <Text>文章点赞数</Text>
-          <Text type="secondary">较前日 --</Text>
-        </Card>
-        <Card className={styles.dataCard}>
-          <Title level={2}>0</Title>
-          <Text>文章评论数</Text>
-          <Text type="secondary">较前日 --</Text>
-        </Card>
-        <Card className={styles.dataCard}>
-          <Title level={2}>0</Title>
-          <Text>文章收藏数</Text>
-          <Text type="secondary">较前日 --</Text>
-        </Card>
-      </div>
-    </div>
-  );
-};
+  const navigate = useNavigate();
+  const [commentText, setCommentText] = useState('');
 
-// 内容管理页面组件 - 支持状态切换
-const ContentManagementPage = () => {
-  // 定义文章状态类型
-  type ArticleStatus = 'all' | 'published' | 'reviewing' | 'rejected';
-  
-  // 状态管理
-  const [activeStatus, setActiveStatus] = useState<ArticleStatus>('all');
-  const [articles, setArticles] = useState<any[]>([]); // 实际项目中应定义具体类型
+  const handleSendComment = async () => {
+    if (!commentText.trim()) {
+      message.warning('请输入评论内容');
+      return;
+    }
 
-  // 状态标签配置
-  const statusTabs = [
-    { key: 'all', label: '全部', count: 0 },
-    { key: 'published', label: '已发布', count: 0 },
-    { key: 'reviewing', label: '审核中', count: 0 },
-    { key: 'rejected', label: '未通过', count: 0 },
-  ];
+    if (!user) {
+      message.info('请先登录');
+      return;
+    }
 
-  // 切换状态
-  const handleStatusChange = (status: ArticleStatus) => {
-    setActiveStatus(status);
-    // 实际项目中这里可以根据状态请求对应数据
-    // 示例: fetchArticlesByStatus(status).then(data => setArticles(data))
+    try {
+      await articlesService.addComment(article?._id || '', { content: commentText.trim() });
+      message.success('评论成功');
+      setCommentText('');
+      // 刷新评论列表可以在这里实现
+    } catch (error) {
+      console.error('Failed to send comment:', error);
+      message.error('评论失败，请重试');
+    }
   };
 
-  return (
-    <div className={styles.contentManagementPage}>
-      <div className={styles.header}>
-        <div>
-          <Title level={2}>文章</Title>
-          <div className={styles.statusTabs}>
-            {statusTabs.map((tab) => (
-              <Tag
-                key={tab.key}
-                className={`${styles.statusTag} ${activeStatus === tab.key ? styles.activeTag : ''}`}
-                onClick={() => handleStatusChange(tab.key as ArticleStatus)}
-              >
-                {tab.label} ({tab.count})
-              </Tag>
-            ))}
-          </div>
-        </div>
-        <Button type="primary" className={styles.writeButton}>
-          写文章
+  useEffect(() => {
+    if (!id) return;
+
+    const fetchArticleDetail = async () => {
+      try {
+        setLoading(true);
+        const data = await articlesService.getById(id);
+        setArticle(data);
+        setLikeCount(data.likeCount);
+        setIsLiked(data.isLiked);
+        setCollectCount(data.collectCount || 0);
+        setIsCollected(data.isCollected || false);
+      } catch (error) {
+        console.error('Failed to fetch article:', error);
+        message.error('获取文章失败，请重试');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchArticleDetail();
+  }, [id]);
+
+  const handleLike = async () => {
+    if (!user) {
+      message.info('请先登录');
+      return;
+    }
+
+    try {
+      if (isLiked) {
+        await articlesService.cancelLike(id!);
+        setLikeCount(prev => Math.max(0, prev - 1));
+      } else {
+        await articlesService.like(id!);
+        setLikeCount(prev => prev + 1);
+      }
+      setIsLiked(!isLiked);
+    } catch (error) {
+      console.error('Failed to like article:', error);
+      message.error('操作失败，请重试');
+    }
+  };
+
+  const handleCollect = async () => {
+    if (!user) {
+      message.info('请先登录');
+      return;
+    }
+
+    try {
+      if (isCollected) {
+        await articlesService.cancelCollect(id!);
+      } else {
+        await articlesService.collect(id!);
+      }
+      setIsCollected(!isCollected);
+      message.success(isCollected ? '取消收藏成功' : '收藏成功');
+    } catch (error) {
+      console.error('Failed to collect article:', error);
+      message.error('操作失败，请重试');
+    }
+  };
+
+  const handleShare = () => {
+    // 模拟复制链接到剪贴板
+    navigator.clipboard.writeText(window.location.href);
+    message.success('链接已复制到剪贴板');
+  };
+
+  const handleEdit = () => {
+    navigate(`/write-article?id=${id}`);
+  };
+
+  const handleDelete = async () => {
+    if (!window.confirm('确定要删除这篇文章吗？')) return;
+
+    try {
+      await articlesService.delete(id!);
+      message.success('文章删除成功');
+      navigate('/');
+    } catch (error) {
+      console.error('Failed to delete article:', error);
+      message.error('删除失败，请重试');
+    }
+  };
+
+  const renderAuthorMenu = () => (
+    <Menu>
+      <Menu.Item key="edit" icon={<EditOutlined />} onClick={handleEdit}>
+        编辑文章
+      </Menu.Item>
+      <Menu.Item key="delete" icon={<DeleteOutlined />} onClick={handleDelete} danger>
+        删除文章
+      </Menu.Item>
+    </Menu>
+  );
+
+  if (loading) {
+    return (
+      <div className={styles.loadingContainer}>
+        <Spin size="large" />
+      </div>
+    );
+  }
+
+  if (!article) {
+    return (
+      <div className={styles.notFoundContainer}>
+        <h2>文章不存在或已被删除</h2>
+        <Button onClick={() => navigate('/')} type="primary" icon={<ArrowLeftOutlined />}>
+          返回首页
         </Button>
       </div>
-      
-      <Input
-        placeholder="请输入标题关键字"
-        prefix={<FileTextOutlined />}
-        className={styles.searchInput}
-      />
-      
-      {articles.length === 0 ? (
-        <Empty
-          description={`暂无${statusTabs.find(t => t.key === activeStatus)?.label}内容`}
-          image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
-        >
-          <Button type="primary">开始创作</Button>
-        </Empty>
-      ) : (
-        <div className={styles.articleList}>
-          {/* 文章列表渲染 - 实际项目中根据articles数据渲染 */}
-        </div>
-      )}
-    </div>
-  );
-};
+    );
+  }
 
-// 内容数据页面组件
-const ArticleDataPage = () => (
-  <div className={styles.articleDataPage}>
-    <div className={styles.header}>
-      <Title level={2}>文章数据</Title>
-      <Text>2025-07-20 数据表现</Text>
-    </div>
-    
-    <div className={styles.dataCards}>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>总文章数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章展现数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章阅读数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章点赞数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章评论数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章收藏数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-    </div>
-  </div>
-);
-
-// 粉丝数据页面组件
-const FanDataPage = () => (
-  <div className={styles.fanDataPage}>
-    <div className={styles.header}>
-      <Title level={2}>粉丝数据</Title>
-      <Text>2025-07-20 数据表现</Text>
-    </div>
-    
-    <div className={styles.dataCards}>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>总粉丝</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>互动粉丝</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>新增粉丝</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>取消关注</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>净增关注</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-    </div>
-  </div>
-);
-
-const CreatorCenter: React.FC = () => {
-  const navigate = useNavigate();
-  const [selectedKey, setSelectedKey] = useState('home');
-
-  const handleMenuClick = (e: { key: string }) => {
-    setSelectedKey(e.key);
-  };
+  const isAuthor = user && article.author._id === user._id;
 
   return (
-    <Layout className={styles.layout}>
-      <Sider width={200} theme="light" className={styles.sider}>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          onClick={handleMenuClick}
-          className={styles.menu}
+    <div className={styles.container}>
+      <div className={styles.backButton}>
+        <Button
+          icon={<ArrowLeftOutlined />}
+          onClick={() => navigate('/')}
+          type="text"
         >
-          <Menu.Item key="home" icon={<HomeOutlined />}>首页</Menu.Item>
-          <Menu.Item key="contentManagement" icon={<FileTextOutlined />}>内容管理</Menu.Item>
-          <Menu.SubMenu key="dataCenter" icon={<BarChartOutlined />} title="数据中心">
-            <Menu.Item key="articleData">内容数据</Menu.Item>
-            <Menu.Item key="fanData">粉丝数据</Menu.Item>
-          </Menu.SubMenu>
-        </Menu>
-      </Sider>
-      <Layout className={styles.mainLayout}>
-        <Content className={styles.content}>
-          {selectedKey === 'home' && <HomePage />}
-          {selectedKey === 'contentManagement' && <ContentManagementPage />}
-          {selectedKey === 'articleData' && <ArticleDataPage />}
-          {selectedKey === 'fanData' && <FanDataPage />}
-        </Content>
-      </Layout>
-    </Layout>
-  );
-};
+          返回首页
+        </Button>
+      </div>
 
-export default CreatorCenter;
+      <div className={styles.articleWrapper}>
+        {/* 文章头部 */}
+        <div className={styles.articleHeader}>
+          <h1 className={styles.title}>{article.title}</h1>
+
+          <div className={styles.tags}>
+            {article.tags.map(tag => (
+              <Tag key={tag} className={styles.tag}>{tag}</Tag>
+            ))}
+          </div>
+
+          <div className={styles.meta}>
+            <div className={styles.authorInfo}>
+              <Avatar src={article.author.avatar} alt={article.author.username} />
+              <div className={styles.authorDetails}>
+                <div className={styles.authorName}>
+                  {article.author.username}
+                  {article.author.isVerified && (
+                    <Tooltip title="已认证">
+                      <Badge status="success" className={styles.verifiedBadge} />
+                    </Tooltip>
+                  )}
+                </div>
+                <div className={styles.publishInfo}>
+                  <span>{dayjs(article.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                  <span className={styles.separator}>·</span>
+                  <span><EyeOutlined /> {article.readCount} 阅读</span>
+                </div>
+              </div>
+              {!isAuthor && (
+                <Button type="primary" size="small" className={styles.followButton}>关注</Button>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* 文章封面 */}
+        {article.coverImage && (
+          <div className={styles.coverImageContainer}>
+            <img
+              src={article.coverImage}
+              alt="文章封面"
+              className={styles.coverImage}
+            />
+          </div>
+        )}
+
+        {/* 文章内容 */}
+        <div className={styles.articleContent}>
+          <RenderKatex content={article.content} />
+        </div>
+
+        {/* 文章底部操作区 */}
+        <div className={styles.actions}>
+          <Button
+            icon={<LikeOutlined />}
+            onClick={handleLike}
+            className={`${styles.actionButton} ${isLiked ? styles.liked : ''}`}
+          >
+            <span className={styles.actionText}>{likeCount}</span>
+          </Button>
+
+          <Button
+            icon={<MessageOutlined />}
+            className={styles.actionButton}
+          >
+            <span className={styles.actionText}>{article.commentCount}</span>
+          </Button>
+
+          <Button
+            icon={<StarOutlined />}
+            onClick={handleCollect}
+            className={`${styles.actionButton} ${isCollected ? styles.collected : ''}`}
+          >
+            <span className={styles.actionText}>{collectCount}</span>
+          </Button>
+
+          <Button
+            icon={<ShareAltOutlined />}
+            onClick={handleShare}
+            className={styles.actionButton}
+          >
+            <span className={styles.actionText}>分享</span>
+          </Button>
+
+          {isAuthor && (
+            <Dropdown overlay={renderAuthorMenu} placement="bottomRight">
+              <Button icon={<MoreOutlined />} className={styles.moreButton} type="text" />
+            </Dropdown>
+          )}
+        </div>
+
+        <Divider className={styles.divider} />
+
+        {/* 作者信息卡片 */}
+        <div className={styles.authorCard}>
+          <Avatar src={article.author.avatar} alt={article.author.username} className={styles.authorAvatar} />
+          <div className={styles.authorCardDetails}>
+            <div className={styles.authorCardName}>
+              {article.author.username}
+              {article.author.isVerified && (
+                <Tooltip title="已认证">
+                  <Badge status="success" className={styles.verifiedBadge} />
+                </Tooltip>
+              )}
+            </div>
+            {article.author.bio && <div className={styles.authorBio}>{article.author.bio}</div>}
+            {!isAuthor && (
+              <Button type="primary" size="small" className={styles.followButtonCard}>关注</Button>
+            )}
+          </div>
+        </div>
+
+        <Divider className={styles.divider} />
+
+        {/* 评论区 */}
+        <div className={styles.commentSection}>
+          <h3 className={styles.commentTitle}>{article.commentCount} 条评论</h3>
+
+          <div className={styles.commentInputContainer}>
+            {user ? (
+              <Avatar src={user.avatar} alt={user.username} className={styles.commentAvatar} />
+            ) : (
+              <Avatar className={styles.commentAvatar} icon={<UserOutlined />} />
+            )}
+            <Input
+              placeholder={user ? '写下你的评论...' : '登录后发表评论'}
+              className={styles.commentInput}
+              disabled={!user}
+              value={commentText}
+              onChange={(e) => setCommentText(e.target.value)}
+              onPressEnter={handleSendComment}
+            />
+            <Button
+              type="primary"
+              className={styles.sendCommentButton}
+              disabled={!user}
+              onClick={handleSendComment}
+            >
+              发送
+            </Button>
+          </div>
+
+          <CommentList articleId={article._id} />
+        </div>
+      </div>
+
+      {/* 侧边栏 */}
+      <div className={styles.sidebar}>
+        <div className={styles.sidebarCard}>
+          <div className={styles.sidebarTitle}>推荐阅读</div>
+          <div className={styles.recommendedArticles}>
+            {/* 这里可以添加推荐文章列表 */}
+            <div className={styles.recommendedArticle}>
+              <div className={styles.recommendedTitle}>如何高效学习React</div>
+              <div className={styles.recommendedMeta}>作者名称 · 2.3k阅读</div>
+            </div>
+            <div className={styles.recommendedArticle}>
+              <div className={styles.recommendedTitle}>TypeScript高级类型技巧</div>
+              <div className={styles.recommendedMeta}>作者名称 · 1.8k阅读</div>
+            </div>
+            <div className={styles.recommendedArticle}>
+              <div className={styles.recommendedTitle}>前端性能优化实践</div>
+              <div className={styles.recommendedMeta}>作者名称 · 3.5k阅读</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}

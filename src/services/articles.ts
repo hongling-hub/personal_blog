@@ -12,12 +12,29 @@ interface Article {
   authorAvatar?: string;
 }
 
+interface CommentData {
+  content: string;
+}
+
+interface ArticlesService {
+  getList: () => Promise<any>;
+  getById: (id: string) => Promise<any>;
+  create: (data: Article) => Promise<any>;
+  update: (id: string, data: Partial<Article>) => Promise<any>;
+  addComment: (articleId: string, commentData: CommentData) => Promise<any>;
+  like: (id: string) => Promise<any>;
+  cancelLike: (id: string) => Promise<any>;
+  collect: (id: string) => Promise<any>;
+  cancelCollect: (id: string) => Promise<any>;
+  delete: (id: string) => Promise<any>;
+}
+
 export default {
   // 获取文章列表
   getList: () => fetch('/api/articles').then(res => res.json()),
   
   // 获取文章详情
-  getDetail: (id: string) => fetch(`/api/articles/${id}`).then(res => res.json()),
+  getById: (id: string) => fetch(`/api/articles/${id}`).then(res => res.json()),
   
   // 创建文章
   create: (data: Article) => fetch('/api/articles', {
@@ -35,5 +52,39 @@ export default {
     headers: {
       'Content-Type': 'application/json'
     }
+  }).then(res => res.json()),
+
+  // 添加评论
+  addComment: (articleId: string, commentData: CommentData) => fetch(`/api/articles/${articleId}/comments`, {
+    method: 'POST',
+    body: JSON.stringify(commentData),
+    headers: {
+      'Content-Type': 'application/json'
+    }
+  }).then(res => res.json()),
+
+  // 点赞文章
+  like: (id: string) => fetch(`/api/articles/${id}/like`, {
+    method: 'POST'
+  }).then(res => res.json()),
+
+  // 取消点赞
+  cancelLike: (id: string) => fetch(`/api/articles/${id}/like`, {
+    method: 'DELETE'
+  }).then(res => res.json()),
+
+  // 收藏文章
+  collect: (id: string) => fetch(`/api/articles/${id}/collect`, {
+    method: 'POST'
+  }).then(res => res.json()),
+
+  // 取消收藏
+  cancelCollect: (id: string) => fetch(`/api/articles/${id}/collect`, {
+    method: 'DELETE'
+  }).then(res => res.json()),
+
+  // 删除文章
+  delete: (id: string) => fetch(`/api/articles/${id}`, {
+    method: 'DELETE'
   }).then(res => res.json())
 };

@@ -200,19 +200,7 @@ const WriteArticle: React.FC = () => {
             ]}
           />
         </div>
-       
-               {/* 操作按钮区域 */}
-        <div className={styles.buttonGroup}>
-          <button className={styles.draftBtn} onClick={handleSaveDraft} disabled={isSubmitting}>
-            保存草稿
-          </button>
-          <button className={styles.timerBtn} onClick={handleSchedulePublish} disabled={isSubmitting}>
-            定时发布
-          </button>
-          <button className={styles.publishBtn} onClick={handlePublish} disabled={isSubmitting}>
-            发布文章
-          </button>
-        </div>
+
 
         {/* 文章设置区域 */}
         <div className={styles.articleSettings}>
@@ -309,7 +297,7 @@ const WriteArticle: React.FC = () => {
               文章标题
               <span className={styles.helpIcon}>ⓘ</span>
             </label>
-           <input type="text" className={styles.titleInput} />
+           <input type="text" className={styles.titleInput} value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
           {/* 文章摘要 */}
@@ -328,7 +316,7 @@ const WriteArticle: React.FC = () => {
           </div>
 
           {/* 分类专栏 */}
-          <div className={styles.settingItem}>
+          {/* <div className={styles.settingItem}>
             <label className={styles.label}>
               分类专栏
               <span className={styles.helpIcon}>ⓘ</span>
@@ -380,7 +368,7 @@ const WriteArticle: React.FC = () => {
                 </button>
               )}
             </div>
-          </div>
+          </div> */}
 
           {/* 文章类型 */}
           {/* <div className={styles.settingItem}>
@@ -435,9 +423,15 @@ const WriteArticle: React.FC = () => {
         {/* 底部固定发布设置 */}
         <div className={styles.bottomBar}>
           <div className={styles.bottomBarContent}>
-            <button className={styles.draftBtn}>保存草稿</button>
-             <button className={styles.timerBtn}>定时发布</button>
-            <button className={styles.publishBtn}>发布文章</button>
+            <button className={styles.draftBtn} onClick={handleSaveDraft} disabled={isSubmitting}>
+              保存草稿
+            </button>
+            <button className={styles.timerBtn} onClick={handleSchedulePublish} disabled={isSubmitting}>
+              定时发布
+            </button>
+            <button className={styles.publishBtn} onClick={handlePublish} disabled={isSubmitting}>
+              发布文章
+            </button>
           </div>
         </div>
       </div>
