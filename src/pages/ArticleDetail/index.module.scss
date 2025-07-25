@@ -476,7 +476,8 @@
 .coverImage {
   width: 100%;
   height: auto;
-  object-fit: cover;  display: none;
+  object-fit: cover;
+  display: none;
 }
 
 .articleContent {
@@ -651,9 +652,9 @@
 }
 
 .sidebar {
-  display: none;
   width: 300px;
   margin-left: 40px;
+  display: block;
 }
 
 .sidebarCard {

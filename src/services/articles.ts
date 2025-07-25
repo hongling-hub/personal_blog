@@ -8,8 +8,14 @@ interface Article {
   publishTime?: string;
   coverImage?: string;
   desc?: string;
-  author?: string;
-  authorAvatar?: string;
+  author?: {
+    _id: string;
+    username: string;
+    avatar: string;
+    isVerified: boolean;
+    bio?: string;
+  };
+
 }
 
 interface CommentData {
@@ -17,10 +23,10 @@ interface CommentData {
 }
 
 interface ArticlesService {
-  getList: () => Promise<any>;
-  getById: (id: string) => Promise<any>;
-  create: (data: Article) => Promise<any>;
-  update: (id: string, data: Partial<Article>) => Promise<any>;
+  getList: () => Promise<Article[]>;
+  getById: (id: string) => Promise<Article>;
+  create: (data: Article) => Promise<Article>;
+  update: (id: string, data: Partial<Article>) => Promise<Article>;
   addComment: (articleId: string, commentData: CommentData) => Promise<any>;
   like: (id: string) => Promise<any>;
   cancelLike: (id: string) => Promise<any>;

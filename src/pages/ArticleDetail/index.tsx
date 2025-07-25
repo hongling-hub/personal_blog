@@ -41,25 +41,22 @@ interface ArticleData {
   _id: string;
   title: string;
   content: string;
-  markdown: string;
-  tags: string[];
+  coverImage?: string;
   author: {
     _id: string;
     username: string;
     avatar: string;
+    isVerified: boolean;
     bio?: string;
-    isVerified?: boolean;
   };
-  authorAvatar: string;
-  coverImage?: string;
   publishTime: string;
   readCount: number;
   likeCount: number;
   commentCount: number;
+  collectCount: number;
+  tags: string[];
   isLiked: boolean;
   isCollected: boolean;
-  createdAt: string;
-  updatedAt: string;
 }
 
 export default function ArticleDetail() {

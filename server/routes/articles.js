@@ -11,7 +11,7 @@ router.get('/', async (req, res) => {
       isDraft: false,
       isPublic: true,
       publishTime: { $lte: now }
-    }).populate('author', 'username avatar')
+    }).populate('author', 'username avatar isVerified bio')
     .sort({ publishTime: -1 });
 
     res.json(articles);
@@ -23,7 +23,7 @@ router.get('/', async (req, res) => {
 // 获取文章详情
 router.get('/:id', async (req, res) => {
   try {
-    const article = await Article.findById(req.params.id);
+    const article = await Article.findById(req.params.id).populate('author', 'username avatar isVerified bio');
     if (!article) return res.status(404).json({ message: '文章未找到' });
     res.json(article);
   } catch (err) {
@@ -46,7 +46,7 @@ router.post('/', authenticate, async (req, res) => {
     coverImage: req.body.coverImage,
     desc: req.body.desc,
     tags: req.body.tags,
-    authorAvatar: req.body.authorAvatar,
+
     views: 0
   });
 
