@@ -81,7 +81,7 @@ router.post('/login', async (req, res) => {
   // 生成JWT
   const token = jwt.sign(
   { userId: user._id, role: user.role },
-  process.env.JWT_SECRET,
+  process.env.JWT_SECRET || 'your-secret-key',
   { expiresIn: '2h' }
 );
   
@@ -125,36 +125,28 @@ router.post('/register', async (req, res) => {
 }
 });
 
+const { authenticate } = require('../middleware/auth');
+
 // 获取当前用户信息
-router.get('/me', async (req, res) => {
+router.get('/me', authenticate, async (req, res) => {
   try {
-    const token = req.headers.authorization?.split(' ')[1];
-    if (!token) {
-      return res.status(401).json({ message: '未登录' });
-    }
-    
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findById(decoded.userId).select('-password');
-    
-    if (!user) {
-      return res.status(404).json({ message: '用户不存在' });
-    }
-    
+    // 从请求对象中获取用户信息（由auth中间件设置）
+    const user = req.user;
     res.json({
       username: user.username,
       avatar: user.avatar,
-      joinDate: user.createdAt.toISOString(),
+      joinDate: user.createdAt,
       stats: {
-        followers: 0,
-        following: 0,
-        collections: 0,
-        tags: 0,
-        likes: 0,
-        posts: 0
-      }
+          followers: user.followers?.length || 0,
+          following: user.following?.length || 0,
+          collections: user.collections?.length || 0,
+          tags: user.tags?.length || 0,
+          likes: user.likes?.length || 0,
+          posts: user.posts?.length || 0
+        }
     });
   } catch (error) {
-    res.status(401).json({ message: '无效的token' });
+    res.status(500).json({ message: '获取用户信息失败' });
   }
 });
 

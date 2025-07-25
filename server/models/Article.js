@@ -36,23 +36,26 @@ const ArticleSchema = new mongoose.Schema({
   },
   desc: {
     type: String,
-    maxlength: 200
+    maxlength: 500
   },
   views: {
     type: Number,
     default: 0
   },
   likes: {
+    type: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    default: []
+  },
+  likeCount: {
     type: Number,
     default: 0
   },
   authorAvatar: {
     type: String
   },
-  likes: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  }],
   comments: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment'

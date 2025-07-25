@@ -1,12 +1,17 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { useUser } from './contexts/UserContext';
 
 const PrivateRoute = () => {
-  // 检查本地存储中是否有令牌
-  const hasToken = !!localStorage.getItem('token');
+  const { user, loading } = useUser();
   const location = useLocation();
 
-  // 如果没有令牌且当前不在登录/注册页面，则重定向到登录页
-  if (!hasToken && !['/login', '/register'].includes(location.pathname)) {
+  // 加载中不做重定向
+  if (loading) {
+    return null;
+  }
+
+  // 未登录且不在登录/注册页面，重定向到登录页
+  if (!user && !['/login', '/register'].includes(location.pathname)) {
     return <Navigate to="/login" replace />;
   }
 

@@ -36,8 +36,8 @@ mongoose.connect('mongodb://localhost:27017/blog_db')
 // 3. 中间件配置
 app.use(helmet()); // 安全相关HTTP头
 app.use(morgan('dev')); // 请求日志
-app.use(express.json({ limit: '10kb' })); // 替换bodyParser
-app.use(express.urlencoded({ extended: true, limit: '10kb' }));
+app.use(express.json({ limit: '5mb' })); // 增加请求体大小限制
+app.use(express.urlencoded({ extended: true, limit: '5mb' }));
 
 // 4. 会话配置（用于验证码）
 app.use(session({

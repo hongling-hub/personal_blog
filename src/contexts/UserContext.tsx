@@ -33,10 +33,13 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           setUser(userData);
         }
       } catch (error) {
-        console.error('获取用户信息失败:', error);
-      } finally {
-        setLoading(false);
-      }
+          console.error('获取用户信息失败:', error);
+          // 清除无效token
+          localStorage.removeItem('token');
+          setUser(null);
+        } finally {
+          setLoading(false);
+        }
     };
 
     fetchUserInfo();

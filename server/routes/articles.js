@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
+const { authenticate } = require('../middleware/auth');
 
 // 获取已发布文章
 router.get('/', async (req, res) => {
@@ -10,7 +11,8 @@ router.get('/', async (req, res) => {
       isDraft: false,
       isPublic: true,
       publishTime: { $lte: now }
-    }).sort({ publishTime: -1 });
+    }).populate('author', 'username avatar')
+    .sort({ publishTime: -1 });
 
     res.json(articles);
   } catch (err) {
@@ -30,12 +32,14 @@ router.get('/:id', async (req, res) => {
 });
 
 // 创建新文章
-router.post('/', async (req, res) => {
+router.post('/', authenticate, async (req, res) => {
+  // 移除前端可能传递的无效likes字段
+  delete req.body.likes;
   const article = new Article({
     title: req.body.title,
     content: req.body.content,
     markdown: req.body.markdown,
-    author: req.body.author,
+    author: req.user._id,
     isDraft: req.body.isDraft !== undefined ? req.body.isDraft : true,
     isPublic: req.body.isPublic !== undefined ? req.body.isPublic : false,
     publishTime: req.body.publishTime,
@@ -43,8 +47,7 @@ router.post('/', async (req, res) => {
     desc: req.body.desc,
     tags: req.body.tags,
     authorAvatar: req.body.authorAvatar,
-    views: 0,
-    likes: 0
+    views: 0
   });
 
   try {

@@ -109,10 +109,13 @@
   width: 100%;
   height: auto;
   object-fit: cover;
+  display: none;
 }
 
 .articleContent {
   font-size: 16px;
+  white-space: pre-wrap;
+  word-break: break-word;
   line-height: 1.8;
   color: #1a1a1a;
   margin-bottom: 32px;
@@ -153,6 +156,14 @@
   border-radius: 8px;
   margin: 16px 0;
 }
+
+:global(.katex .base) {
+    white-space: pre-wrap !important;
+    width: 100% !important;
+    text-align: left;
+}
+
+
 
 .actions {
   display: flex;
@@ -372,7 +383,6 @@
 .articleWrapper {
   flex: 1;
   display: flex;
-  flex-direction: column;
   width: 100%;
 }
 
@@ -466,7 +476,7 @@
 .coverImage {
   width: 100%;
   height: auto;
-  object-fit: cover;
+  object-fit: cover;  display: none;
 }
 
 .articleContent {
@@ -714,15 +724,6 @@
 }
 }
 
-@media (min-width: 992px) {
-  .articleWrapper {
-    flex-direction: row;
-  }
-
-  .sidebar {
-    display: block;
-  }
-}
 
 .commentList {
   margin-top: 24px;

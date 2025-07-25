@@ -41,9 +41,19 @@ export default {
     method: 'POST',
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
-  }).then(res => res.json()),
+  }).then(async res => {
+    if (!res.ok) {
+      const errorData = await res.json().catch(() => ({}));
+      const message = errorData.message || '创建文章失败';
+      const error = new Error(message);
+      (error as any).status = res.status;
+      throw error;
+    }
+    return res.json();
+  }),
 
   // 更新文章
   update: (id: string, data: Partial<Article>) => fetch(`/api/articles/${id}`, {

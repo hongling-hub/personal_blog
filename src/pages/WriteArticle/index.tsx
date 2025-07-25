@@ -13,6 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
 import SubHeader from '../../components/SubHeader';
 const WriteArticle: React.FC = () => {
+  const { user, loading: userLoading, updateUser } = useUser();
   const [title, setTitle] = useState('');
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState('');
@@ -21,7 +22,6 @@ const WriteArticle: React.FC = () => {
   const [editorImages, setEditorImages] = useState<string[]>([]);
   const [publishTime, setPublishTime] = useState<Dayjs | null>(null);
   const [showPublishTimePicker, setShowPublishTimePicker] = useState(false);
-  const { user } = useUser();
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [columns, setColumns] = useState<string[]>([]);
@@ -137,6 +137,7 @@ const WriteArticle: React.FC = () => {
       };
 
       const result = await articlesService.create(articleData);
+console.log('Created article result:', result);
 
       if (isDraft) {
         message.success('草稿保存成功');
@@ -149,7 +150,15 @@ const WriteArticle: React.FC = () => {
       }
     } catch (error) {
       console.error('提交文章失败:', error);
-      message.error('提交失败，请重试');
+      if ((error as any).status === 401) {
+        // 处理未授权错误，清除token并重定向到登录页
+        localStorage.removeItem('token');
+        updateUser({});
+        message.error('登录已过期，请重新登录');
+        navigate('/login');
+      } else {
+        message.error('提交失败，请重试');
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -423,13 +432,13 @@ const WriteArticle: React.FC = () => {
         {/* 底部固定发布设置 */}
         <div className={styles.bottomBar}>
           <div className={styles.bottomBarContent}>
-            <button className={styles.draftBtn} onClick={handleSaveDraft} disabled={isSubmitting}>
+            <button className={styles.draftBtn} onClick={handleSaveDraft} disabled={isSubmitting || userLoading}>
               保存草稿
             </button>
-            <button className={styles.timerBtn} onClick={handleSchedulePublish} disabled={isSubmitting}>
+            <button className={styles.timerBtn} onClick={handleSchedulePublish} disabled={isSubmitting || userLoading}>
               定时发布
             </button>
-            <button className={styles.publishBtn} onClick={handlePublish} disabled={isSubmitting}>
+            <button className={styles.publishBtn} onClick={handlePublish} disabled={isSubmitting || userLoading}>
               发布文章
             </button>
           </div>
