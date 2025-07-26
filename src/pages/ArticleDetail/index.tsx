@@ -34,6 +34,7 @@ import articlesService from '../../services/articles';
 import { useUser } from '../../contexts/UserContext';
 import CommentList from '../../components/CommentList';
 import RenderKatex from '../../components/RenderKatex';
+import { format } from 'date-fns';
 
 dayjs.extend(relativeTime);
 
@@ -48,13 +49,18 @@ interface ArticleData {
     avatar: string;
     isVerified: boolean;
     bio?: string;
+    articleCount: number;
+    readCount: number;
+    followerCount: number;
   };
-  publishTime: string;
-  readCount: number;
+  tags: string[];
   likeCount: number;
   commentCount: number;
   collectCount: number;
-  tags: string[];
+  createdAt: string;
+  readTime: number;
+  publishTime: string;
+  readCount: number;
   isLiked: boolean;
   isCollected: boolean;
 }
@@ -146,8 +152,10 @@ export default function ArticleDetail() {
     try {
       if (isCollected) {
         await articlesService.cancelCollect(id!);
+        setCollectCount(prev => Math.max(0, prev - 1));
       } else {
         await articlesService.collect(id!);
+        setCollectCount(prev => prev + 1);
       }
       setIsCollected(!isCollected);
       message.success(isCollected ? '取消收藏成功' : '收藏成功');
@@ -191,6 +199,17 @@ export default function ArticleDetail() {
     </Menu>
   );
 
+  const formatDate = (dateString: string): string => {
+    return format(new Date(dateString), 'yyyy-MM-dd HH:mm');
+  };
+
+  const scrollToComments = (): void => {
+    const commentsElement = document.getElementById('comments');
+    if (commentsElement) {
+      commentsElement.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
+
   if (loading) {
     return (
       <div className={styles.loadingContainer}>
@@ -225,43 +244,10 @@ export default function ArticleDetail() {
       </div>
 
       <div className={styles.articleWrapper}>
-        {/* 文章头部 */}
-        <div className={styles.articleHeader}>
-          <h1 className={styles.title}>{article.title}</h1>
 
-          <div className={styles.tags}>
-            {article.tags.map(tag => (
-              <Tag key={tag} className={styles.tag}>{tag}</Tag>
-            ))}
-          </div>
-
-          <div className={styles.meta}>
-            <div className={styles.authorInfo}>
-              <Avatar src={article.author.avatar} alt={article.author.username} />
-              <div className={styles.authorDetails}>
-                <div className={styles.authorName}>
-                  {article.author.username}
-                  {article.author.isVerified && (
-                    <Tooltip title="已认证">
-                      <Badge status="success" className={styles.verifiedBadge} />
-                    </Tooltip>
-                  )}
-                </div>
-                <div className={styles.publishInfo}>
-                  <span>{dayjs(article.publishTime).format('YYYY-MM-DD HH:mm')}</span>
-                  <span className={styles.separator}>·</span>
-                  <span><EyeOutlined /> {article.readCount} 阅读</span>
-                </div>
-              </div>
-              {!isAuthor && (
-                <Button type="primary" size="small" className={styles.followButton}>关注</Button>
-              )}
-            </div>
-          </div>
-        </div>
 
         {/* 文章封面 */}
-        {article.coverImage && (
+        {/* {article.coverImage && (
           <div className={styles.coverImageContainer}>
             <img
               src={article.coverImage}
@@ -269,129 +255,194 @@ export default function ArticleDetail() {
               className={styles.coverImage}
             />
           </div>
-        )}
+        )} */}
 
         {/* 文章内容 */}
-        <div className={styles.articleContent}>
-          <RenderKatex content={article.content} />
-        </div>
+        <div className={styles.articleContainer}>
+          {/* PC端左侧操作区 - 仅在大屏幕显示 */}
+          <div className={styles.pcSideActions}>
+            <div className={styles.actionButtonGroup}>
+              <Button
+                icon={<LikeOutlined />}
+                onClick={handleLike}
+                className={`${styles.actionButton} ${isLiked ? styles.liked : ''}`}
+              >
+                <span className={styles.actionText}>{likeCount}</span>
+              </Button>
 
-        {/* 文章底部操作区 */}
-        <div className={styles.actions}>
-          <Button
-            icon={<LikeOutlined />}
-            onClick={handleLike}
-            className={`${styles.actionButton} ${isLiked ? styles.liked : ''}`}
-          >
-            <span className={styles.actionText}>{likeCount}</span>
-          </Button>
+              <Button
+                icon={<MessageOutlined />}
+                className={styles.actionButton}
+                onClick={() => scrollToComments()}
+              >
+                <span className={styles.actionText}>{article.commentCount}</span>
+              </Button>
 
-          <Button
-            icon={<MessageOutlined />}
-            className={styles.actionButton}
-          >
-            <span className={styles.actionText}>{article.commentCount}</span>
-          </Button>
+              <Button
+                icon={<StarOutlined />}
+                onClick={handleCollect}
+                className={`${styles.actionButton} ${isCollected ? styles.collected : ''}`}
+              >
+                <span className={styles.actionText}>{collectCount}</span>
+              </Button>
 
-          <Button
-            icon={<StarOutlined />}
-            onClick={handleCollect}
-            className={`${styles.actionButton} ${isCollected ? styles.collected : ''}`}
-          >
-            <span className={styles.actionText}>{collectCount}</span>
-          </Button>
+              <Button
+                icon={<ShareAltOutlined />}
+                onClick={handleShare}
+                className={styles.actionButton}
+              >
+                <span className={styles.actionText}>分享</span>
+              </Button>
+            </div>
+          </div>
 
-          <Button
-            icon={<ShareAltOutlined />}
-            onClick={handleShare}
-            className={styles.actionButton}
-          >
-            <span className={styles.actionText}>分享</span>
-          </Button>
+          {/* 主内容区 - 在所有设备上显示 */}
+          <div className={styles.mainContent}>
+            <div style={{ backgroundColor: '#fff' }} className={styles.article}>
+            {/* 文章头部 */}
+            <div className={styles.articleHeader}>
+              <h1 className={styles.title}>{article.title}</h1>
 
-          {isAuthor && (
-            <Dropdown overlay={renderAuthorMenu} placement="bottomRight">
-              <Button icon={<MoreOutlined />} className={styles.moreButton} type="text" />
-            </Dropdown>
-          )}
-        </div>
+              <div className={styles.tags}>
+                {article.tags.map(tag => (
+                  <Tag key={tag} className={styles.tag}>{tag}</Tag>
+                ))}
+              </div>
 
-        <Divider className={styles.divider} />
+              <div className={styles.meta}>
+                <div className={styles.authorInfo}>
+                  <Avatar src={article.author.avatar} alt={article.author.username} />
+                  <div className={styles.authorDetails}>
+                    <div className={styles.authorName}>
+                      {article.author.username}
+                      {article.author.isVerified && (
+                        <Tooltip title="已认证">
+                          <Badge status="success" className={styles.verifiedBadge} />
+                        </Tooltip>
+                      )}
+                    </div>
+                    <div className={styles.publishInfo}>
+                      <span>{dayjs(article.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                      <span className={styles.separator}>·</span>
+                      <span><EyeOutlined /> {article.readCount} 阅读</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
 
-        {/* 作者信息卡片 */}
-        <div className={styles.authorCard}>
-          <Avatar src={article.author.avatar} alt={article.author.username} className={styles.authorAvatar} />
-          <div className={styles.authorCardDetails}>
-            <div className={styles.authorCardName}>
-              {article.author.username}
-              {article.author.isVerified && (
-                <Tooltip title="已认证">
-                  <Badge status="success" className={styles.verifiedBadge} />
-                </Tooltip>
+            {/* 文章内容 */}
+            <div className={styles.articleContent}>
+              <RenderKatex content={article.content} />
+            </div>
+
+            {/* 移动端操作栏 - 仅在小屏幕显示 */}
+            <div className={styles.mobileActions}>
+              <Button
+                icon={<LikeOutlined />}
+                onClick={handleLike}
+                className={`${styles.mobileActionButton} ${isLiked ? styles.liked : ''}`}
+              >
+                <span className={styles.mobileActionText}>{likeCount}</span>
+              </Button>
+
+              <Button
+                icon={<MessageOutlined />}
+                className={styles.mobileActionButton}
+                onClick={() => scrollToComments()}
+              >
+                <span className={styles.mobileActionText}>{article.commentCount}</span>
+              </Button>
+
+              <Button
+                icon={<StarOutlined />}
+                onClick={handleCollect}
+                className={`${styles.mobileActionButton} ${isCollected ? styles.collected : ''}`}
+              >
+                <span className={styles.mobileActionText}>{collectCount}</span>
+              </Button>
+
+              <Button
+                icon={<ShareAltOutlined />}
+                onClick={handleShare}
+                className={styles.mobileActionButton}
+              >
+                <span className={styles.mobileActionText}>分享</span>
+              </Button>
+
+              {isAuthor && (
+                <Dropdown overlay={renderAuthorMenu} placement="bottomRight">
+                  <Button icon={<MoreOutlined />} className={styles.moreButton} type="text" />
+                </Dropdown>
               )}
             </div>
-            {article.author.bio && <div className={styles.authorBio}>{article.author.bio}</div>}
-            {!isAuthor && (
-              <Button type="primary" size="small" className={styles.followButtonCard}>关注</Button>
-            )}
-          </div>
-        </div>
+            </div>
+            <Divider className={styles.divider} />
 
-        <Divider className={styles.divider} />
-
-        {/* 评论区 */}
-        <div className={styles.commentSection}>
-          <h3 className={styles.commentTitle}>{article.commentCount} 条评论</h3>
-
-          <div className={styles.commentInputContainer}>
-            {user ? (
-              <Avatar src={user.avatar} alt={user.username} className={styles.commentAvatar} />
-            ) : (
-              <Avatar className={styles.commentAvatar} icon={<UserOutlined />} />
-            )}
-            <Input
-              placeholder={user ? '写下你的评论...' : '登录后发表评论'}
-              className={styles.commentInput}
-              disabled={!user}
-              value={commentText}
-              onChange={(e) => setCommentText(e.target.value)}
-              onPressEnter={handleSendComment}
-            />
-            <Button
-              type="primary"
-              className={styles.sendCommentButton}
-              disabled={!user}
-              onClick={handleSendComment}
-            >
-              发送
-            </Button>
+            {/* 评论区 */}
+            <CommentList articleId={article._id} />
           </div>
 
-          <CommentList articleId={article._id} />
+          {/* PC端右侧边栏 - 仅在大屏幕显示 */}
+          <div className={styles.sidebar}>
+            {/* 作者信息卡片 */}
+            <div className={styles.authorCard}>
+              <Avatar src={article.author.avatar} alt={article.author.username} className={styles.authorAvatar} />
+              <div className={styles.authorInfo}>
+                <div className={styles.authorNameContainer}>
+                  <span className={styles.authorName}>{article.author.username}</span>
+                  {article.author.isVerified && (
+                    <Tooltip title="已认证">
+                      <Badge status="success" className={styles.verifiedBadge} />
+                    </Tooltip>
+                  )}
+                </div>
+                {article.author.bio && <div className={styles.authorBio}>{article.author.bio}</div>}
+                <div className={styles.authorStats}>
+                  <div className={styles.statItem}>{article.author.articleCount} 文章</div>
+                  <div className={styles.statItem}>{article.author.readCount} 阅读</div>
+                  <div className={styles.statItem}>{article.author.followerCount} 粉丝</div>
+                </div>
+                {!isAuthor && (
+                  <Button type="primary" size="small" className={styles.followButton}>关注</Button>
+                )}
+              </div>
+            </div>
+
+            {/* 文章目录 */}
+            <div className={styles.tableOfContents}>
+              <div className={styles.tocTitle}>目录</div>
+              <div className={styles.tocContent}>
+                {/* 目录内容将通过JavaScript动态生成 */}
+              </div>
+            </div>
+
+              {/* 右侧边栏 */}
+            <div className={styles.sidebar}>
+              <div className={styles.sidebarCard}>
+                <div className={styles.sidebarTitle}>推荐阅读</div>
+                <div className={styles.recommendedArticles}>
+                  {/* 这里可以添加推荐文章列表 */}
+                  <div className={styles.recommendedArticle}>
+                    <div className={styles.recommendedTitle}>如何高效学习React</div>
+                    <div className={styles.recommendedMeta}>作者名称 · 2.3k阅读</div>
+                  </div>
+                  <div className={styles.recommendedArticle}>
+                    <div className={styles.recommendedTitle}>TypeScript高级类型技巧</div>
+                    <div className={styles.recommendedMeta}>作者名称 · 1.8k阅读</div>
+                  </div>
+                  <div className={styles.recommendedArticle}>
+                    <div className={styles.recommendedTitle}>前端性能优化实践</div>
+                    <div className={styles.recommendedMeta}>作者名称 · 3.5k阅读</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
 
-      {/* 侧边栏 */}
-      <div className={styles.sidebar}>
-        <div className={styles.sidebarCard}>
-          <div className={styles.sidebarTitle}>推荐阅读</div>
-          <div className={styles.recommendedArticles}>
-            {/* 这里可以添加推荐文章列表 */}
-            <div className={styles.recommendedArticle}>
-              <div className={styles.recommendedTitle}>如何高效学习React</div>
-              <div className={styles.recommendedMeta}>作者名称 · 2.3k阅读</div>
-            </div>
-            <div className={styles.recommendedArticle}>
-              <div className={styles.recommendedTitle}>TypeScript高级类型技巧</div>
-              <div className={styles.recommendedMeta}>作者名称 · 1.8k阅读</div>
-            </div>
-            <div className={styles.recommendedArticle}>
-              <div className={styles.recommendedTitle}>前端性能优化实践</div>
-              <div className={styles.recommendedMeta}>作者名称 · 3.5k阅读</div>
-            </div>
-          </div>
-        </div>
-      </div>
+
     </div>
   );
 }

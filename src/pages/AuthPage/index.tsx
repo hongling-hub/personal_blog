@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Form, Input, Button, message, Tabs } from 'antd';
 import { UserOutlined, LockOutlined, SafetyOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { useUser } from '@/contexts/UserContext';
 import authService from '@/services/auth';
 import ParticleBackground from '@/components/ParticleBackground';
 import styles from './index.module.scss';
@@ -26,6 +27,7 @@ const AuthPage: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [activeKey, setActiveKey] = useState('login');
   const navigate = useNavigate();
+const { updateUser } = useUser();
   const [loginForm] = Form.useForm();
   const [registerForm] = Form.useForm();
 
@@ -81,7 +83,10 @@ const AuthPage: React.FC = () => {
       message.success('登录成功');
       // 存储token
       localStorage.setItem('token', response.token);
-      navigate('/', { replace: true });
+        // 获取用户信息并更新Context
+        const userData = await authService.getUserInfo();
+        updateUser(userData);
+        navigate('/', { replace: true });
     } else {
       throw new Error(response.message || '登录失败');
     }

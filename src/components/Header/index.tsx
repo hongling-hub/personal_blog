@@ -8,52 +8,10 @@ import styles from './index.module.scss';
 const { Search } = Input;
 
 const Header: React.FC = () => {
-  const { user } = useUser();
+  const { user, updateUser, loading } = useUser();
   const navigate = useNavigate();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const isLoggedIn = !!user;
   
-  // 添加token验证函数
-  const isTokenValid = (token: string): boolean => {
-    try {
-      // 解码JWT payload检查过期时间
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      const currentTime = Date.now() / 1000;
-      return payload.exp > currentTime;
-    } catch (error) {
-      return false;
-    }
-  };
-  
-  const checkAuthStatus = () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      const isValid = isTokenValid(token);
-      if (!isValid) {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-      } else {
-        setIsLoggedIn(true);
-      }
-    } else {
-      setIsLoggedIn(false);
-    }
-  };
-  
-  useEffect(() => {
-    checkAuthStatus();
-    
-    // 每30秒检查一次token状态
-    const intervalId = setInterval(checkAuthStatus, 30000);
-    
-    // 监听token过期事件
-    const handleTokenExpired = () => checkAuthStatus();
-    window.addEventListener('tokenExpired', handleTokenExpired);
-    
-    return () => {
-      clearInterval(intervalId);
-      window.removeEventListener('tokenExpired', handleTokenExpired);
-    };
-  }, []);
 
   const userMenuItems = [
     {
@@ -75,10 +33,10 @@ const Header: React.FC = () => {
       icon: <LogoutOutlined />,
       label: '退出登录',
       onClick: () => {
-        localStorage.removeItem('token');
-        setIsLoggedIn(false);
-        navigate('/');
-      }
+          localStorage.removeItem('token');
+          updateUser(null);
+          navigate('/');
+        }
     },
   ];
 

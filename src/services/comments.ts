@@ -8,16 +8,40 @@ interface Comment {
 
 export default {
   // 获取文章评论
-  getComments: (articleId: string) => 
-    fetch(`/api/comments/${articleId}`).then(res => res.json()),
+  getComments: (articleId: string, sortType?: string) => {
+    let url = `/api/comments/${articleId}`;
+    if (sortType) {
+      url += `?sort=${sortType}`;
+    }
+    return fetch(url).then(res => res.json());
+  },
     
   // 添加评论
-  createComment: (data: { articleId: string; content: string }) =>
+  createComment: (data: { articleId: string; content: string; author: string }) =>
     fetch('/api/comments', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
         'Content-Type': 'application/json'
       }
+    }).then(res => res.json()),
+
+  likeComment: (commentId: string) => 
+    fetch(`/api/comments/${commentId}/like`, {
+      method: 'POST'
+    }).then(res => res.json()),
+
+  deleteComment: (commentId: string) => 
+    fetch(`/api/comments/${commentId}`, {
+      method: 'DELETE'
+    }).then(res => res.json()),
+
+  createReply: (commentId: string, content: string) => 
+    fetch(`/api/comments/${commentId}/replies`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ content })
     }).then(res => res.json())
 }
