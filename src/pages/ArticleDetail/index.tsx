@@ -263,35 +263,37 @@ export default function ArticleDetail() {
           <div className={styles.pcSideActions}>
             <div className={styles.actionButtonGroup}>
               <Button
-                icon={<LikeOutlined />}
                 onClick={handleLike}
-                className={`${styles.actionButton} ${isLiked ? styles.liked : ''}`}
+                className={`${styles.actionButton} ${isLiked ? 'liked' : ''}`}
               >
-                <span className={styles.actionText}>{likeCount}</span>
+                <Badge count={likeCount} showZero>
+                  <LikeOutlined />
+                </Badge>
               </Button>
 
               <Button
-                icon={<MessageOutlined />}
                 className={styles.actionButton}
                 onClick={() => scrollToComments()}
               >
-                <span className={styles.actionText}>{article.commentCount}</span>
+                <Badge count={article.commentCount} showZero>
+                  <MessageOutlined />
+                </Badge>
               </Button>
 
               <Button
-                icon={<StarOutlined />}
                 onClick={handleCollect}
-                className={`${styles.actionButton} ${isCollected ? styles.collected : ''}`}
+                className={`${styles.actionButton} ${isCollected ? 'collected' : ''}`}
               >
-                <span className={styles.actionText}>{collectCount}</span>
+                <Badge count={collectCount} showZero>
+                  <StarOutlined />
+                </Badge>
               </Button>
 
               <Button
-                icon={<ShareAltOutlined />}
                 onClick={handleShare}
                 className={styles.actionButton}
               >
-                <span className={styles.actionText}>分享</span>
+                <ShareAltOutlined />
               </Button>
             </div>
           </div>
@@ -303,11 +305,6 @@ export default function ArticleDetail() {
             <div className={styles.articleHeader}>
               <h1 className={styles.title}>{article.title}</h1>
 
-              <div className={styles.tags}>
-                {article.tags.map(tag => (
-                  <Tag key={tag} className={styles.tag}>{tag}</Tag>
-                ))}
-              </div>
 
               <div className={styles.meta}>
                 <div className={styles.authorInfo}>
@@ -322,7 +319,7 @@ export default function ArticleDetail() {
                       )}
                     </div>
                     <div className={styles.publishInfo}>
-                      <span>{dayjs(article.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                      <span>{dayjs(article.publishTime).format('YYYY-MM-DD')}</span>
                       <span className={styles.separator}>·</span>
                       <span><EyeOutlined /> {article.readCount} 阅读</span>
                     </div>
@@ -334,6 +331,13 @@ export default function ArticleDetail() {
             {/* 文章内容 */}
             <div className={styles.articleContent}>
               <RenderKatex content={article.content} />
+              <div className={styles.tags}>标签：
+                <div>
+                {article.tags.map(tag => (
+                  <Tag key={tag} className={styles.tag}>{tag}</Tag>
+                ))}
+              </div>
+              </div>
             </div>
 
             {/* 移动端操作栏 - 仅在小屏幕显示 */}
@@ -387,10 +391,16 @@ export default function ArticleDetail() {
           <div className={styles.sidebar}>
             {/* 作者信息卡片 */}
             <div className={styles.authorCard}>
-              <Avatar src={article.author.avatar} alt={article.author.username} className={styles.authorAvatar} />
+              <div className={styles.authorInfoLine}>
+                <div>
+                <Avatar src={article.author.avatar} alt={article.author.username} className={styles.authorAvatar} />
+              </div>
+              <div>
+                <div className={styles.authorName}>{article.author.username}</div>
+              </div>
+              </div>
               <div className={styles.authorInfo}>
                 <div className={styles.authorNameContainer}>
-                  <span className={styles.authorName}>{article.author.username}</span>
                   {article.author.isVerified && (
                     <Tooltip title="已认证">
                       <Badge status="success" className={styles.verifiedBadge} />
@@ -404,7 +414,10 @@ export default function ArticleDetail() {
                   <div className={styles.statItem}>{article.author.followerCount} 粉丝</div>
                 </div>
                 {!isAuthor && (
-                  <Button type="primary" size="small" className={styles.followButton}>关注</Button>
+                  <div  className={styles.authorInfoLine}>
+                    <Button type="primary" size="small" className={styles.followButton}>关注</Button>
+                    <Button size="small" className={styles.messageButton}>私信</Button>
+                  </div>
                 )}
               </div>
             </div>
