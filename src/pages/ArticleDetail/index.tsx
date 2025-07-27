@@ -207,6 +207,13 @@ export default function ArticleDetail() {
     const commentsElement = document.getElementById('comments');
     if (commentsElement) {
       commentsElement.scrollIntoView({ behavior: 'smooth' });
+      // 滚动后聚焦评论框
+      setTimeout(() => {
+        const textarea = commentsElement.querySelector('textarea');
+        if (textarea) {
+          textarea.focus();
+        }
+      }, 100);
     }
   };
 
@@ -275,7 +282,7 @@ export default function ArticleDetail() {
                 className={styles.actionButton}
                 onClick={() => scrollToComments()}
               >
-                <Badge count={article.commentCount} showZero>
+                <Badge count={article.commentCount} showZero onClick={() => scrollToComments()}>
                   <MessageOutlined />
                 </Badge>
               </Button>
@@ -384,7 +391,9 @@ export default function ArticleDetail() {
             <Divider className={styles.divider} />
 
             {/* 评论区 */}
-            <CommentList articleId={article._id} />
+            <div id="comments">
+              <CommentList articleId={article._id} />
+            </div>
           </div>
 
           {/* PC端右侧边栏 - 仅在大屏幕显示 */}

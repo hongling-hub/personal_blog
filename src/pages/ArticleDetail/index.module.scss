@@ -187,6 +187,13 @@
   display: none;
 }
 
+.mobileActionButton {
+  &.liked,
+  &.collected {
+    color: #0066ff !important;
+  }
+}
+
 .actionText {
   font-size: 14px;
   margin-top: 4px;
