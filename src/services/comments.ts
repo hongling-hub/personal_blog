@@ -17,7 +17,7 @@ export default {
   },
     
   // 添加评论
-  createComment: (data: { article: string; content: string; author: string }) =>
+  createComment: (data: { articleId: string; content: string; author: string }) =>
     fetch('/api/comments', {
       method: 'POST',
       body: JSON.stringify(data),
