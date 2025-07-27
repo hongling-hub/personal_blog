@@ -153,7 +153,7 @@ console.log('Created article result:', result);
       if ((error as any).status === 401) {
         // 处理未授权错误，清除token并重定向到登录页
         localStorage.removeItem('token');
-        updateUser({});
+        updateUser(null);
         message.error('登录已过期，请重新登录');
         navigate('/login');
       } else {

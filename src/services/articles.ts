@@ -40,7 +40,11 @@ export default {
   getList: () => fetch('/api/articles').then(res => res.json()),
   
   // 获取文章详情
-  getById: (id: string) => fetch(`/api/articles/${id}`).then(res => res.json()),
+  getById: (id: string) => fetch(`/api/articles/${id}`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
+  }).then(res => res.json()),
   
   // 创建文章
   create: (data: Article) => fetch('/api/articles', {
@@ -66,7 +70,8 @@ export default {
     method: 'PATCH',
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   }).then(res => res.json()),
 
@@ -75,32 +80,48 @@ export default {
     method: 'POST',
     body: JSON.stringify(commentData),
     headers: {
-      'Content-Type': 'application/json'
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   }).then(res => res.json()),
 
   // 点赞文章
   like: (id: string) => fetch(`/api/articles/${id}/like`, {
-    method: 'POST'
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
   }).then(res => res.json()),
 
   // 取消点赞
   cancelLike: (id: string) => fetch(`/api/articles/${id}/like`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
   }).then(res => res.json()),
 
   // 收藏文章
   collect: (id: string) => fetch(`/api/articles/${id}/collect`, {
-    method: 'POST'
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
   }).then(res => res.json()),
 
   // 取消收藏
   cancelCollect: (id: string) => fetch(`/api/articles/${id}/collect`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
   }).then(res => res.json()),
 
   // 删除文章
   delete: (id: string) => fetch(`/api/articles/${id}`, {
-    method: 'DELETE'
+    method: 'DELETE',
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
   }).then(res => res.json())
 };

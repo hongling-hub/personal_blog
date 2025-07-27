@@ -21,9 +21,10 @@ interface CommentType {
 
 interface CommentListProps {
   articleId: string;
+  refreshKey?: number;
 }
 
-const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
+const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
   console.log('CommentList接收到的articleId:', articleId);
   if (!articleId) {
     console.error('CommentList未接收到有效的articleId');
@@ -75,7 +76,7 @@ const CommentList: React.FC<CommentListProps> = ({ articleId }) => {
 
   useEffect(() => {
     fetchComments();
-  }, [articleId, sortType]);
+  }, [articleId, sortType, refreshKey]);
 
   const handleSubmit = async () => {
     if (!value) {

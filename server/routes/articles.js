@@ -21,11 +21,21 @@ router.get('/', async (req, res) => {
 });
 
 // 获取文章详情
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   try {
     const article = await Article.findById(req.params.id).populate('author', 'username avatar isVerified bio');
     if (!article) return res.status(404).json({ message: '文章未找到' });
-    res.json(article);
+
+    // 检查当前用户是否点赞/收藏了该文章
+    const isLiked = req.user && article.likes.includes(req.user._id);
+    const isCollected = req.user && article.collections.includes(req.user._id);
+
+    // 将状态添加到响应中
+    const articleData = article.toObject();
+    articleData.isLiked = isLiked || false;
+    articleData.isCollected = isCollected || false;
+
+    res.json(articleData);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -78,6 +88,52 @@ router.patch('/:id', async (req, res) => {
     res.json(updatedArticle);
   } catch (err) {
     res.status(400).json({ message: err.message });
+  }
+});
+
+// 点赞文章
+router.post('/:id/like', authenticate, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: '文章未找到' });
+
+    const userId = req.user._id;
+    // 检查用户是否已经点赞
+    if (article.likes.includes(userId)) {
+      return res.status(400).json({ message: '已经点赞过该文章' });
+    }
+
+    // 添加点赞
+    article.likes.push(userId);
+    article.likeCount += 1;
+
+    await article.save();
+    res.json({ message: '点赞成功', likeCount: article.likeCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 收藏文章
+router.post('/:id/collect', authenticate, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: '文章未找到' });
+
+    const userId = req.user._id;
+    // 检查用户是否已经收藏
+    if (article.collections.includes(userId)) {
+      return res.status(400).json({ message: '已经收藏过该文章' });
+    }
+
+    // 添加收藏
+    article.collections.push(userId);
+    article.collectCount += 1;
+
+    await article.save();
+    res.json({ message: '收藏成功', collectCount: article.collectCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
   }
 });
 
