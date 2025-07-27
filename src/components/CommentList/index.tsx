@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { Avatar, Button, List, Input, message } from 'antd';
-import { UserOutlined } from '@ant-design/icons';
+import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined } from '@ant-design/icons';
 import commentService from '@/services/comments';
 import styles from './index.module.scss';
 import { useUser } from '../../contexts/UserContext';
@@ -201,9 +201,11 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                       <div style={{ marginTop: 8 }}>{item.createTime}</div>
                       <div className={styles.commentActions} style={{ marginTop: 8 }}>
                         <span onClick={() => handleLike(item.id)} className={styles.actionButton}>
-                          {item.isLiked ? '取消点赞' : '点赞'} ({item.likes})
+                          {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.isLiked ? item.likes : '点赞'}
                         </span>
-                        <span onClick={() => handleReply(item.id)} className={styles.actionButton}>回复</span>
+                        <span onClick={() => handleReply(item.id)} className={styles.actionButton}>
+                          <MessageOutlined /> {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
+                        </span>
                         {user?.username === item.author.username && (
                           <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
                         )}
