@@ -114,6 +114,30 @@ router.post('/:id/like', authenticate, async (req, res) => {
   }
 });
 
+// 取消点赞文章
+router.delete('/:id/like', authenticate, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: '文章未找到' });
+
+    const userId = req.user._id;
+    // 检查用户是否已经点赞
+    const likeIndex = article.likes.indexOf(userId);
+    if (likeIndex === -1) {
+      return res.status(400).json({ message: '尚未点赞该文章' });
+    }
+
+    // 移除点赞
+    article.likes.splice(likeIndex, 1);
+    article.likeCount -= 1;
+
+    await article.save();
+    res.json({ message: '取消点赞成功', likeCount: article.likeCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // 收藏文章
 router.post('/:id/collect', authenticate, async (req, res) => {
   try {
@@ -132,6 +156,30 @@ router.post('/:id/collect', authenticate, async (req, res) => {
 
     await article.save();
     res.json({ message: '收藏成功', collectCount: article.collectCount });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 取消收藏文章
+router.delete('/:id/collect', authenticate, async (req, res) => {
+  try {
+    const article = await Article.findById(req.params.id);
+    if (!article) return res.status(404).json({ message: '文章未找到' });
+
+    const userId = req.user._id;
+    // 检查用户是否已经收藏
+    const collectIndex = article.collections.indexOf(userId);
+    if (collectIndex === -1) {
+      return res.status(400).json({ message: '尚未收藏该文章' });
+    }
+
+    // 移除收藏
+    article.collections.splice(collectIndex, 1);
+    article.collectCount -= 1;
+
+    await article.save();
+    res.json({ message: '取消收藏成功', collectCount: article.collectCount });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
