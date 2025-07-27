@@ -3,6 +3,7 @@ import authService from '../services/auth';
 
 // 定义用户信息类型
 interface User {
+  id: string;
   username: string;
   avatar: string;
   [key: string]: any;

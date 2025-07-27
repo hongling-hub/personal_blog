@@ -84,7 +84,8 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
       return;
     }
 
-    if (!user || !user._id) {
+
+    if (!user) {
       message.warning('请先登录再发表评论');
       return;
     }
@@ -97,10 +98,9 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
         if (!articleId) {
           throw new Error('缺少文章ID');
         }
-        if (!user?._id) {
-          throw new Error('用户未登录或缺少用户ID');
+        if (!user.username) {
+          throw new Error('用户未登录或缺少用户名');
         }
-        
         await commentService.createComment({
           articleId: articleId,
           content: value,

@@ -24,6 +24,7 @@ interface RegisterResponse {
 }
 
 interface UserInfoResponse {
+  id: string;
   username: string;
   avatar: string;
   joinDate: string;

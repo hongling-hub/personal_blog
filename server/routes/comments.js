@@ -15,10 +15,10 @@ router.get('/:articleId', async (req, res) => {
 // 添加评论
 router.post('/', async (req, res) => {
   const comment = new Comment({
-    content: req.body.content,
-    articleId: req.body.articleId,
-    author: req.body.author
-  });
+      content: req.body.content,
+      article: req.body.articleId,
+      author: req.body.author
+    });
 
   try {
     const newComment = await comment.save();

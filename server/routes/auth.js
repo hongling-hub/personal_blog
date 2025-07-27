@@ -133,6 +133,7 @@ router.get('/me', authenticate, async (req, res) => {
     // 从请求对象中获取用户信息（由auth中间件设置）
     const user = req.user;
     res.json({
+      id: user._id,
       username: user.username,
       avatar: user.avatar,
       joinDate: user.createdAt,
