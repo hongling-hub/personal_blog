@@ -5,7 +5,7 @@ const Comment = require('../models/Comment');
 // 获取文章评论
 router.get('/:articleId', async (req, res) => {
   try {
-    const comments = await Comment.find({ articleId: req.params.articleId });
+    const comments = await Comment.find({ article: req.params.articleId }).populate('author', 'username avatar').populate({ path: 'replies.author', select: 'username avatar' });
     res.json(comments);
   } catch (err) {
     res.status(500).json({ message: err.message });

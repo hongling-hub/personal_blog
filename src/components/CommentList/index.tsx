@@ -9,9 +9,10 @@ const { TextArea } = Input;
 
 interface CommentType {
   id: string;
-  author: string;
-  authorId: string;
-  avatar?: string;
+  author: {
+    username: string;
+    avatar?: string;
+  };
   content: string;
   createTime: string;
   likes: number;
@@ -43,6 +44,7 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
     setLoading(true);
     try {
       const data = await commentService.getComments(articleId, sortType);
+      console.log('获取到的评论数据:', data);
       setComments(data);
     } catch (error) {
       message.error('获取评论失败');
@@ -191,8 +193,8 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
             renderItem={(item) => (
               <List.Item className={styles.commentItem}>
                 <List.Item.Meta
-                  avatar={item.avatar || <Avatar icon={<UserOutlined />} />}
-                  title={item.author}
+                  avatar={item.author.avatar ? <Avatar src={item.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
+                  title={item.author.username}
                   description={
                     <>
                       <div>{item.content}</div>
@@ -202,7 +204,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                           {item.isLiked ? '取消点赞' : '点赞'} ({item.likes})
                         </span>
                         <span onClick={() => handleReply(item.id)} className={styles.actionButton}>回复</span>
-                        {user?.username === item.author && (
+                        {user?.username === item.author.username && (
                           <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
                         )}
                       </div>
@@ -229,8 +231,8 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                           renderItem={(reply) => (
                             <List.Item className={styles.replyItem}>
                               <List.Item.Meta
-                                avatar={reply.avatar || <Avatar icon={<UserOutlined />} />}
-                                title={reply.author}
+                                avatar={reply.author.avatar ? <Avatar src={reply.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
+                                title={reply.author.username}
                                 description={
                                   <>
                                     <div>{reply.content}</div>

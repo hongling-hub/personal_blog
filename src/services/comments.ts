@@ -1,7 +1,10 @@
 interface Comment {
   id: string;
   articleId: string;
-  author: string;
+  author: {
+    username: string;
+    avatar?: string;
+  };
   content: string;
   createTime: string;
 }
