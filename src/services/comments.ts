@@ -12,7 +12,7 @@ interface Comment {
 export default {
   // 获取文章评论
   getComments: (articleId: string, sortType?: string) => {
-    let url = `/api/comments/${articleId}`;
+    let url = `/api/comments/article/${articleId}`;
     if (sortType) {
       url += `?sort=${sortType}`;
     }
@@ -21,18 +21,23 @@ export default {
     
   // 添加评论
   createComment: (data: { articleId: string; content: string; author: string }) =>
-    fetch('/api/comments', {
-      method: 'POST',
-      body: JSON.stringify(data),
-      headers: {
-        'Content-Type': 'application/json'
-      }
+      fetch('/api/comments', {
+        method: 'POST',
+        body: JSON.stringify(data),
+        headers: {
+          'Content-Type': 'application/json'
+        }
     }).then(res => res.json()),
 
-  likeComment: (commentId: string) => 
-    fetch(`/api/comments/${commentId}/like`, {
-      method: 'POST'
-    }).then(res => res.json()),
+  likeComment: (commentId: string) => {
+      const token = localStorage.getItem('token');
+      return fetch(`/api/comments/${commentId}/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(res => res.json());
+    },
 
   deleteComment: (commentId: string) => 
     fetch(`/api/comments/${commentId}`, {

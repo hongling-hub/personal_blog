@@ -392,7 +392,7 @@ export default function ArticleDetail() {
 
             {/* 评论区 */}
             <div id="comments">
-              <CommentList articleId={article._id} />
+              {article && <CommentList articleId={article._id} />}
             </div>
           </div>
 

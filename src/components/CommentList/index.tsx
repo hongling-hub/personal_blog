@@ -193,8 +193,8 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
             renderItem={(item) => (
               <List.Item className={styles.commentItem}>
                 <List.Item.Meta
-                  avatar={item.author.avatar ? <Avatar src={item.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
-                  title={item.author.username}
+                  avatar={(item.author?.avatar ? <Avatar src={item.author.avatar} /> : <Avatar icon={<UserOutlined />} />)}
+                  title={item.author?.username || '匿名用户'}
                   description={
                     <>
                       <div>{item.content}</div>
