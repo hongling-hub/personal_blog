@@ -51,6 +51,26 @@ router.post('/', async (req, res) => {
 });
 
 // 评论点赞
+// 点赞
+
+
+// 取消点赞
+router.delete('/:commentId/like', authenticate, async (req, res) => {
+  try {
+    let comment = await Comment.findById(req.params.commentId);
+    comment.likes = comment.likes || [];
+    const userId = req.user._id;
+    const index = comment.likes.findIndex(like => like.equals(userId));
+    if (index > -1) {
+      comment.likes.splice(index, 1);
+      comment.likeCount--;
+    }
+    await comment.save();
+    res.json(comment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 router.post('/:commentId/like', authenticate, async (req, res) => {
   try {
     let comment = await Comment.findById(req.params.commentId)
@@ -64,30 +84,17 @@ router.post('/:commentId/like', authenticate, async (req, res) => {
     const userId = req.user._id;
     if (!comment.likes.some(like => like.equals(userId))) {
       comment.likes.push(userId);
-      await comment.save();
-      // 重新查一次，保证 populate 后返回最新 likes
-      comment = await Comment.findById(req.params.commentId)
-        .populate('author', 'username avatar')
-        .populate({ path: 'replies.author', select: 'username avatar' });
-      // 返回与获取评论接口一致的格式
-      const commentObj = comment.toJSON();
-      const likesArr = Array.isArray(comment.likes) ? comment.likes : [];
-      let isLiked = false;
-      if (req.user && req.user._id && likesArr.length > 0) {
-        isLiked = likesArr.some(like => like && like.equals && like.equals(req.user._id));
-      }
-      res.json({
-        ...commentObj,
-        id: comment._id.toString(),
-        likes: likesArr.length,
-        isLiked
-      });
+      comment.likeCount++;
     } else {
-      res.status(400).json({ message: '您已点赞过此评论' });
+      comment.likes.pull(userId);
+      comment.likeCount--;
     }
+    await comment.save();
+    res.json(comment);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
+
 
 module.exports = router;

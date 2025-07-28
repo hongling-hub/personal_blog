@@ -25,6 +25,10 @@ const CommentSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
   }],
+  likeCount: {
+    type: Number,
+    default: 0
+  },
   replies: [{
     author: {
       type: mongoose.Schema.Types.ObjectId,
@@ -41,6 +45,23 @@ const CommentSchema = new mongoose.Schema({
     }
   }]
 });
+
+CommentSchema.methods.like = function(userId) {
+  if (!this.likes.some(like => like.equals(userId))) {
+    this.likes.push(userId);
+    this.likeCount++;
+  }
+  return this.save();
+};
+
+CommentSchema.methods.unlike = function(userId) {
+  const index = this.likes.findIndex(like => like.equals(userId));
+  if (index > -1) {
+    this.likes.splice(index, 1);
+    this.likeCount--;
+  }
+  return this.save();
+};
 
 CommentSchema.set('toJSON', {
   transform: function(doc, ret) {
