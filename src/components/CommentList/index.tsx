@@ -148,11 +148,12 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
 
     try {
       const newReply = await commentService.createReply(commentId, replyContent);
-      setComments(comments.map(comment => 
-        comment.id === commentId
-          ? { ...comment, replies: [...(comment.replies || []), newReply] }
-          : comment
-      ));
+      fetchComments(); // 提交后重新获取评论列表
+      // setComments(comments.map(comment => 
+      //   comment.id === commentId
+      //     ? { ...comment, replies: [...(comment.replies || []), newReply] }
+      //     : comment
+      // ));
       setShowReplyForm(false);
       message.success('回复成功');
     } catch (error) {
@@ -221,7 +222,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                         <span onClick={() => handleLike(item.id)} className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
                           {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}
                         </span>
-                        <span onClick={() => handleReply(item.id)}  className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
+                        <span onClick={() => handleReply(item.id)}  className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
                           {replyingTo === item.id ? <MessageFilled /> : <MessageOutlined />} {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
                         </span>
                         {user?.username === item.author.username && (
@@ -270,7 +271,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                       <span onClick={() => handleLike(reply.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
                                         {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
                                       </span>
-                                      <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
+                                      <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
                                         {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
                                       </span>
                                       {user?.username === item.author.username && (
