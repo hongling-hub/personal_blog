@@ -33,8 +33,14 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
     setLoading(true);
     try {
       const data = await commentService.getComments(articleId, sortType);
-      console.log('获取到的评论数据:', data);
-      setComments(data);
+    console.log('获取到的评论数据:', data);
+    // 从localStorage加载点赞状态
+    const likedComments = JSON.parse(localStorage.getItem('likedComments') || '{}');
+    const commentsWithLikes = data.map((comment: CommentType) => ({ 
+      ...comment, 
+      isLiked: likedComments[comment.id] || false 
+    }));
+    setComments(commentsWithLikes);
     } catch (error) {
       message.error('获取评论失败');
     } finally {
@@ -52,9 +58,19 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
         ? await commentService.unlikeComment(commentId)
         : await commentService.likeComment(commentId);
       
-      setComments(comments.map(c => 
-        c.id === commentId ? { ...c, ...updatedComment } : c
-      ));
+      const newIsLiked = !comment.isLiked;
+    setComments(comments.map(c => 
+      c.id === commentId ? { ...c, ...updatedComment, isLiked: newIsLiked } : c
+    ));
+    
+    // 更新localStorage中的点赞状态
+    const likedComments = JSON.parse(localStorage.getItem('likedComments') || '{}');
+    if (newIsLiked) {
+      likedComments[commentId] = true;
+    } else {
+      delete likedComments[commentId];
+    }
+    localStorage.setItem('likedComments', JSON.stringify(likedComments));
     } catch (error) {
       message.error(comment.isLiked ? '取消点赞失败' : '点赞失败');
     }
@@ -195,7 +211,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                       <div>{item.content}</div>
                       <div style={{ marginTop: 8 }}>{item.createdAt}</div>
                       <div className={styles.commentActions} style={{ marginTop: 8 }}>
-                        <span onClick={() => handleLike(item.id)} className={styles.actionButton}>
+                        <span onClick={() => handleLike(item.id)} className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
                           {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}
                         </span>
                         <span onClick={() => handleReply(item.id)} className={styles.actionButton}>

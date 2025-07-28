@@ -83,6 +83,10 @@
   transition: color 0.2s;
 }
 
+.commentActions .actionButton:global(.active) {
+  color: #1890ff !important;
+}
+
 .actionButton:hover {
   color: #1890ff;
 }
