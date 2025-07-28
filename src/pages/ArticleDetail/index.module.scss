@@ -405,6 +405,11 @@
     color: #0066ff !important;
   }
 
+  &:global(.liked) :global(.anticon),
+  &:global(.collected) :global(.anticon) {
+    color: #0066ff !important;
+  }
+
 
   :global(.ant-badge) {
       position: relative;

@@ -15,8 +15,10 @@ import {
 } from 'antd';
 import {
   LikeOutlined,
+  LikeFilled,
   MessageOutlined,
   StarOutlined,
+  StarFilled,
   ShareAltOutlined,
   BookOutlined,
   MoreOutlined,
@@ -274,7 +276,7 @@ export default function ArticleDetail() {
                 className={`${styles.actionButton} ${isLiked ? 'liked' : ''}`}
               >
                 <Badge count={likeCount} showZero>
-                  <LikeOutlined />
+                  {isLiked ? <LikeFilled /> : <LikeOutlined />}
                 </Badge>
               </Button>
 
@@ -292,7 +294,7 @@ export default function ArticleDetail() {
                 className={`${styles.actionButton} ${isCollected ? 'collected' : ''}`}
               >
                 <Badge count={collectCount} showZero>
-                  <StarOutlined />
+                  {isCollected ? <StarFilled /> : <StarOutlined />}
                 </Badge>
               </Button>
 
@@ -349,10 +351,10 @@ export default function ArticleDetail() {
 
             {/* 移动端操作栏 - 仅在小屏幕显示 */}
             <div className={styles.mobileActions}>
-              <Button
-                icon={<LikeOutlined />}
-                onClick={handleLike}
-                className={`${styles.mobileActionButton} ${isLiked ? styles.liked : ''}`}
+              <Button 
+                icon={isLiked ? <LikeFilled /> : <LikeOutlined />} 
+                onClick={handleLike} 
+                className={`${styles.mobileActionButton} ${isLiked ? styles.liked : ''}`} 
               >
                 <span className={styles.mobileActionText}>{likeCount}</span>
               </Button>
@@ -365,10 +367,10 @@ export default function ArticleDetail() {
                 <span className={styles.mobileActionText}>{article.commentCount}</span>
               </Button>
 
-              <Button
-                icon={<StarOutlined />}
-                onClick={handleCollect}
-                className={`${styles.mobileActionButton} ${isCollected ? styles.collected : ''}`}
+              <Button 
+                icon={isCollected ? <StarFilled /> : <StarOutlined />} 
+                onClick={handleCollect} 
+                className={`${styles.mobileActionButton} ${isCollected ? styles.collected : ''}`} 
               >
                 <span className={styles.mobileActionText}>{collectCount}</span>
               </Button>
