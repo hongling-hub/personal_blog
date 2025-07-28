@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import dayjs from 'dayjs';
-import { Avatar, Button, List, Input, message } from 'antd';
-import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined } from '@ant-design/icons';
+ import { Avatar, Button, List, Input, message } from 'antd';
+import { MessageFilled, MessageOutlined, HeartOutlined, HeartFilled, UserOutlined } from '@ant-design/icons';
 import commentService from '@/services/comments';
 import styles from './index.module.scss';
 import { useUser } from '../../contexts/UserContext';
@@ -160,6 +160,12 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
     }
   };
 
+  const handleCancelReply = () => {
+  setShowReplyForm(false);
+  setReplyingTo(null);
+  setReplyContent('');
+};
+
   return (
     <div className={styles.commentList}>
       <div className={styles.commentHeader}>
@@ -215,8 +221,8 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                         <span onClick={() => handleLike(item.id)} className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
                           {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}
                         </span>
-                        <span onClick={() => handleReply(item.id)} className={styles.actionButton}>
-                          <MessageOutlined /> {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
+                        <span onClick={() => handleReply(item.id)} className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
+                          {replyingTo === item.id ? <MessageFilled /> : <MessageOutlined />} {item.replies?.length ?? 0}
                         </span>
                         {user?.username === item.author.username && (
                           <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
@@ -229,14 +235,21 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder="写下你的回复..."
+                            onBlur={handleCancelReply}
                           />
-                          <Button
-                            type="primary"
-                            onClick={() => handleReplySubmit(item.id)}
-                            style={{ marginTop: 8 }}
-                          >
-                            提交回复
-                          </Button>
+                          <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
+                            <Button
+                              type="primary"
+                              onClick={() => handleReplySubmit(item.id)}
+                            >
+                              提交回复
+                            </Button>
+                            <Button
+                              onClick={handleCancelReply}
+                            >
+                              取消回复
+                            </Button>
+                          </div>
                         </div>
                       )}
                       {item.replies && item.replies.length > 0 && (
@@ -246,11 +259,22 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                             <List.Item className={styles.replyItem}>
                               <List.Item.Meta
                                 avatar={reply.author.avatar ? <Avatar src={reply.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
-                                title={reply.author.username}
+                                title={`${reply.author.username} 回复 ${item.author.username}`}
                                 description={
                                   <>
                                     <div>{reply.content}</div>
-                                    <div style={{ marginTop: 8 }}>{reply.createdAt}</div>
+                                    <div style={{ marginTop: 8 }}>{dayjs(reply.createdAt).format('YYYY-MM-DD')}</div>
+                                    <div className={styles.commentActions} style={{ marginTop: 8 }}>
+                                      <span onClick={() => handleLike(reply.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
+                                        {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
+                                      </span>
+                                      <span onClick={() => handleReply(reply.id)} className={styles.actionButton}>
+                                        <MessageOutlined /> 回复
+                                      </span>
+                                      {user?.username === item.author.username && (
+                                        <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
+                                      )}
+                                    </div>
                                   </>
                                 }
                               />
@@ -279,4 +303,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
 };
 
 export default CommentList;
+
+
+
 
