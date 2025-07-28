@@ -54,12 +54,15 @@ export default {
       method: 'DELETE'
     }).then(res => res.json()),
 
-  createReply: (commentId: string, content: string) => 
-    fetch(`/api/comments/${commentId}/replies`, {
+  createReply: (commentId: string, content: string) => {
+    const token = localStorage.getItem('token');
+    return fetch(`/api/comments/${commentId}/replies`, {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       },
       body: JSON.stringify({ content })
     }).then(res => res.json())
+  }
 }

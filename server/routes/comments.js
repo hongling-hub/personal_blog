@@ -50,6 +50,32 @@ router.post('/', async (req, res) => {
   }
 });
 
+// 添加评论回复
+router.post('/:commentId/replies', authenticate, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: '评论不存在' });
+
+    const newReply = {
+      content: req.body.content,
+      author: req.user._id,
+      createdAt: new Date()
+    };
+
+    comment.replies.push(newReply);
+    await comment.save();
+    
+    // 返回更新后的评论（包含新回复）
+    const updatedComment = await Comment.findById(req.params.commentId)
+      .populate('author', 'username avatar')
+      .populate({ path: 'replies.author', select: 'username avatar' });
+
+    res.status(201).json(updatedComment);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // 评论点赞
 // 点赞
 
