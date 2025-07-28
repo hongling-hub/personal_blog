@@ -235,7 +235,6 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder="写下你的回复..."
-                            onBlur={handleCancelReply}
                           />
                           <Button
                             type="primary"
