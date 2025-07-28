@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useContext } from 'react';
 import dayjs from 'dayjs';
 import { Avatar, Button, List, Input, message } from 'antd';
-import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined } from '@ant-design/icons';
+import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined, MessageFilled } from '@ant-design/icons';
 import commentService from '@/services/comments';
 import styles from './index.module.scss';
 import { useUser } from '../../contexts/UserContext';
@@ -215,8 +215,8 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                         <span onClick={() => handleLike(item.id)} className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
                           {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}
                         </span>
-                        <span onClick={() => handleReply(item.id)} className={styles.actionButton}>
-                          <MessageOutlined /> {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
+                        <span onClick={() => handleReply(item.id)}  className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
+                          {replyingTo === item.id ? <MessageFilled /> : <MessageOutlined />} {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
                         </span>
                         {user?.username === item.author.username && (
                           <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
@@ -233,9 +233,18 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                           <Button
                             type="primary"
                             onClick={() => handleReplySubmit(item.id)}
-                            style={{ marginTop: 8 }}
+                            style={{ marginTop: 8, marginRight: 8 }}
                           >
                             提交回复
+                          </Button>
+                          <Button
+                            onClick={() => {
+                              setReplyContent('');
+                              setReplyingTo(null);
+                            }}
+                            style={{ marginTop: 8 }}
+                          >
+                            取消回复
                           </Button>
                         </div>
                       )}
@@ -250,7 +259,18 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                 description={
                                   <>
                                     <div>{reply.content}</div>
-                                    <div style={{ marginTop: 8 }}>{reply.createdAt}</div>
+                                    <div style={{ marginTop: 8 }}>{dayjs(reply.createdAt).format('YYYY-MM-DD')}</div>
+                                    <div className={styles.commentActions} style={{ marginTop: 8 }}>
+                                      <span onClick={() => handleLike(reply.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
+                                        {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
+                                      </span>
+                                      <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
+                                        {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
+                                      </span>
+                                      {user?.username === item.author.username && (
+                                        <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
+                                      )}    
+                                    </div>
                                   </>
                                 }
                               />
