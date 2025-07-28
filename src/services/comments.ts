@@ -39,6 +39,16 @@ export default {
       }).then(res => res.json());
     },
 
+  unlikeComment: (commentId: string) => {
+      const token = localStorage.getItem('token');
+      return fetch(`/api/comments/${commentId}/like`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(res => res.json());
+    },
+
   deleteComment: (commentId: string) => 
     fetch(`/api/comments/${commentId}`, {
       method: 'DELETE'

@@ -55,13 +55,19 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
 
   const handleLike = async (commentId: string) => {
     if (!user) return;
+    const comment = comments.find(c => c.id === commentId);
+    if (!comment) return;
+    
     try {
-      const updatedComment = await commentService.likeComment(commentId);
-      setComments(comments.map(comment => 
-        comment.id === commentId ? updatedComment : comment
+      const updatedComment = comment.isLiked
+        ? await commentService.unlikeComment(commentId)
+        : await commentService.likeComment(commentId);
+      
+      setComments(comments.map(c => 
+        c.id === commentId ? { ...c, ...updatedComment } : c
       ));
     } catch (error) {
-      message.error('点赞失败');
+      message.error(comment.isLiked ? '取消点赞失败' : '点赞失败');
     }
   };
 
@@ -201,7 +207,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                       <div style={{ marginTop: 8 }}>{item.createTime}</div>
                       <div className={styles.commentActions} style={{ marginTop: 8 }}>
                         <span onClick={() => handleLike(item.id)} className={styles.actionButton}>
-                          {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.isLiked ? item.likes : '点赞'}
+                          {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likes > 0 ? item.likes : '点赞'}
                         </span>
                         <span onClick={() => handleReply(item.id)} className={styles.actionButton}>
                           <MessageOutlined /> {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
