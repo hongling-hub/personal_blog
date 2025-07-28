@@ -7,18 +7,7 @@ import { useUser } from '../../contexts/UserContext';
 
 const { TextArea } = Input;
 
-interface CommentType {
-  id: string;
-  author: {
-    username: string;
-    avatar?: string;
-  };
-  content: string;
-  createTime: string;
-  likes: number;
-  isLiked: boolean;
-  replies?: CommentType[];
-}
+import { CommentType } from '../../types.d';
 
 interface CommentListProps {
   articleId: string;
@@ -204,10 +193,10 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                   description={
                     <>
                       <div>{item.content}</div>
-                      <div style={{ marginTop: 8 }}>{item.createTime}</div>
+                      <div style={{ marginTop: 8 }}>{item.createdAt}</div>
                       <div className={styles.commentActions} style={{ marginTop: 8 }}>
                         <span onClick={() => handleLike(item.id)} className={styles.actionButton}>
-                          {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likes > 0 ? item.likes : '点赞'}
+                          {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}
                         </span>
                         <span onClick={() => handleReply(item.id)} className={styles.actionButton}>
                           <MessageOutlined /> {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
@@ -244,7 +233,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                 description={
                                   <>
                                     <div>{reply.content}</div>
-                                    <div style={{ marginTop: 8 }}>{reply.createTime}</div>
+                                    <div style={{ marginTop: 8 }}>{reply.createdAt}</div>
                                   </>
                                 }
                               />

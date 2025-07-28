@@ -4,6 +4,22 @@ interface RegisterParams {
   captcha: string;
 }
 
+export interface CommentType {
+  id: string;
+  content: string;
+  author: {
+    _id: string;
+    username: string;
+    avatar?: string;
+  };
+  article: string;
+  likes: string[];
+  likeCount: number;
+  isLiked?: boolean;
+  createdAt: string;
+  replies?: CommentType[];
+}
+
 declare module 'particles.js' {
   interface ParticleOptions {
     particles?: {

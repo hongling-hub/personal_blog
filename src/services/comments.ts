@@ -6,7 +6,7 @@ interface Comment {
     avatar?: string;
   };
   content: string;
-  createTime: string;
+  createdAt: string;
 }
 
 export default {
