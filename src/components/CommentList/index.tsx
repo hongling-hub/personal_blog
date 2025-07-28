@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
+import dayjs from 'dayjs';
 import { Avatar, Button, List, Input, message } from 'antd';
 import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined } from '@ant-design/icons';
 import commentService from '@/services/comments';
@@ -209,7 +210,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                   description={
                     <>
                       <div>{item.content}</div>
-                      <div style={{ marginTop: 8 }}>{item.createdAt}</div>
+                      <div style={{ marginTop: 8 }}>{dayjs(item.createdAt).format('YYYY-MM-DD')}</div>
                       <div className={styles.commentActions} style={{ marginTop: 8 }}>
                         <span onClick={() => handleLike(item.id)} className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
                           {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}

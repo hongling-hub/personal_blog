@@ -4,6 +4,7 @@ interface RegisterParams {
   captcha: string;
 }
 
+
 export interface CommentType {
   id: string;
   content: string;

@@ -18,6 +18,7 @@ interface ArticleItem {
   author: { username: string; avatar: string };
   views: number;
   likes: number;
+  likeCount: number;
   coverImage: string;
   tags: string[];
   publishTime: string;
@@ -85,10 +86,10 @@ export default function Home() {
                               textOverflow: 'ellipsis'
                             }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
                               <span>{item.author.username}</span>
                               <span>{item.views}浏览</span>
-                              <span>{item.likes}点赞</span>
+                              <span>{item.likeCount}点赞</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               {item.tags?.slice(0, 3).map(tag => (
@@ -147,10 +148,10 @@ export default function Home() {
                               textOverflow: 'ellipsis'
                             }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
                             <span>{item.author.username}</span>
                               <span>{item.views}浏览</span>
-                              <span>{item.likes}点赞</span>
+                              <span>{item.likeCount}点赞</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               {item.tags?.slice(0, 3).map(tag => (
@@ -209,10 +210,10 @@ export default function Home() {
                               textOverflow: 'ellipsis'
                             }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
                               <span>{item.author.username}</span>
                               <span>{item.views}浏览</span>
-                              <span>{item.likes}点赞</span>
+                              <span>{item.likeCount}点赞</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px' }}>
                               {item.tags?.slice(0, 3).map(tag => (
