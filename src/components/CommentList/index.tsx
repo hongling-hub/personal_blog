@@ -160,6 +160,12 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
     }
   };
 
+  const handleCancelReply = () => {
+  setShowReplyForm(false);
+  setReplyingTo(null);
+  setReplyContent('');
+};
+
   return (
     <div className={styles.commentList}>
       <div className={styles.commentHeader}>
@@ -229,6 +235,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                             value={replyContent}
                             onChange={(e) => setReplyContent(e.target.value)}
                             placeholder="写下你的回复..."
+                            onBlur={handleCancelReply}
                           />
                           <Button
                             type="primary"
@@ -255,7 +262,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                             <List.Item className={styles.replyItem}>
                               <List.Item.Meta
                                 avatar={reply.author.avatar ? <Avatar src={reply.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
-                                title={reply.author.username}
+                                title={`${reply.author.username} 回复 ${item.author.username}`}
                                 description={
                                   <>
                                     <div>{reply.content}</div>
@@ -299,4 +306,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
 };
 
 export default CommentList;
+
+
+
 
