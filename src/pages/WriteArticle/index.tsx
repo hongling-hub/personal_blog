@@ -172,8 +172,14 @@ console.log('Created article result:', result);
 
   // 定时发布
   const handleSchedulePublish = () => {
+    setPublishTime(null); // 重置发布时间
+    setShowPublishTimePicker(true); // 显示时间选择器
+  };
+
+  // 确认定时发布
+  const confirmSchedulePublish = () => {
     if (!publishTime) {
-      setShowPublishTimePicker(true);
+      message.error('请选择发布时间');
       return;
     }
     handleArticleSubmit(false, false);
@@ -183,13 +189,6 @@ console.log('Created article result:', result);
       <div className={styles.container}>
         {/* 顶部导航 */}
         <SubHeader />
-
-        
-
-
-
-        {/* 文章 */}
-        
 
         {/* 主内容区域 */}
         <div className={styles.editorContainer}>
@@ -209,7 +208,6 @@ console.log('Created article result:', result);
             ]}
           />
         </div>
-
 
         {/* 文章设置区域 */}
         <div className={styles.articleSettings}>
@@ -264,40 +262,28 @@ console.log('Created article result:', result);
                     </>
                   )}
                 </div>
-      </Upload>
-      {showPublishTimePicker && (
-        <div className={styles.publishTimePicker}>
-          <DatePicker
-            showTime
-            value={publishTime}
-            onChange={(date) => setPublishTime(date)}
-            placeholder="选择发布时间"
-            format="YYYY-MM-DD HH:mm"
-            disabledDate={(current) => current && current < dayjs().subtract(1, 'day')}
-          />
-          <Button onClick={() => setShowPublishTimePicker(false)}>取消</Button>
-          <Button type="primary" onClick={handleSchedulePublish}>确认</Button>
-        </div>
-      )}
-      <div className={styles.coverPreview}>
-                {editorImages.length > 0 ? (
-                  <div className={styles.imageGrid}>
-                    {editorImages.map((img, index) => (
-                      <img
-                        key={index}
-                        src={img}
-                        alt={`内容图片 ${index + 1}`}
-                        className={styles.contentImage}
-                      />
-                    ))}
-                  </div>
-                ) : (
-                  <div className={styles.emptyPreviewText}>
-                    暂无内容图片，请在正文中添加图片
-                  </div>
-                )}
-              </div>
+              </Upload>
             </div>
+          </div>
+
+          {/* 封面预览 */}
+          <div className={styles.coverPreview}>
+            {editorImages.length > 0 ? (
+              <div className={styles.imageGrid}>
+                {editorImages.map((img, index) => (
+                  <img
+                    key={index}
+                    src={img}
+                    alt={`内容图片 ${index + 1}`}
+                    className={styles.contentImage}
+                  />
+                ))}
+              </div>
+            ) : (
+              <div className={styles.emptyPreviewText}>
+                暂无内容图片，请在正文中添加图片
+              </div>
+            )}
           </div>
 
           {/* 文章标题 */}
@@ -306,7 +292,7 @@ console.log('Created article result:', result);
               文章标题
               <span className={styles.helpIcon}>ⓘ</span>
             </label>
-           <input type="text" className={styles.titleInput} value={title} onChange={(e) => setTitle(e.target.value)} />
+            <input type="text" className={styles.titleInput} value={title} onChange={(e) => setTitle(e.target.value)} />
           </div>
 
           {/* 文章摘要 */}
@@ -323,91 +309,6 @@ console.log('Created article result:', result);
             <div className={styles.summaryCounter}>0 / 256</div>
             <button className={styles.aiSummaryBtn}>AI 提取摘要</button>
           </div>
-
-          {/* 分类专栏 */}
-          {/* <div className={styles.settingItem}>
-            <label className={styles.label}>
-              分类专栏
-              <span className={styles.helpIcon}>ⓘ</span>
-            </label>
-            <div className={styles.columnContainer}>
-              {columns.map((column, index) => (
-                <div key={index} className={styles.columnTag}>
-                  {column}
-                  <span
-                    className={styles.deleteColumn}
-                    onClick={() => {
-                      const newColumns = [...columns];
-                      newColumns.splice(index, 1);
-                      setColumns(newColumns);
-                    }}
-                  >
-                    ×
-                  </span>
-                </div>
-              ))}
-              {isAddingColumn ? (
-                <input
-                  type="text"
-                  className={styles.columnInput}
-                  value={newColumnName}
-                  onChange={(e) => setNewColumnName(e.target.value)}
-                  onKeyPress={(e) => {
-                    if (e.key === 'Enter' && newColumnName.trim()) {
-                      setColumns([...columns, newColumnName.trim()]);
-                      setNewColumnName('');
-                      setIsAddingColumn(false);
-                    }
-                  }}
-                  onBlur={() => {
-                    if (newColumnName.trim()) {
-                      setColumns([...columns, newColumnName.trim()]);
-                    }
-                    setNewColumnName('');
-                    setIsAddingColumn(false);
-                  }}
-                  autoFocus
-                />
-              ) : (
-                <button
-                  className={styles.addColumnBtn}
-                  onClick={() => setIsAddingColumn(true)}
-                >
-                  + 新建分类专栏
-                </button>
-              )}
-            </div>
-          </div> */}
-
-          {/* 文章类型 */}
-          {/* <div className={styles.settingItem}>
-            <label className={styles.label}>
-              文章类型
-              <span className={styles.helpIcon}>ⓘ</span>
-            </label>
-            <div className={styles.radioGroup}>
-              <label className={styles.radioItem}>
-                <input type="radio" name="articleType" defaultChecked /> 原创
-                <span className={styles.verifiedBadge}>✓</span>
-              </label>
-              <label className={styles.radioItem}>
-                <input type="radio" name="articleType" /> 转载
-              </label>
-              <label className={styles.radioItem}>
-                <input type="radio" name="articleType" /> 翻译
-              </label>
-            </div>
-          </div> */}
-
-          {/* 文章备份
-          <div className={styles.settingItem}>
-            <label className={styles.checkboxItem}>
-              <input type="checkbox" /> 同时备份到GitCode
-            </label>
-            <div className={styles.policyText}>
-              您已同意GitCode 用户协议和隐私政策，我们会为您自动创建账号并备份文章至我的项目。
-            </div>
-          </div> */}
 
           {/* 可见范围 */}
           <div className={styles.settingItem}>
@@ -429,13 +330,35 @@ console.log('Created article result:', result);
           </div>
         </div>
 
+        {/* 定时发布选择器 */}
+        {showPublishTimePicker && (
+          <div className={styles.publishTimePickerOverlay}>
+            <div className={styles.publishTimePicker}>
+              <DatePicker
+                showTime
+                value={publishTime}
+                onChange={(date) => setPublishTime(date)}
+                placeholder="选择发布时间"
+                format="YYYY-MM-DD HH:mm"
+                disabledDate={(current) => current && current < dayjs().subtract(1, 'day')}
+              />
+              <Button onClick={() => setShowPublishTimePicker(false)}>取消</Button>
+              <Button type="primary" onClick={confirmSchedulePublish}>确认</Button>
+            </div>
+          </div>
+        )}
+
         {/* 底部固定发布设置 */}
         <div className={styles.bottomBar}>
           <div className={styles.bottomBarContent}>
             <button className={styles.draftBtn} onClick={handleSaveDraft} disabled={isSubmitting || userLoading}>
               保存草稿
             </button>
-            <button className={styles.timerBtn} onClick={handleSchedulePublish} disabled={isSubmitting || userLoading}>
+            <button
+              className={styles.timerBtn}
+              onClick={handleSchedulePublish}
+              disabled={isSubmitting}
+            >
               定时发布
             </button>
             <button className={styles.publishBtn} onClick={handlePublish} disabled={isSubmitting || userLoading}>

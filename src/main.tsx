@@ -12,7 +12,9 @@ import WriteArticle from './pages/WriteArticle';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
 import CreatorCenter from './pages/CreatorCenter';
+
 import './index.css';
+import 'antd/dist/reset.css';
 
 const router = createBrowserRouter([
   {
