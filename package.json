@@ -39,6 +39,7 @@
     "mongoose": "^8.0.3",
     "morgan": "^1.10.0",
     "multer": "^2.0.2",
+    "node-schedule": "^2.1.1",
     "particles.js": "^2.0.0",
     "path": "^0.12.7",
     "postcss-px-to-viewport": "^1.1.1",

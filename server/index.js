@@ -107,6 +107,31 @@ const server = app.listen(PORT, () => {
   logger.info(`Server running in ${process.env.NODE_ENV || 'development'} mode on port ${PORT}`);
 });
 
+// 定时发布文章任务 - 每分钟检查一次
+const schedule = require('node-schedule');
+const Article = require('./models/Article');
+
+schedule.scheduleJob('* * * * *', async () => {
+  const now = new Date();
+  try {
+    const result = await Article.updateMany(
+      {
+        publishTime: { $lte: now },
+        isPublic: false,
+        isDraft: true
+      },
+      {
+        $set: { isPublic: true, isDraft: false }
+      }
+    );
+    if (result.modifiedCount > 0) {
+      logger.info(`Automatically published ${result.modifiedCount} articles`);
+    }
+  } catch (err) {
+    logger.error('Error publishing scheduled articles:', err);
+  }
+});
+
 // 12. 优雅关闭
 process.on('SIGTERM', () => {
   logger.info('SIGTERM received. Shutting down gracefully...');

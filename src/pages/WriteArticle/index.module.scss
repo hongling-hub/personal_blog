@@ -225,6 +225,11 @@
   min-height: 240px !important; /* 确保最小高度 */
 }
 
+/* 确保提示信息显示在最前面 */
+:global(.ant-message-notice) {
+  z-index: 99999 !important;
+}
+
 /* 提高日期选择器弹窗层级 */
 :global(.ant-picker-dropdown) {
   z-index: 10000 !important;

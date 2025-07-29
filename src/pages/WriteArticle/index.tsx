@@ -133,14 +133,19 @@ const WriteArticle: React.FC = () => {
         desc: generateDesc(content),
         author: user._id,
         authorAvatar: user.avatar || '',
-        publishTime: !isDraft ? (publishImmediately ? new Date().toISOString() : publishTime?.toISOString()) : undefined
+        publishTime: isDraft && !publishImmediately ? publishTime?.toISOString() : (!isDraft ? (publishImmediately ? new Date().toISOString() : publishTime?.toISOString()) : undefined)
       };
 
       const result = await articlesService.create(articleData);
 console.log('Created article result:', result);
 
       if (isDraft) {
-        message.success('草稿保存成功');
+        if (publishTime) {
+          message.success('定时发布设置成功');
+          navigate(`/article/${result._id}`);
+        } else {
+          message.success('草稿保存成功');
+        }
       } else if (publishImmediately) {
         message.success('文章发布成功');
         navigate(`/article/${result._id}`);
@@ -182,7 +187,7 @@ console.log('Created article result:', result);
       message.error('请选择发布时间');
       return;
     }
-    handleArticleSubmit(false, false);
+    handleArticleSubmit(true, false); // 定时发布文章应先保存为草稿，以便定时任务识别并发布
   };
 
   return (
