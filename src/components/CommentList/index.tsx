@@ -296,13 +296,40 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                       <span onClick={() => handleLike(reply.id, true, item.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
                                         {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
                                       </span> 
-                                      <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
+                                      <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === reply.id ? 'active' : ''}`}>
                                         {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
                                       </span>
                                       {user?.username === item.author.username && (
                                         <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
                                       )}    
                                     </div>
+                                    {/* 嵌套回复输入框 */}
+                                    {showReplyForm && replyingTo === reply.id && (
+                                      <div style={{ marginTop: 16 }}>
+                                        <TextArea
+                                          rows={2}
+                                          value={replyContent}
+                                          onChange={(e) => setReplyContent(e.target.value)}
+                                          placeholder="写下你的回复..."
+                                        />
+                                        <Button
+                                          type="primary"
+                                          onClick={() => handleReplySubmit(item.id)}
+                                          style={{ marginTop: 8, marginRight: 8 }}
+                                        >
+                                          提交回复
+                                        </Button>
+                                        <Button
+                                          onClick={() => {
+                                            setReplyContent('');
+                                            setReplyingTo(null);
+                                          }}
+                                          style={{ marginTop: 8 }}
+                                        >
+                                          取消回复
+                                        </Button>
+                                      </div>
+                                    )}
                                   </>
                                 }
                               />
