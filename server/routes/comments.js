@@ -4,8 +4,8 @@ const router = express.Router();
 const Comment = require('../models/Comment');
 const { authenticate } = require('../middleware/auth');
 
-// 获取文章评论
-router.get('/article/:articleId', async (req, res) => {
+// 获取文章评论（需要登录，返回 isLiked 正确）
+router.get('/article/:articleId', authenticate, async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.articleId)) {
     return res.status(400).json({ message: '无效的文章ID格式' });
   }
@@ -27,7 +27,7 @@ router.get('/article/:articleId', async (req, res) => {
     const replyLikesArr = Array.isArray(reply.likes) ? reply.likes : [];
     let replyIsLiked = false;
     if (req.user && req.user._id && replyLikesArr.length > 0) {
-      replyIsLiked = replyLikesArr.some(like => like && like.equals && like.equals(req.user._id));
+      replyIsLiked = replyLikesArr.some(like => like.toString() === req.user._id.toString());
     }
     const processedReply = {
       ...reply,
@@ -69,35 +69,33 @@ router.post('/', async (req, res) => {
   }
 });
 
-// 点赞回复
+// 点赞/取消点赞（切换）回复
 router.post('/:commentId/replies/:replyId/like', authenticate, async (req, res) => {
   try {
     const { commentId, replyId } = req.params;
-
     if (!mongoose.Types.ObjectId.isValid(commentId) || !mongoose.Types.ObjectId.isValid(replyId)) {
       return res.status(400).json({ message: '无效的ID格式' });
     }
-
     const comment = await Comment.findById(commentId);
     if (!comment) return res.status(404).json({ message: '评论不存在' });
-
     const reply = comment.replies.id(replyId);
     if (!reply) return res.status(404).json({ message: '回复不存在' });
-
-    // 检查用户是否已经点赞
     const userId = req.user._id;
-    const likeIndex = reply.likes.indexOf(userId);
-
+    const likeIndex = reply.likes.findIndex(like => like.toString() === userId.toString());
+    let isLiked;
     if (likeIndex === -1) {
       // 点赞
       reply.likes.push(userId);
+      reply.likeCount = (reply.likeCount || 0) + 1;
+      isLiked = true;
     } else {
       // 取消点赞
       reply.likes.splice(likeIndex, 1);
+      reply.likeCount = Math.max((reply.likeCount || 1) - 1, 0);
+      isLiked = false;
     }
-
     await comment.save();
-    res.json({ likes: reply.likes.length, isLiked: likeIndex === -1 });
+    res.json({ likeCount: reply.likeCount, isLiked });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -170,67 +168,53 @@ router.post('/:commentId/like', authenticate, async (req, res) => {
     comment.likes = comment.likes || [];
 
     const userId = req.user._id;
+    let isLiked = false;
     if (!comment.likes.some(like => like.equals(userId))) {
       comment.likes.push(userId);
       comment.likeCount++;
+      isLiked = true;
     } else {
       comment.likes.pull(userId);
       comment.likeCount--;
+      isLiked = false;
     }
     await comment.save();
-    res.json(comment);
+
+    // 格式化返回评论，带 isLiked 字段
+    const commentObj = comment.toJSON();
+    const likesArr = Array.isArray(commentObj.likes) ? commentObj.likes : [];
+    // 重新判断 isLiked，防止并发问题
+    isLiked = likesArr.some(like => like && like.toString() === userId.toString());
+    const processedReplies = (commentObj.replies || []).map(reply => {
+      const replyLikesArr = Array.isArray(reply.likes) ? reply.likes : [];
+      let replyIsLiked = false;
+      if (userId && replyLikesArr.length > 0) {
+        replyIsLiked = replyLikesArr.some(like => like && like.toString() === userId.toString());
+      }
+      const processedReply = {
+        ...reply,
+        id: reply._id ? reply._id.toString() : undefined,
+        likes: replyLikesArr.length,
+        isLiked: replyIsLiked
+      };
+      delete processedReply._id;
+      return processedReply;
+    });
+    const formattedComment = {
+      ...commentObj,
+      id: comment._id.toString(),
+      likes: likesArr.length,
+      isLiked,
+      replies: processedReplies
+    };
+    delete formattedComment._id;
+    res.json(formattedComment);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
 
-// 回复点赞
-router.post('/replies/:replyId/like', authenticate, async (req, res) => {
-  try {
-    const replyId = req.params.replyId;
-    const userId = req.user._id;
 
-    const comment = await Comment.findOneAndUpdate(
-      { 'replies._id': replyId },
-      { $addToSet: { 'replies.$.likes': userId }, $inc: { 'replies.$.likeCount': 1 } },
-      { new: true, runValidators: true }
-    ).populate('author', 'username avatar')
-     .populate({ path: 'replies.author', select: 'username avatar' });
-
-    if (!comment) {
-      return res.status(404).json({ message: '回复不存在' });
-    }
-
-    const updatedReply = comment.replies.id(replyId);
-    res.json(updatedReply);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// 回复取消点赞
-router.post('/replies/:replyId/unlike', authenticate, async (req, res) => {
-  try {
-    const replyId = req.params.replyId;
-    const userId = req.user._id;
-
-    const comment = await Comment.findOneAndUpdate(
-      { 'replies._id': replyId },
-      { $pull: { 'replies.$.likes': userId }, $inc: { 'replies.$.likeCount': -1 } },
-      { new: true, runValidators: true }
-    ).populate('author', 'username avatar')
-     .populate({ path: 'replies.author', select: 'username avatar' });
-
-    if (!comment) {
-      return res.status(404).json({ message: '回复不存在' });
-    }
-
-    const updatedReply = comment.replies.id(replyId);
-    res.json(updatedReply);
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
 
 module.exports = router;

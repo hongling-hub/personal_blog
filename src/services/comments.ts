@@ -10,13 +10,16 @@ interface Comment {
 }
 
 export default {
-  // 获取文章评论
+  // 获取文章评论（带 token）
   getComments: (articleId: string, sortType?: string) => {
     let url = `/api/comments/article/${articleId}`;
     if (sortType) {
       url += `?sort=${sortType}`;
     }
-    return fetch(url).then(res => res.json());
+    const token = localStorage.getItem('token');
+    return fetch(url, {
+      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    }).then(res => res.json());
   },
     
   // 添加评论
@@ -49,9 +52,9 @@ export default {
       }).then(res => res.json());
     },
 
-    likeReply: (replyId: string) => {
+    likeReply: (commentId: string, replyId: string) => {
       const token = localStorage.getItem('token');
-      return fetch(`/api/comments/replies/${replyId}/like`, {
+      return fetch(`/api/comments/${commentId}/replies/${replyId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`
@@ -59,9 +62,9 @@ export default {
       }).then(res => res.json());
     },
 
-    unlikeReply: (replyId: string) => {
+    unlikeReply: (commentId: string, replyId: string) => {
       const token = localStorage.getItem('token');
-      return fetch(`/api/comments/replies/${replyId}/unlike`, {
+      return fetch(`/api/comments/${commentId}/replies/${replyId}/like`, {
         method: 'POST',
         headers: {
           'Authorization': `Bearer ${token}`

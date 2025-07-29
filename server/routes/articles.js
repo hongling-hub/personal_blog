@@ -35,6 +35,20 @@ router.get('/:id', authenticate, async (req, res) => {
     articleData.isLiked = isLiked || false;
     articleData.isCollected = isCollected || false;
 
+    // 处理评论及回复的点赞状态
+    articleData.comments = articleData.comments.map(comment => {
+      const commentLikes = Array.isArray(comment.likes) ? comment.likes : [];
+      const commentIsLiked = req.user?._id ? commentLikes.some(like => like.toString() === req.user._id.toString()) : false;
+
+      const processedReplies = (comment.replies || []).map(reply => {
+        const replyLikes = Array.isArray(reply.likes) ? reply.likes : [];
+        const replyIsLiked = req.user?._id ? replyLikes.some(like => like.toString() === req.user._id.toString()) : false;
+        return { ...reply, isLiked: replyIsLiked };
+      });
+
+      return { ...comment, isLiked: commentIsLiked, replies: processedReplies };
+    });
+
     res.json(articleData);
   } catch (err) {
     res.status(500).json({ message: err.message });

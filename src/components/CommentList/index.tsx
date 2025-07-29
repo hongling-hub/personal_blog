@@ -75,25 +75,27 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
     return null;
   };
 
-  const handleLike = async (itemId: string, isReply: boolean = false) => {
+  const handleLike = async (itemId: string, isReply: boolean = false, commentId?: string) => {
   if (!user) return;
   const item = findCommentOrReplyById(comments, itemId);
   if (!item) return;
 
   try {
-    const updatedItem = item.isLiked
-      ? isReply
-        ? await commentService.unlikeReply(itemId)
-        : await commentService.unlikeComment(itemId)
-      : isReply
-        ? await commentService.likeReply(itemId)
+    let updatedItem;
+    if (item.isLiked) {
+      updatedItem = isReply
+        ? await commentService.unlikeReply(commentId!, itemId)
+        : await commentService.unlikeComment(itemId);
+    } else {
+      updatedItem = isReply
+        ? await commentService.likeReply(commentId!, itemId)
         : await commentService.likeComment(itemId);
-
-    const newIsLiked = !item.isLiked;
+    }
+    // 用后端返回的 isLiked 和 likeCount 更新本地状态
     setComments(updateCommentOrReplyById(comments, itemId, (c) => ({
       ...c,
       likeCount: updatedItem.likeCount,
-      isLiked: newIsLiked
+      isLiked: updatedItem.isLiked
     })));
   } catch (error) {
     message.error(item.isLiked ? '取消点赞失败' : '点赞失败');
@@ -291,7 +293,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                     <div>{reply.content}</div>
                                     <div style={{ marginTop: 8 }}>{dayjs(reply.createdAt).format('YYYY-MM-DD')}</div>
                                     <div className={styles.commentActions} style={{ marginTop: 8 }}>
-                                      <span onClick={() => handleLike(reply.id, true)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
+                                      <span onClick={() => handleLike(reply.id, true, item.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
                                         {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
                                       </span> 
                                       <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
