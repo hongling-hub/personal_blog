@@ -30,54 +30,75 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
   const [submitting, setSubmitting] = useState(false);
   const [value, setValue] = useState('');
 
-  const fetchComments = async () => {
-    setLoading(true);
-    try {
-      const data = await commentService.getComments(articleId, sortType);
+    const fetchComments = async () => {
+  setLoading(true);
+  try {
+    const data = await commentService.getComments(articleId, sortType);
     console.log('获取到的评论数据:', data);
-    // 从localStorage加载点赞状态
-    const likedComments = JSON.parse(localStorage.getItem('likedComments') || '{}');
-    const commentsWithLikes = data.map((comment: CommentType) => ({ 
-      ...comment, 
-      isLiked: likedComments[comment.id] || false 
-    }));
-    setComments(commentsWithLikes);
-    } catch (error) {
-      message.error('获取评论失败');
-    } finally {
-      setLoading(false);
-    }
-  };
+    setComments(data);
+  } catch (error) {
+    message.error('获取评论失败');
+  } finally {
+    setLoading(false);
+  }
+};
 
-  const handleLike = async (commentId: string) => {
-    if (!user) return;
-    const comment = comments.find(c => c.id === commentId);
-    if (!comment) return;
-    
-    try {
-      const updatedComment = comment.isLiked
-        ? await commentService.unlikeComment(commentId)
-        : await commentService.likeComment(commentId);
+  // 递归查找并更新评论或回复
 
-      const newIsLiked = !comment.isLiked;
-      setComments(comments.map(c =>
-        c.id === commentId
-          ? { ...c, likeCount: updatedComment.likeCount, isLiked: newIsLiked }
-          : c
-      ));
-
-      // 更新localStorage中的点赞状态
-      const likedComments = JSON.parse(localStorage.getItem('likedComments') || '{}');
-      if (newIsLiked) {
-        likedComments[commentId] = true;
+  const updateCommentOrReplyById = (
+    items: CommentType[],
+    id: string,
+    updater: (item: CommentType) => CommentType
+  ): CommentType[] => {
+    return items.map((item) => {
+      if (item.id === id) {
+        return updater(item);
+      } else if (item.replies && item.replies.length > 0) {
+        return { ...item, replies: updateCommentOrReplyById(item.replies, id, updater) };
       } else {
-        delete likedComments[commentId];
+        return item;
       }
-      localStorage.setItem('likedComments', JSON.stringify(likedComments));
-    } catch (error) {
-      message.error(comment.isLiked ? '取消点赞失败' : '点赞失败');
-    }
+    });
   };
+
+  const findCommentOrReplyById = (
+    items: CommentType[],
+    id: string
+  ): CommentType | null => {
+    for (const item of items) {
+      if (item.id === id) return item;
+      if (item.replies && item.replies.length > 0) {
+        const found = findCommentOrReplyById(item.replies, id);
+        if (found) return found;
+      }
+    }
+    return null;
+  };
+
+  const handleLike = async (itemId: string, isReply: boolean = false) => {
+  if (!user) return;
+  const item = findCommentOrReplyById(comments, itemId);
+  if (!item) return;
+
+  try {
+    const updatedItem = item.isLiked
+      ? isReply
+        ? await commentService.unlikeReply(itemId)
+        : await commentService.unlikeComment(itemId)
+      : isReply
+        ? await commentService.likeReply(itemId)
+        : await commentService.likeComment(itemId);
+
+    const newIsLiked = !item.isLiked;
+    setComments(updateCommentOrReplyById(comments, itemId, (c) => ({
+      ...c,
+      likeCount: updatedItem.likeCount,
+      isLiked: newIsLiked
+    })));
+  } catch (error) {
+    message.error(item.isLiked ? '取消点赞失败' : '点赞失败');
+  }
+};
 
   const handleDelete = async (commentId: string) => {
     if (!user || !window.confirm('确定要删除这条评论吗？')) return;
@@ -270,9 +291,9 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                     <div>{reply.content}</div>
                                     <div style={{ marginTop: 8 }}>{dayjs(reply.createdAt).format('YYYY-MM-DD')}</div>
                                     <div className={styles.commentActions} style={{ marginTop: 8 }}>
-                                      <span onClick={() => handleLike(reply.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
+                                      <span onClick={() => handleLike(reply.id, true)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
                                         {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
-                                      </span>
+                                      </span> 
                                       <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
                                         {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
                                       </span>

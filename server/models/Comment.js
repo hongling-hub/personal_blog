@@ -8,10 +8,14 @@ const CommentSchema = new mongoose.Schema({
     maxlength: 500
   },
   author: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User',
+        required: true
+      },
+      likes: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'User'
+      }],
   article: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Article',
@@ -30,6 +34,10 @@ const CommentSchema = new mongoose.Schema({
     default: 0
   },
   replies: [{
+    _id: {
+      type: mongoose.Schema.Types.ObjectId,
+      default: () => new mongoose.Types.ObjectId()
+    },
     author: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
@@ -42,6 +50,14 @@ const CommentSchema = new mongoose.Schema({
     createdAt: {
       type: Date,
       default: Date.now
+    },
+    likes: [{
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }],
+    likeCount: {
+      type: Number,
+      default: 0
     }
   }]
 });

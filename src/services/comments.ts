@@ -49,6 +49,26 @@ export default {
       }).then(res => res.json());
     },
 
+    likeReply: (replyId: string) => {
+      const token = localStorage.getItem('token');
+      return fetch(`/api/comments/replies/${replyId}/like`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(res => res.json());
+    },
+
+    unlikeReply: (replyId: string) => {
+      const token = localStorage.getItem('token');
+      return fetch(`/api/comments/replies/${replyId}/unlike`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      }).then(res => res.json());
+    },
+
   deleteComment: (commentId: string) => 
     fetch(`/api/comments/${commentId}`, {
       method: 'DELETE'
