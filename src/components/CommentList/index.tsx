@@ -58,20 +58,22 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
       const updatedComment = comment.isLiked
         ? await commentService.unlikeComment(commentId)
         : await commentService.likeComment(commentId);
-      
+
       const newIsLiked = !comment.isLiked;
-    setComments(comments.map(c => 
-      c.id === commentId ? { ...c, ...updatedComment, isLiked: newIsLiked } : c
-    ));
-    
-    // 更新localStorage中的点赞状态
-    const likedComments = JSON.parse(localStorage.getItem('likedComments') || '{}');
-    if (newIsLiked) {
-      likedComments[commentId] = true;
-    } else {
-      delete likedComments[commentId];
-    }
-    localStorage.setItem('likedComments', JSON.stringify(likedComments));
+      setComments(comments.map(c =>
+        c.id === commentId
+          ? { ...c, likeCount: updatedComment.likeCount, isLiked: newIsLiked }
+          : c
+      ));
+
+      // 更新localStorage中的点赞状态
+      const likedComments = JSON.parse(localStorage.getItem('likedComments') || '{}');
+      if (newIsLiked) {
+        likedComments[commentId] = true;
+      } else {
+        delete likedComments[commentId];
+      }
+      localStorage.setItem('likedComments', JSON.stringify(likedComments));
     } catch (error) {
       message.error(comment.isLiked ? '取消点赞失败' : '点赞失败');
     }
