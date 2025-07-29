@@ -45,20 +45,23 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
 
   // 递归查找并更新评论或回复
 
+  // 支持删除（updater 返回 null 时删除该项）
   const updateCommentOrReplyById = (
     items: CommentType[],
     id: string,
-    updater: (item: CommentType) => CommentType
+    updater: (item: CommentType) => CommentType | null
   ): CommentType[] => {
-    return items.map((item) => {
-      if (item.id === id) {
-        return updater(item);
-      } else if (item.replies && item.replies.length > 0) {
-        return { ...item, replies: updateCommentOrReplyById(item.replies, id, updater) };
-      } else {
-        return item;
-      }
-    });
+    return items
+      .map((item) => {
+        if (item.id === id) {
+          return updater(item);
+        } else if (item.replies && item.replies.length > 0) {
+          return { ...item, replies: updateCommentOrReplyById(item.replies, id, updater) };
+        } else {
+          return item;
+        }
+      })
+      .filter((item): item is CommentType => item !== null);
   };
 
   const findCommentOrReplyById = (
@@ -102,12 +105,19 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
   }
 };
 
-  const handleDelete = async (commentId: string) => {
-    if (!user || !window.confirm('确定要删除这条评论吗？')) return;
+  // 删除评论或回复
+  const handleDelete = async (commentId: string, replyId?: string) => {
+    if (!user || !window.confirm(replyId ? '确定要删除这条回复吗？' : '确定要删除这条评论吗？')) return;
     try {
-      await commentService.deleteComment(commentId);
-      setComments(comments.filter(comment => comment.id !== commentId));
-      message.success('评论已删除');
+      if (replyId) {
+        await commentService.deleteReply(commentId, replyId);
+        setComments(updateCommentOrReplyById(comments, replyId, () => null).filter(Boolean) as CommentType[]);
+        message.success('回复已删除');
+      } else {
+        await commentService.deleteComment(commentId);
+        setComments(comments.filter(comment => comment.id !== commentId));
+        message.success('评论已删除');
+      }
     } catch (error) {
       message.error('删除失败');
     }
@@ -299,9 +309,9 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                       <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === reply.id ? 'active' : ''}`}>
                                         {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
                                       </span>
-                                      {user?.username === item.author.username && (
-                                        <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
-                                      )}    
+                                      {user?.username === reply.author.username && (
+                                        <span onClick={() => handleDelete(item.id, reply.id)} className={styles.actionButton}>删除</span>
+                                      )}
                                     </div>
                                     {/* 嵌套回复输入框 */}
                                     {showReplyForm && replyingTo === reply.id && (

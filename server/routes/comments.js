@@ -1,3 +1,5 @@
+// ...existing code...
+// ...existing code...
 const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
@@ -218,3 +220,39 @@ router.post('/:commentId/like', authenticate, async (req, res) => {
 
 
 module.exports = router;
+
+// 删除某条回复（放在所有路由定义之后）
+router.delete('/:commentId/replies/:replyId', authenticate, async (req, res) => {
+  try {
+    const { commentId, replyId } = req.params;
+    const comment = await Comment.findById(commentId);
+    if (!comment) return res.status(404).json({ message: '评论不存在' });
+    const reply = comment.replies.id(replyId);
+    if (!reply) return res.status(404).json({ message: '回复不存在' });
+    // 只允许回复作者本人删除
+    if (reply.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: '无权限删除该回复' });
+    }
+    reply.remove();
+    await comment.save();
+    res.json({ message: '回复已删除' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 删除评论（放在所有路由定义之后）
+router.delete('/:commentId', authenticate, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.commentId);
+    if (!comment) return res.status(404).json({ message: '评论不存在' });
+    // 只允许作者本人或管理员删除
+    if (comment.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: '无权限删除该评论' });
+    }
+    await comment.deleteOne();
+    res.json({ message: '评论已删除' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
