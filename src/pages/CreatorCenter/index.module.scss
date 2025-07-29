@@ -1,3 +1,34 @@
+.mainTabs {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 8px;
+}
+
+.mainTab {
+  position: relative;
+  font-size: 18px;
+  color: #8a919f;
+  font-weight: 500;
+  padding: 0 8px 12px 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.mainTabActive {
+  color: #1e80ff;
+  font-weight: 700;
+}
+.mainTabActive::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+  background: #1e80ff;
+}
 .layout {
   min-height: 100vh;
   background-color: #f5f7fa;
@@ -160,8 +191,41 @@
   }
 }
 
+
 .mainLayout {
   flex: 1;
+}
+
+.mainTabs {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 8px;
+}
+
+.mainTab {
+  position: relative;
+  font-size: 18px;
+  color: #8a919f;
+  font-weight: 500;
+  padding: 0 8px 12px 8px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.mainTabActive {
+  color: #1e80ff;
+  font-weight: 700;
+}
+.mainTabActive::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 3px;
+  border-radius: 2px 2px 0 0;
+  background: #1e80ff;
 }
 
 .content {
@@ -190,7 +254,7 @@
   .statusTabs {
     display: flex;
     gap: 8px;
-    margin-top: 8px;
+    margin-top: 20px;
   }
 
   .statusTag {

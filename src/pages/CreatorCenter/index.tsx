@@ -63,8 +63,9 @@ const HomePage = () => {
 const ContentManagementPage = () => {
   // 定义文章状态类型
   type ArticleStatus = 'all' | 'published' | 'reviewing' | 'rejected';
-  
+  type MainTab = 'article' | 'draft';
   // 状态管理
+  const [mainTab, setMainTab] = useState<MainTab>('article');
   const [activeStatus, setActiveStatus] = useState<ArticleStatus>('all');
   const [articles, setArticles] = useState<any[]>([]); // 实际项目中应定义具体类型
 
@@ -83,44 +84,73 @@ const ContentManagementPage = () => {
     // 示例: fetchArticlesByStatus(status).then(data => setArticles(data))
   };
 
+  // 主tab切换
+  const handleMainTabChange = (tab: MainTab) => {
+    setMainTab(tab);
+    // 切换到草稿箱时不显示状态tab
+    if (tab === 'draft') {
+      setActiveStatus('all');
+    }
+  };
+
   return (
     <div className={styles.contentManagementPage}>
       <div className={styles.header}>
         <div>
-          <Title level={2}>文章</Title>
-          <div className={styles.statusTabs}>
-            {statusTabs.map((tab) => (
-              <Tag
-                key={tab.key}
-                className={`${styles.statusTag} ${activeStatus === tab.key ? styles.activeTag : ''}`}
-                onClick={() => handleStatusChange(tab.key as ArticleStatus)}
-              >
-                {tab.label} ({tab.count})
-              </Tag>
-            ))}
+          <div className={styles.mainTabs}>
+            <div
+              className={mainTab === 'article' ? `${styles.mainTab} ${styles.mainTabActive}` : styles.mainTab}
+              onClick={() => handleMainTabChange('article')}
+            >
+              文章
+            </div>
+            <div
+              className={mainTab === 'draft' ? `${styles.mainTab} ${styles.mainTabActive}` : styles.mainTab}
+              onClick={() => handleMainTabChange('draft')}
+            >
+              草稿箱(2)
+            </div>
           </div>
+          {mainTab === 'article' && (
+            <div className={styles.statusTabs}>
+              {statusTabs.map((tab) => (
+                <Tag
+                  key={tab.key}
+                  className={`${styles.statusTag} ${activeStatus === tab.key ? styles.activeTag : ''}`}
+                  onClick={() => handleStatusChange(tab.key as ArticleStatus)}
+                >
+                  {tab.label} ({tab.count})
+                </Tag>
+              ))}
+            </div>
+          )}
         </div>
         <Button type="primary" className={styles.writeButton}>
           写文章
         </Button>
       </div>
-      
       <Input
-        placeholder="请输入标题关键字"
+        placeholder={mainTab === 'article' ? '请输入标题关键字' : '搜索草稿'}
         prefix={<FileTextOutlined />}
         className={styles.searchInput}
       />
-      
-      {articles.length === 0 ? (
-        <Empty
-          description={`暂无${statusTabs.find(t => t.key === activeStatus)?.label}内容`}
-          image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
-        >
-          <Button type="primary">开始创作</Button>
-        </Empty>
+      {mainTab === 'article' ? (
+        articles.length === 0 ? (
+          <Empty
+            description={`暂无${statusTabs.find(t => t.key === activeStatus)?.label}内容`}
+            image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
+          >
+            <Button type="primary">开始创作</Button>
+          </Empty>
+        ) : (
+          <div className={styles.articleList}>
+            {/* 文章列表渲染 - 实际项目中根据articles数据渲染 */}
+          </div>
+        )
       ) : (
-        <div className={styles.articleList}>
-          {/* 文章列表渲染 - 实际项目中根据articles数据渲染 */}
+        <div className={styles.draftList}>
+          {/* 草稿箱内容渲染 - 实际项目中根据drafts数据渲染 */}
+          <Empty description="暂无草稿" />
         </div>
       )}
     </div>
