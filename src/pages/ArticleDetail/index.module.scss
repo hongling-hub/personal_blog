@@ -189,7 +189,8 @@
 
 .mobileActionButton {
   &.liked,
-  &.collected {
+  &.collected,
+  &.commented {
     color: #0066ff !important;
   }
 }
@@ -401,13 +402,21 @@
   }
 
   &:global(.liked),
-  &:global(.collected) {
+  &:global(.collected),
+  &:global(.commented) {
     color: #0066ff !important;
   }
 
+
   &:global(.liked) :global(.anticon),
-  &:global(.collected) :global(.anticon) {
+  &:global(.collected) :global(.anticon),
+  &:global(.commented) :global(.anticon) {
     color: #0066ff !important;
+  }
+
+  &:global(.commented) :global(.ant-badge-count) {
+    background-color: #0066ff !important;
+    color: #fff !important;
   }
 
 
@@ -423,7 +432,8 @@
     }
 
     &:global(.liked) :global(.ant-badge-count),
-    &:global(.collected) :global(.ant-badge-count) {
+    &:global(.collected) :global(.ant-badge-count),
+    &:global(.commented) :global(.ant-badge-count) {
       background-color: #0066ff !important;
     }
 }

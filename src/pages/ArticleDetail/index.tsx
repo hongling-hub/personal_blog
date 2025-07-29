@@ -17,6 +17,7 @@ import {
   LikeOutlined,
   LikeFilled,
   MessageOutlined,
+  MessageFilled,
   StarOutlined,
   StarFilled,
   ShareAltOutlined,
@@ -78,6 +79,7 @@ export default function ArticleDetail() {
   const { user } = useUser();
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
+  const [commentCount, setCommentCount] = useState(0);
 
   const handleSendComment = async () => {
     if (!commentText.trim()) {
@@ -281,11 +283,13 @@ export default function ArticleDetail() {
               </Button>
 
               <Button
-                className={styles.actionButton}
+                className={
+                  `${styles.actionButton} ${commentCount > 0 ? 'commented' : ''}`
+                }
                 onClick={() => scrollToComments()}
               >
-                <Badge count={article.commentCount} showZero onClick={() => scrollToComments()}>
-                  <MessageOutlined />
+                <Badge count={commentCount} showZero onClick={() => scrollToComments()}>
+                  {commentCount > 0 ? <MessageFilled /> : <MessageOutlined />}
                 </Badge>
               </Button>
 
@@ -360,11 +364,13 @@ export default function ArticleDetail() {
               </Button>
 
               <Button
-                icon={<MessageOutlined />}
-                className={styles.mobileActionButton}
+                icon={commentCount > 0 ? <MessageFilled /> : <MessageOutlined />}
+                className={
+                  `${styles.mobileActionButton} ${commentCount > 0 ? styles.commented : ''}`
+                }
                 onClick={() => scrollToComments()}
               >
-                <span className={styles.mobileActionText}>{article.commentCount}</span>
+                <span className={styles.mobileActionText}>{commentCount}</span>
               </Button>
 
               <Button 
@@ -394,7 +400,12 @@ export default function ArticleDetail() {
 
             {/* 评论区 */}
             <div id="comments">
-              {article && <CommentList articleId={article._id} />}
+              {article && (
+                <CommentList
+                  articleId={article._id}
+                  onCommentCountChange={setCommentCount}
+                />
+              )}
             </div>
           </div>
 

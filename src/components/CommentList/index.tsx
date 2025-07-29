@@ -13,9 +13,10 @@ import { CommentType } from '../../types.d';
 interface CommentListProps {
   articleId: string;
   refreshKey?: number;
+  onCommentCountChange?: (count: number) => void;
 }
 
-const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
+const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey, onCommentCountChange }) => {
   console.log('CommentList接收到的articleId:', articleId);
   if (!articleId) {
     console.error('CommentList未接收到有效的articleId');
@@ -29,6 +30,12 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
   const [loading, setLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [value, setValue] = useState('');
+
+  useEffect(() => {
+    if (onCommentCountChange) {
+      onCommentCountChange(comments.length);
+    }
+  }, [comments, onCommentCountChange]);
 
     const fetchComments = async () => {
   setLoading(true);
