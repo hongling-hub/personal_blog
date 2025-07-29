@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import dayjs from 'dayjs';
-import { Avatar, Button, List, Input, message } from 'antd';
+import { Avatar, Button, List, Input, message, Popconfirm } from 'antd';
 import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined, MessageFilled } from '@ant-design/icons';
 import commentService from '@/services/comments';
 import styles from './index.module.scss';
@@ -107,7 +107,7 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
 
   // 删除评论或回复
   const handleDelete = async (commentId: string, replyId?: string) => {
-    if (!user || !window.confirm(replyId ? '确定要删除这条回复吗？' : '确定要删除这条评论吗？')) return;
+    if (!user) return;
     try {
       if (replyId) {
         await commentService.deleteReply(commentId, replyId);
@@ -208,7 +208,11 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
         <div className={styles.commentTitle}>评论 {comments.length}</div>
       </div>
       <div className={styles.commentInputWrapper}>
-        <Avatar className={styles.commentAvatar} icon={<UserOutlined />} />
+        <Avatar
+          className={styles.commentAvatar}
+          src={user?.avatar}
+          icon={!user?.avatar && <UserOutlined />}
+        />
         <TextArea
           rows={4}
           onChange={handleChange}
@@ -261,7 +265,14 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                           {replyingTo === item.id ? <MessageFilled /> : <MessageOutlined />} {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
                         </span>
                         {user?.username === item.author.username && (
-                          <span onClick={() => handleDelete(item.id)} className={styles.actionButton}>删除</span>
+                          <Popconfirm
+                            title="确定要删除这条评论吗？"
+                            onConfirm={() => handleDelete(item.id)}
+                            okText="确定"
+                            cancelText="取消"
+                          >
+                            <span className={styles.actionButton} style={{ cursor: 'pointer' }}>删除</span>
+                          </Popconfirm>
                         )}
                       </div>
                       {showReplyForm && replyingTo === item.id && (
@@ -310,7 +321,14 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                         {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
                                       </span>
                                       {user?.username === reply.author.username && (
-                                        <span onClick={() => handleDelete(item.id, reply.id)} className={styles.actionButton}>删除</span>
+                                        <Popconfirm
+                                          title="确定要删除这条回复吗？"
+                                          onConfirm={() => handleDelete(item.id, reply.id)}
+                                          okText="确定"
+                                          cancelText="取消"
+                                        >
+                                          <span className={styles.actionButton} style={{ cursor: 'pointer' }}>删除</span>
+                                        </Popconfirm>
                                       )}
                                     </div>
                                     {/* 嵌套回复输入框 */}
