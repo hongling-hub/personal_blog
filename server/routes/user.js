@@ -1,6 +1,8 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const Article = require('../models/Article');
 const { authenticate } = require('../middleware/auth');
 
 // 关注作者
@@ -54,6 +56,55 @@ router.post('/unfollow/:id', authenticate, async (req, res) => {
   } catch (error) {
     console.error('取消关注失败:', error);
     res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
+// 获取作者统计信息
+router.get('/stats/:id', async (req, res) => {
+  try {
+    const authorId = req.params.id;
+
+    // 获取文章数（只统计公开且非草稿的文章）
+    const articleCount = await Article.countDocuments({
+      author: authorId,
+      isPublic: true,
+      isDraft: false
+    });
+
+    // 获取阅读总数
+    const viewsResult = await Article.aggregate([
+      {
+        $match: {
+          author: new mongoose.Types.ObjectId(authorId),
+          isPublic: true,
+          isDraft: false
+        }
+      },
+      {
+        $group: {
+          _id: null,
+          totalViews: { $sum: '$views' }
+        }
+      }
+    ]);
+    const totalViews = viewsResult.length > 0 ? viewsResult[0].totalViews : 0;
+
+    // 获取粉丝数
+    const user = await User.findById(authorId);
+    const followerCount = user ? user.followers.length : 0;
+
+    res.json({
+      success: true,
+      data: {
+        articleCount,
+        totalViews,
+        followerCount
+      }
+    });
+  } catch (error) {
+    console.error('获取作者统计信息失败:', error.message);
+    console.error('错误堆栈:', error.stack);
+    res.status(500).json({ success: false, message: '服务器错误', error: error.message });
   }
 });
 

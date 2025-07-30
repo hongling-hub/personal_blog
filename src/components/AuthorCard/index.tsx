@@ -11,9 +11,6 @@ type AuthorCardProps = {
       username: string;
       isVerified: boolean;
       bio?: string;
-      articleCount: number;
-      readCount: number;
-      followerCount: number;
     };
   };
   isAuthor: boolean;
@@ -21,7 +18,9 @@ type AuthorCardProps = {
 
 const AuthorCard: React.FC<AuthorCardProps> = ({ article, isAuthor }) => {
   const [isFollowing, setIsFollowing] = useState(false);
-  const [followerCount, setFollowerCount] = useState(article.author.followerCount);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [articleCount, setArticleCount] = useState(0);
+  const [totalViews, setTotalViews] = useState(0);
   const [loading, setLoading] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
@@ -38,20 +37,40 @@ const AuthorCard: React.FC<AuthorCardProps> = ({ article, isAuthor }) => {
     return () => window.removeEventListener('storage', checkLoginStatus);
   }, []);
 
-  // 检查是否已经关注该作者
-    useEffect(() => {
-      const checkFollowingStatus = async () => {
-        if (!isLoggedIn || !article.author.id) return;
-        try {
-          const response = await authService.checkFollowing(article.author.id);
-          setIsFollowing(response.isFollowing);
-        } catch (error) {
-          console.error('检查关注状态失败:', error);
+  // 获取作者统计信息
+  useEffect(() => {
+    const getAuthorStats = async () => {
+      if (!article.author.id) return;
+      try {
+        const response = await fetch(`/api/users/stats/${article.author.id}`);
+        const data = await response.json();
+        if (data.success) {
+          setArticleCount(data.data.articleCount);
+          setTotalViews(data.data.totalViews);
+          setFollowerCount(data.data.followerCount);
         }
-      };
+      } catch (error) {
+        console.error('获取作者统计信息失败:', error);
+      }
+    };
 
-      checkFollowingStatus();
-    }, [isLoggedIn, article.author.id]);
+    getAuthorStats();
+  }, [article.author.id]);
+
+  // 检查是否已经关注该作者
+  useEffect(() => {
+    const checkFollowingStatus = async () => {
+      if (!isLoggedIn || !article.author.id) return;
+      try {
+        const response = await authService.checkFollowing(article.author.id);
+        setIsFollowing(response.isFollowing);
+      } catch (error) {
+        console.error('检查关注状态失败:', error);
+      }
+    };
+
+    checkFollowingStatus();
+  }, [isLoggedIn, article.author.id]);
 
   const handleFollow = async () => {
     if (!isLoggedIn) {
@@ -103,18 +122,18 @@ const AuthorCard: React.FC<AuthorCardProps> = ({ article, isAuthor }) => {
         </div>
         {article.author.bio && <div className={styles.authorBio}>{article.author.bio}</div>}
         <div className={styles.authorStats}>
-          <div className={styles.statItem}>
-            <div style={{paddingBottom: '5px'}}>文章</div>
-            <div>{article.author.articleCount || 0}</div>
+            <div className={styles.statItem}>
+              <div style={{paddingBottom: '5px'}}>文章</div>
+              <div>{articleCount || 0}</div>
+            </div>
+            <div className={styles.statItem}>
+              <div style={{paddingBottom: '5px'}}>阅读</div>
+              <div>{totalViews ? totalViews.toLocaleString() : '0'}</div>
+            </div>
+            <div className={styles.statItem}>
+              <div style={{paddingBottom: '5px'}}>粉丝</div>
+              <div>{followerCount ? followerCount.toLocaleString() : '0'}</div>
           </div>
-          <div className={styles.statItem}>
-            <div style={{paddingBottom: '5px'}}>阅读</div>
-            <div>{article.author.readCount ? article.author.readCount.toLocaleString() : '0'}</div>
-          </div>
-          <div className={styles.statItem}>
-            <div style={{paddingBottom: '5px'}}>粉丝</div>
-            <div>{followerCount ? followerCount.toLocaleString() : '0'}</div>
-        </div>
         </div>
         {!isAuthor && (
           <div className={styles.authorInfoLineButton}>
