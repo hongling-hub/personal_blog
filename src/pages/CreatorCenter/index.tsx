@@ -81,6 +81,7 @@ const ContentManagementPage = () => {
     draft: 0
   });
   const { user } = useUser();
+  const navigate = useNavigate();
 
   // 获取并处理文章数据
   useEffect(() => {
@@ -218,7 +219,7 @@ const ContentManagementPage = () => {
             <ArticleList
               articles={filterArticles()}
               loading={false}
-              onArticleClick={(article) => console.log('点击文章:', article)}
+              onArticleClick={(id) => navigate(`/article/${id}`)}
               showAction={false}
             />
           </div>
@@ -227,11 +228,11 @@ const ContentManagementPage = () => {
         <div className={`${styles.draftList} ${articleListStyles.articleContainer}`}>
           {/* 使用ArticleList组件显示草稿文章 */}
           <ArticleList
-            articles={filterArticles()}
-            loading={false}
-            onArticleClick={(article) => console.log('点击草稿:', article)}
-            showAction={false}
-          />
+              articles={filterArticles()}
+              loading={false}
+              onArticleClick={(id) => navigate(`/write/${id}`)}
+              showAction={false}
+            />
         </div>
       )}
     </div>
