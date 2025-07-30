@@ -6,6 +6,7 @@ import { Layout, Card, List, Tabs, Menu, Tag, Button, Divider, Avatar } from 'an
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import ArticleList from '../../components/ArticleList';
+import ArticleRankings from '../../components/ArticleRankings';
 import dayjs from 'dayjs';
 import { FireOutlined, StarOutlined, ThunderboltOutlined, AppstoreOutlined, CodeOutlined, MonitorOutlined, PhoneOutlined, AppleOutlined, RobotOutlined, ToolOutlined, BookOutlined, TrophyOutlined, ReloadOutlined } from '@ant-design/icons';
 
@@ -163,34 +164,7 @@ export default function Home() {
           />
         </Content>
         <Sider width={"20%"} className={styles.rightSider}>
-          <Card className={styles.rankCard}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-              <h3 style={{ margin: 0, display: 'flex', alignItems: 'center' }}>
-                <TrophyOutlined style={{ color: '#faad14', marginRight: 8 }} />
-                文章榜
-              </h3>
-              <Button size="small" icon={<ReloadOutlined />}>换一换</Button>
-            </div>
-            <List
-              dataSource={articles.slice(0, 5)}
-              renderItem={(item: ArticleItem, index: number) => (
-                <List.Item key={item._id} style={{ padding: '8px 0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    <span style={{ width: 20, textAlign: 'center', marginRight: 12, fontWeight: 'bold', color: index < 3 ? '#faad14' : '#888' }}>
-                      {index + 1}
-                    </span>
-                    <Avatar size={24} src={item.author.avatar || 'https://picsum.photos/id/1005/200'} />
-                    <span style={{ marginLeft: 8, flex: 1, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', width: '120px' }}>
-                      {item.title}
-                    </span>
-                  </div>
-                </List.Item>
-              )}
-            />
-            <div style={{ textAlign: 'center', marginTop: 16 }}>
-              <a href="#" style={{ color: '#1890ff' }}>查看更多</a>
-            </div>
-          </Card>
+          <ArticleRankings articles={articles} />
           <Footer className={styles.sidebarFooter} />
         </Sider>
       </Layout>
