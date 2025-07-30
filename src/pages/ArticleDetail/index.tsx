@@ -13,6 +13,7 @@ import {
   Menu, 
   Badge 
 } from 'antd';
+import AuthorCard from '@/components/AuthorCard';
 import {
   LikeOutlined,
   LikeFilled,
@@ -240,7 +241,7 @@ export default function ArticleDetail() {
     );
   }
 
-  const isAuthor = user && article.author._id === user._id;
+  const isAuthor = !!user && article.author._id === user._id;
 
   return (
     <div className={styles.container}>
@@ -412,37 +413,7 @@ export default function ArticleDetail() {
           {/* PC端右侧边栏 - 仅在大屏幕显示 */}
           <div className={styles.sidebar}>
             {/* 作者信息卡片 */}
-            <div className={styles.authorCard}>
-              <div className={styles.authorInfoLine}>
-                <div>
-                <Avatar src={article.author.avatar} alt={article.author.username} className={styles.authorAvatar} />
-              </div>
-              <div>
-                <div className={styles.authorName}>{article.author.username}</div>
-              </div>
-              </div>
-              <div className={styles.authorInfo}>
-                <div className={styles.authorNameContainer}>
-                  {article.author.isVerified && (
-                    <Tooltip title="已认证">
-                      <Badge status="success" className={styles.verifiedBadge} />
-                    </Tooltip>
-                  )}
-                </div>
-                {article.author.bio && <div className={styles.authorBio}>{article.author.bio}</div>}
-                <div className={styles.authorStats}>
-                  <div className={styles.statItem}>{article.author.articleCount} 文章</div>
-                  <div className={styles.statItem}>{article.author.readCount} 阅读</div>
-                  <div className={styles.statItem}>{article.author.followerCount} 粉丝</div>
-                </div>
-                {!isAuthor && (
-                  <div  className={styles.authorInfoLine}>
-                    <Button type="primary" size="small" className={styles.followButton}>关注</Button>
-                    <Button size="small" className={styles.messageButton}>私信</Button>
-                  </div>
-                )}
-              </div>
-            </div>
+            <AuthorCard article={article} isAuthor={isAuthor} />
 
             {/* 文章目录 */}
             <div className={styles.tableOfContents}>
