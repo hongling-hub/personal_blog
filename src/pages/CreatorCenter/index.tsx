@@ -8,6 +8,9 @@ import { HomeOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/ic
 import { useUser } from '../../contexts/UserContext';
 import styles from './index.module.scss';
 import SubHeader from '@/components/SubHeader';
+// 导入ArticleList组件和样式
+import ArticleList from '../../components/ArticleList';
+import articleListStyles from '../../components/ArticleList/index.module.scss';
 const { Sider, Content } = Layout;
 const { Title, Text } = Typography;
 
@@ -83,9 +86,9 @@ const ContentManagementPage = () => {
   useEffect(() => {
     const fetchArticles = async () => {
       try {
-        const data = await articlesService.getList();
-const userArticles = data.filter((article: Article) => article.author === user?._id);
+        const data = await articlesService.getUserArticles();
         const now = dayjs();
+        const userArticles = data;
         const counts = {
           all: data.length,
           published: 0,
@@ -129,7 +132,11 @@ const userArticles = data.filter((article: Article) => article.author === user?.
       case 'reviewing':
         return articles.filter((article: Article) => article.isDraft && article.publishTime && dayjs(article.publishTime).isAfter(now));
       default:
-        return articles;
+        // '全部'状态下只显示已发布和待发布文章，不显示草稿
+        return articles.filter((article: Article) => 
+          (!article.isDraft && article.isPublic && dayjs(article.publishTime).isBefore(now)) || 
+          (article.isDraft && article.publishTime && dayjs(article.publishTime).isAfter(now))
+        );
     }
   }
 
@@ -138,7 +145,7 @@ const userArticles = data.filter((article: Article) => article.author === user?.
     {
     key: 'all', label: '全部', count: articleCounts.all },
     { key: 'published', label: '已发布', count: articleCounts.published },
-    { key: 'reviewing', label: '审核中', count: articleCounts.reviewing },
+    { key: 'reviewing', label: '待发布', count: articleCounts.reviewing },
   ];
 
   // 切换状态
@@ -207,22 +214,24 @@ const userArticles = data.filter((article: Article) => article.author === user?.
             <Button type="primary">开始创作</Button>
           </Empty>
         ) : (
-          <div className={styles.articleList}>
-            {filterArticles().map((article: Article) => (
-              <div key={article.id} className={styles.articleItem}>
-                <div className={styles.articleTitle}>{article.title}</div>
-                <div className={styles.articleMeta}>
-                  <span>{dayjs(article.publishTime).format('YYYY-MM-DD HH:mm')}</span>
-                  <span>{article.isDraft ? '草稿' : '已发布'}</span>
-                </div>
-              </div>
-            ))}
+          <div className={`${styles.articleList} ${articleListStyles.articleContainer}`}>
+            <ArticleList
+              articles={filterArticles()}
+              loading={false}
+              onArticleClick={(article) => console.log('点击文章:', article)}
+              showAction={false}
+            />
           </div>
         )
       ) : (
-        <div className={styles.draftList}>
-          {/* 草稿箱内容渲染 - 实际项目中根据drafts数据渲染 */}
-          <Empty description="暂无草稿" />
+        <div className={`${styles.draftList} ${articleListStyles.articleContainer}`}>
+          {/* 使用ArticleList组件显示草稿文章 */}
+          <ArticleList
+            articles={filterArticles()}
+            loading={false}
+            onArticleClick={(article) => console.log('点击草稿:', article)}
+            showAction={false}
+          />
         </div>
       )}
     </div>

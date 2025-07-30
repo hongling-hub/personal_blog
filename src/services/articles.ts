@@ -24,6 +24,7 @@ interface CommentData {
 
 interface ArticlesService {
   getList: () => Promise<Article[]>;
+  getUserArticles: () => Promise<Article[]>;
   getById: (id: string) => Promise<Article>;
   create: (data: Article) => Promise<Article>;
   update: (id: string, data: Partial<Article>) => Promise<Article>;
@@ -38,6 +39,13 @@ interface ArticlesService {
 export default {
   // 获取文章列表
   getList: () => fetch('/api/articles').then(res => res.json()),
+
+  // 获取当前用户的所有文章（包括草稿）
+  getUserArticles: () => fetch('/api/articles/user', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
+  }).then(res => res.json()),
   
   // 获取文章详情
   getById: (id: string) => fetch(`/api/articles/${id}`, {

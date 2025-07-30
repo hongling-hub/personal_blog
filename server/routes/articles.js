@@ -20,6 +20,20 @@ router.get('/', async (req, res) => {
   }
 });
 
+// 获取当前用户的所有文章（包括草稿）
+router.get('/user', authenticate, async (req, res) => {
+  try {
+    const articles = await Article.find({
+      author: req.user._id
+    }).populate('author', 'username avatar isVerified bio')
+    .sort({ updatedAt: -1 });
+
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // 获取文章详情
 router.get('/:id', authenticate, async (req, res) => {
   try {
