@@ -28,6 +28,7 @@ interface ArticleItem {
 export default function Home() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('1');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -35,11 +36,7 @@ export default function Home() {
       try {
         setLoading(true);
         const data = await articlesService.getList();
-        // 按发布时间倒序排序
-        const sortedData = data.sort((a: ArticleItem, b: ArticleItem) => 
-          new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime()
-        );
-        setArticles(sortedData);
+        setArticles(data);
       } catch (error) {
         console.error('获取文章列表失败:', error);
       } finally {
@@ -49,6 +46,33 @@ export default function Home() {
 
     fetchArticles();
   }, []);
+
+  // 根据当前标签页排序文章
+  const getSortedArticles = () => {
+    if (!articles.length) return [];
+
+    switch (activeTab) {
+      case '1': // 推荐
+        return [...articles].sort((a, b) => {
+          // 先按阅读量降序
+          if (a.views !== b.views) {
+            return b.views - a.views;
+          }
+          // 阅读量相同时按点赞量降序
+          return b.likes - a.likes;
+        });
+      case '2': // 最新
+        return [...articles].sort((a, b) => {
+          return new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime();
+        });
+      case '3': // 热门
+        return [...articles].sort((a, b) => {
+          return b.likes - a.likes;
+        });
+      default:
+        return articles;
+    }
+  };
 
   const items = [
     {
@@ -60,7 +84,7 @@ export default function Home() {
       ),
       children: (
         <ArticleList
-          articles={articles}
+          articles={getSortedArticles()}
           loading={loading}
           onArticleClick={(id) => navigate(`/article/${id}`)}
           showAction={true}
@@ -76,7 +100,7 @@ export default function Home() {
       ),
       children: (
         <ArticleList
-          articles={articles}
+          articles={getSortedArticles()}
           loading={loading}
           onArticleClick={(id) => navigate(`/article/${id}`)}
           showAction={false}
@@ -92,7 +116,7 @@ export default function Home() {
       ),
       children: (
         <ArticleList
-          articles={articles}
+          articles={getSortedArticles()}
           loading={loading}
           onArticleClick={(id) => navigate(`/article/${id}`)}
           showAction={false}
@@ -129,6 +153,8 @@ export default function Home() {
           <Header />
           <Tabs
             defaultActiveKey="1"
+            activeKey={activeTab}
+            onChange={(key) => setActiveTab(key)}
             tabBarStyle={{ 
               paddingLeft: '2vw' 
             }}
