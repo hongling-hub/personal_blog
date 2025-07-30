@@ -13,7 +13,8 @@ import {
   Menu, 
   Badge 
 } from 'antd';
-import AuthorCard from '@/components/AuthorCard';
+import AuthorCard from '../../components/AuthorCard';
+import RecommendedReading from '../../components/RecommendedReading';
 import {
   LikeOutlined,
   LikeFilled,
@@ -70,6 +71,13 @@ interface ArticleData {
   isCollected: boolean;
 }
 
+interface RecommendedArticle {
+  id: string;
+  title: string;
+  author: string;
+  views: number;
+}
+
 export default function ArticleDetail() {
   const { id } = useParams<{ id: string }>();
   const [article, setArticle] = useState<ArticleData | null>(null);
@@ -82,6 +90,7 @@ export default function ArticleDetail() {
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
   const [commentCount, setCommentCount] = useState(0);
+  const [recommendedArticles, setRecommendedArticles] = useState<RecommendedArticle[]>([]);
 
   const handleSendComment = async () => {
     if (!commentText.trim()) {
@@ -126,7 +135,28 @@ export default function ArticleDetail() {
       }
     };
 
+    const fetchRecommendedArticles = async () => {
+      try {
+        // 获取除当前文章外的最新文章作为推荐
+        const data = await articlesService.getList();
+        const recommended = data
+          .filter((item: ArticleData) => item._id !== id)
+          .sort((a: ArticleData, b: ArticleData) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime())
+          .slice(0, 5)
+          .map((item: ArticleData) => ({
+            id: item._id,
+            title: item.title,
+            author: item.author.username,
+            views: item.views
+          }));
+        setRecommendedArticles(recommended);
+      } catch (error) {
+        console.error('Failed to fetch recommended articles:', error);
+      }
+    };
+
     fetchArticleDetail();
+    fetchRecommendedArticles();
   }, [id]);
 
   const handleLike = async () => {
@@ -426,26 +456,9 @@ export default function ArticleDetail() {
             </div>
 
               {/* 右侧边栏 */}
-            <div className={styles.sidebar}>
-              <div className={styles.sidebarCard}>
-                <div className={styles.sidebarTitle}>推荐阅读</div>
-                <div className={styles.recommendedArticles}>
-                  {/* 这里可以添加推荐文章列表 */}
-                  <div className={styles.recommendedArticle}>
-                    <div className={styles.recommendedTitle}>如何高效学习React</div>
-                    <div className={styles.recommendedMeta}>作者名称 · 2.3k阅读</div>
-                  </div>
-                  <div className={styles.recommendedArticle}>
-                    <div className={styles.recommendedTitle}>TypeScript高级类型技巧</div>
-                    <div className={styles.recommendedMeta}>作者名称 · 1.8k阅读</div>
-                  </div>
-                  <div className={styles.recommendedArticle}>
-                    <div className={styles.recommendedTitle}>前端性能优化实践</div>
-                    <div className={styles.recommendedMeta}>作者名称 · 3.5k阅读</div>
-                  </div>
-                </div>
+            <div>
+                <RecommendedReading articles={recommendedArticles} />
               </div>
-            </div>
           </div>
         </div>
       </div>
