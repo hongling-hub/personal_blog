@@ -5,6 +5,7 @@ import articlesService from '../../services/articles';
 import { Layout, Card, List, Tabs, Menu, Tag, Button, Divider, Avatar } from 'antd';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
+import ArticleList from '../../components/ArticleList';
 import dayjs from 'dayjs';
 import { FireOutlined, StarOutlined, ThunderboltOutlined, AppstoreOutlined, CodeOutlined, MonitorOutlined, PhoneOutlined, AppleOutlined, RobotOutlined, ToolOutlined, BookOutlined, TrophyOutlined, ReloadOutlined } from '@ant-design/icons';
 
@@ -58,60 +59,12 @@ export default function Home() {
         </>
       ),
       children: (
-        <div className={styles.articleContainer}>
-          <div className={styles.mainContent}>
-            <List
-              itemLayout="vertical"
-              size="large"
-              dataSource={articles}
-              loading={loading}
-              renderItem={(item: ArticleItem) => (
-                <List.Item
-                  key={item._id}
-                  className={styles.articleItem}
-                  onClick={() => navigate(`/article/${item._id}`)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div style={{ display: 'flex' }}>
-                    <div style={{ flex: 1 }}>
-                      <List.Item.Meta
-                        title={<Link to={`/article/${item._id}`}>{item.title}</Link>}
-                        description={
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ 
-                              display: '-webkit-box', 
-                              WebkitLineClamp: 3, 
-                              WebkitBoxOrient: 'vertical', 
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
-                              <span>{item.author.username}</span>
-                              <span>{item.views}浏览</span>
-                              <span>{item.likeCount}点赞</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              {item.tags?.slice(0, 3).map(tag => (
-                                <Tag key={tag} style={{ marginRight: '4px' }}>{tag}</Tag>
-                              ))}
-                              {item.tags?.length > 3 && <Tag>...</Tag>}
-                            </div>
-                          </div>
-                        }
-                      />
-                    </div>
-                    {item.coverImage && (
-                      <div className={styles.articleImage} style={{ flexShrink: 0 }}>
-                        <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
-                      </div>
-                    )}
-                  </div>
-                </List.Item>
-              )}
-            />
-          </div>
-        </div>
+        <ArticleList
+          articles={articles}
+          loading={loading}
+          onArticleClick={(id) => navigate(`/article/${id}`)}
+          showAction={true}
+        />
       )
     },
     {
@@ -122,58 +75,12 @@ export default function Home() {
         </>
       ),
       children: (
-        <div className={styles.articleContainer}>
-          <div className={styles.mainContent}>
-            <List
-              itemLayout="vertical"
-              size="large"
-              dataSource={articles}
-              loading={loading}
-              renderItem={(item: ArticleItem) => (
-                <List.Item
-                  key={item._id}
-                  className={styles.articleItem}
-                >
-                  <div style={{ display: 'flex' }}>
-                    <div style={{ flex: 1 }}>
-                      <List.Item.Meta
-                        title={<Link to={`/article/${item._id}`}>{item.title}</Link>}
-                        description={
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ 
-                              display: '-webkit-box', 
-                              WebkitLineClamp: 3, 
-                              WebkitBoxOrient: 'vertical', 
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
-                            <span>{item.author.username}</span>
-                              <span>{item.views}浏览</span>
-                              <span>{item.likeCount}点赞</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              {item.tags?.slice(0, 3).map(tag => (
-                                <Tag key={tag} style={{ marginRight: '4px' }}>{tag}</Tag>
-                              ))}
-                              {item.tags?.length > 3 && <Tag>...</Tag>}
-                            </div>
-                          </div>
-                        }
-                      />
-                    </div>
-                    {item.coverImage && (
-                      <div className={styles.articleImage} style={{ flexShrink: 0 }}>
-                        <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: 'auto' }} />
-                      </div>
-                    )}
-                  </div>
-                </List.Item>
-              )}
-            />
-          </div>
-        </div>
+        <ArticleList
+          articles={articles}
+          loading={loading}
+          onArticleClick={(id) => navigate(`/article/${id}`)}
+          showAction={false}
+        />
       )
     },
     {
@@ -184,58 +91,12 @@ export default function Home() {
         </>
       ),
       children: (
-        <div className={styles.articleContainer}>
-          <div className={styles.mainContent}>
-            <List
-              itemLayout="vertical"
-              size="large"
-              dataSource={articles}
-              loading={loading}
-              renderItem={(item: ArticleItem) => (
-                <List.Item
-                  key={item._id}
-                  className={styles.articleItem}
-                >
-                  <div style={{ display: 'flex' }}>
-                    <div style={{ flex: 1 }}>
-                      <List.Item.Meta
-                        title={<Link to={`/article/${item._id}`}>{item.title}</Link>}
-                        description={
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                            <div style={{ 
-                              display: '-webkit-box', 
-                              WebkitLineClamp: 3, 
-                              WebkitBoxOrient: 'vertical', 
-                              overflow: 'hidden',
-                              textOverflow: 'ellipsis'
-                            }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                              <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
-                              <span>{item.author.username}</span>
-                              <span>{item.views}浏览</span>
-                              <span>{item.likeCount}点赞</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              {item.tags?.slice(0, 3).map(tag => (
-                                <Tag key={tag} style={{ marginRight: '4px' }}>{tag}</Tag>
-                              ))}
-                              {item.tags?.length > 3 && <Tag>...</Tag>}
-                            </div>
-                          </div>
-                        }
-                      />
-                    </div>
-                    {item.coverImage && (
-                      <div className={styles.articleImage} style={{ flexShrink: 0 }}>
-                        <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: 'auto' }} />
-                      </div>
-                    )}
-                  </div>
-                </List.Item>
-              )}
-            />
-          </div>
-        </div>
+        <ArticleList
+          articles={articles}
+          loading={loading}
+          onArticleClick={(id) => navigate(`/article/${id}`)}
+          showAction={false}
+        />
       )
     }
   ];

@@ -5,6 +5,20 @@ interface RegisterParams {
 }
 
 
+export interface Article {
+  id: string;
+  title: string;
+  content: string;
+  publishTime: string | null;
+  isDraft: boolean;
+  isPublic: boolean;
+  author: string;
+  createdAt: string;
+  updatedAt: string;
+  status: 'published' | 'pending' | 'draft';
+}
+
+
 export interface CommentType {
   id: string;
   content: string;

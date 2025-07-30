@@ -1,4 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import dayjs from 'dayjs';
+import articlesService from '../../services/articles';
+import type { Article } from '../../types';
 import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { HomeOutlined, FileTextOutlined, BarChartOutlined } from '@ant-design/icons';
@@ -68,13 +71,74 @@ const ContentManagementPage = () => {
   const [mainTab, setMainTab] = useState<MainTab>('article');
   const [activeStatus, setActiveStatus] = useState<ArticleStatus>('all');
   const [articles, setArticles] = useState<any[]>([]); // 实际项目中应定义具体类型
+  const [articleCounts, setArticleCounts] = useState({
+    all: 0,
+    published: 0,
+    reviewing: 0,
+    draft: 0
+  });
+  const { user } = useUser();
+
+  // 获取并处理文章数据
+  useEffect(() => {
+    const fetchArticles = async () => {
+      try {
+        const data = await articlesService.getList();
+const userArticles = data.filter((article: Article) => article.author === user?._id);
+        const now = dayjs();
+        const counts = {
+          all: data.length,
+          published: 0,
+          reviewing: 0,
+          draft: 0
+        };
+
+        // 分类统计文章
+        userArticles.forEach((article: Article) => {
+          if (article.isDraft) {
+            if (article.publishTime && dayjs(article.publishTime).isAfter(now)) {
+              counts.reviewing++;
+            } else {
+              counts.draft++;
+            }
+          } else if (article.isPublic && dayjs(article.publishTime).isBefore(now)) {
+            counts.published++;
+          }
+        });
+
+        setArticles(userArticles);
+        setArticleCounts(counts);
+      } catch (error) {
+        console.error('获取文章失败:', error);
+      }
+    };
+
+    fetchArticles();
+  }, []);
+
+  // 根据状态筛选文章
+  const filterArticles = () => {
+    const now = dayjs();
+    if (mainTab === 'draft') {
+      return articles.filter((article: Article) => article.isDraft && (!article.publishTime || dayjs(article.publishTime).isBefore(now)));
+    }
+
+    switch (activeStatus) {
+      case 'published':
+        return articles.filter((article: Article) => !article.isDraft && article.isPublic && dayjs(article.publishTime).isBefore(now));
+      case 'reviewing':
+        return articles.filter((article: Article) => article.isDraft && article.publishTime && dayjs(article.publishTime).isAfter(now));
+      default:
+        return articles;
+    }
+  }
 
   // 状态标签配置
   const statusTabs = [
-    { key: 'all', label: '全部', count: 0 },
-    { key: 'published', label: '已发布', count: 0 },
-    { key: 'reviewing', label: '审核中', count: 0 },
-    { key: 'rejected', label: '未通过', count: 0 },
+    {
+    key: 'all', label: '全部', count: articleCounts.all },
+    { key: 'published', label: '已发布', count: articleCounts.published },
+    { key: 'reviewing', label: '审核中', count: articleCounts.reviewing },
   ];
 
   // 切换状态
@@ -108,7 +172,7 @@ const ContentManagementPage = () => {
               className={mainTab === 'draft' ? `${styles.mainTab} ${styles.mainTabActive}` : styles.mainTab}
               onClick={() => handleMainTabChange('draft')}
             >
-              草稿箱(2)
+              草稿箱({articleCounts.draft})
             </div>
           </div>
           {mainTab === 'article' && (
@@ -135,7 +199,7 @@ const ContentManagementPage = () => {
         className={styles.searchInput}
       />
       {mainTab === 'article' ? (
-        articles.length === 0 ? (
+        filterArticles().length === 0 ? (
           <Empty
             description={`暂无${statusTabs.find(t => t.key === activeStatus)?.label}内容`}
             image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
@@ -144,7 +208,15 @@ const ContentManagementPage = () => {
           </Empty>
         ) : (
           <div className={styles.articleList}>
-            {/* 文章列表渲染 - 实际项目中根据articles数据渲染 */}
+            {filterArticles().map((article: Article) => (
+              <div key={article.id} className={styles.articleItem}>
+                <div className={styles.articleTitle}>{article.title}</div>
+                <div className={styles.articleMeta}>
+                  <span>{dayjs(article.publishTime).format('YYYY-MM-DD HH:mm')}</span>
+                  <span>{article.isDraft ? '草稿' : '已发布'}</span>
+                </div>
+              </div>
+            ))}
           </div>
         )
       ) : (
