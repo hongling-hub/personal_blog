@@ -72,6 +72,14 @@
   margin-right: 8px;
 }
 
+.followed {
+  background-color: #f0f2f5;
+  color: #333;
+}
+.followed:hover {
+  background-color: #e5e6eb;
+}
+
 .messageButton {
   background-color: #f0f2f5;
   color: #333;

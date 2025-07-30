@@ -180,5 +180,89 @@ return {
       console.error('上传头像失败:', error);
       throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
     }
+  },
+
+  // 关注作者
+  follow: async (authorId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登录');
+      }
+      
+      const res = await fetch(`/api/users/follow/${authorId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || '关注失败');
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error('关注失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '网络错误，请稍后重试';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // 取消关注作者
+  unfollow: async (authorId: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登录');
+      }
+      
+      const res = await fetch(`/api/users/unfollow/${authorId}`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || '取消关注失败');
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error('取消关注失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '网络错误，请稍后重试';
+      throw new Error(errorMessage);
+    }
+  },
+
+  // 检查是否关注作者
+  checkFollowing: async (authorId: string): Promise<{ isFollowing: boolean }> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登录');
+      }
+      
+      const res = await fetch(`/api/users/check-following/${authorId}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error('检查关注状态失败');
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error('检查关注状态失败:', error);
+      throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
+    }
   }
 };

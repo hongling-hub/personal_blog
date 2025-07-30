@@ -413,7 +413,7 @@ export default function ArticleDetail() {
           {/* PC端右侧边栏 - 仅在大屏幕显示 */}
           <div className={styles.sidebar}>
             {/* 作者信息卡片 */}
-            <AuthorCard article={article} isAuthor={isAuthor} />
+            <AuthorCard article={{ ...article, author: { ...article.author, id: article.author._id } }} isAuthor={isAuthor} />
 
             {/* 文章目录 */}
             <div className={styles.tableOfContents}>
