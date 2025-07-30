@@ -29,6 +29,7 @@ const router = createBrowserRouter([
           { path: 'article/:id', element: <ArticleDetail /> },
           { path: 'write-article', element: <WriteArticle /> },
           { path: 'write', element: <WriteArticle /> },
+          { path: 'write/:id', element: <WriteArticle /> },
           { path: 'admin', element: <AdminDashboard /> },
           { path: 'profile', element: <Profile /> },
           { path: 'creator-center', element: <CreatorCenter /> }

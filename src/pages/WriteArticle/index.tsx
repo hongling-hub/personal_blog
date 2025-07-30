@@ -1,15 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { MdEditor } from 'md-editor-rt';
 import 'md-editor-rt/lib/style.css';
 import styles from './index.module.scss';
-import { useEffect } from 'react';
 import { Badge, Input, Tag, Upload, Button } from 'antd';
 import type { RcFile, UploadProps } from 'antd/es/upload';
 import {BellOutlined, CalendarOutlined} from '@ant-design/icons';
 import { useUser } from '../../contexts/UserContext';
 import { DatePicker, message } from 'antd';
 import articlesService from '../../services/articles';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import dayjs, { Dayjs } from 'dayjs';
 import SubHeader from '../../components/SubHeader';
 const WriteArticle: React.FC = () => {
@@ -24,9 +23,32 @@ const WriteArticle: React.FC = () => {
   const [showPublishTimePicker, setShowPublishTimePicker] = useState(false);
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [columns, setColumns] = useState<string[]>([]);
-  const [isAddingColumn, setIsAddingColumn] = useState(false);
-  const [newColumnName, setNewColumnName] = useState('');
+  const { id } = useParams<{ id?: string }>();
+  const [isLoading, setIsLoading] = useState(false);
+
+  // 加载文章数据
+  useEffect(() => {
+    if (id) {
+      setIsLoading(true);
+      articlesService.getById(id)
+        .then(article => {
+          setTitle(article.title);
+          setTags(article.tags || []);
+          setContent(article.content || '');
+          setCoverImage(article.coverImage || null);
+          if (article.publishTime) {
+            setPublishTime(dayjs(article.publishTime));
+          }
+        })
+        .catch(error => {
+          console.error('加载文章失败:', error);
+          message.error('加载文章失败，请重试');
+        })
+        .finally(() => {
+          setIsLoading(false);
+        });
+    }
+  }, [id]);
 
   // 处理封面上传
   const handleCoverUpload: UploadProps['beforeUpload'] = (file: RcFile, fileList: RcFile[]) => {
@@ -136,8 +158,16 @@ const WriteArticle: React.FC = () => {
         publishTime: isDraft && !publishImmediately ? publishTime?.toISOString() : (!isDraft ? (publishImmediately ? new Date().toISOString() : publishTime?.toISOString()) : undefined)
       };
 
-      const result = await articlesService.create(articleData);
-console.log('Created article result:', result);
+      let result;
+      if (id) {
+        // 更新现有文章
+        result = await articlesService.update(id, articleData);
+      } else {
+        // 创建新文章
+        result = await articlesService.create(articleData);
+      }
+
+      console.log(id ? 'Updated article result:' : 'Created article result:', result);
 
       if (isDraft) {
         if (publishTime) {
@@ -198,20 +228,21 @@ console.log('Created article result:', result);
         {/* 主内容区域 */}
         <div className={styles.editorContainer}>
           <MdEditor
-            value={content}
-             showToolbarName={true}
-            onChange={(val: string) => setContent(val || '')}
-            preview={false}
-             showCodeRowNumber={true}
-             onUploadImg={onUploadImg} 
-            className={styles.editor}
-            toolbar={[
-              'bold', 'italic', 'strikethrough', 'hr', 'title', 'divider',
-              'link', 'quote', 'code', 'image', 'divider',
-              'unordered-list', 'ordered-list', 'check-list', 'divider',
-              'fullscreen', 'preview', 'html-preview'
-            ]}
-          />
+          value={content}
+          showToolbarName={true}
+          onChange={(val: string) => setContent(val || '')}
+          preview={false}
+          showCodeRowNumber={true}
+          onUploadImg={onUploadImg} 
+          className={styles.editor}
+          toolbar={[
+            'bold', 'italic', 'strikethrough', 'hr', 'title', 'divider',
+            'link', 'quote', 'code', 'image', 'divider',
+            'unordered-list', 'ordered-list', 'check-list', 'divider',
+            'fullscreen', 'preview', 'html-preview'
+          ]}
+          disabled={isLoading}
+        />
         </div>
 
         {/* 文章设置区域 */}
