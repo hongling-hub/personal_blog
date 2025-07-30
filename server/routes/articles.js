@@ -35,14 +35,43 @@ router.get('/user', authenticate, async (req, res) => {
 });
 
 // 获取文章详情
-router.get('/:id', authenticate, async (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const article = await Article.findById(req.params.id).populate('author', 'username avatar isVerified bio');
+    // 增加阅读量 - 添加防抖机制
+    console.log('Updating views for article:', req.params.id);
+    // 使用内存缓存来记录短时间内的访问
+    const clientIp = req.ip || req.headers['x-forwarded-for'] || '';
+    const cacheKey = `article_views:${req.params.id}:${clientIp}`;
+    
+    // 初始化global.viewCache如果不存在
+    if (!global.viewCache) global.viewCache = {};
+    
+    let article;
+    // 检查是否在最近1分钟内已经增加过阅读量
+    if (!global.viewCache[cacheKey]) {
+      global.viewCache[cacheKey] = true;
+      
+      // 1分钟后清除缓存
+      setTimeout(() => {
+        delete global.viewCache[cacheKey];
+      }, 60000);
+      
+      // 增加阅读量
+      article = await Article.findByIdAndUpdate(
+        req.params.id,
+        { $inc: { views: 1 } },
+        { new: true }
+      ).populate('author', 'username avatar isVerified bio');
+    } else {
+      // 如果已经增加过，直接获取文章
+      article = await Article.findById(req.params.id)
+        .populate('author', 'username avatar isVerified bio');
+    }
     if (!article) return res.status(404).json({ message: '文章未找到' });
 
     // 检查当前用户是否点赞/收藏了该文章
-    const isLiked = req.user && article.likes.includes(req.user._id);
-    const isCollected = req.user && article.collections.includes(req.user._id);
+    const isLiked = req.user ? article.likes.includes(req.user._id) : false;
+    const isCollected = req.user ? article.collections.includes(req.user._id) : false;
 
     // 将状态添加到响应中
     const articleData = article.toObject();

@@ -12,6 +12,7 @@ export interface Article {
   publishTime: string | null;
   isDraft: boolean;
   isPublic: boolean;
+  views: number;
   author: string;
   createdAt: string;
   updatedAt: string;

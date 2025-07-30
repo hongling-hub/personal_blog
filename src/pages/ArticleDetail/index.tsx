@@ -47,6 +47,7 @@ interface ArticleData {
   title: string;
   content: string;
   coverImage?: string;
+  views: number;
   author: {
     _id: string;
     username: string;
@@ -108,6 +109,7 @@ export default function ArticleDetail() {
     if (!id) return;
 
     const fetchArticleDetail = async () => {
+      console.log('Fetching article detail...');
       try {
         setLoading(true);
         const data = await articlesService.getById(id);
@@ -335,7 +337,7 @@ export default function ArticleDetail() {
                     <div className={styles.publishInfo}>
                       <span>{dayjs(article.publishTime).format('YYYY-MM-DD')}</span>
                       <span className={styles.separator}>·</span>
-                      <span><EyeOutlined /> {article.readCount} 阅读</span>
+                      <span><EyeOutlined /> {article.views} 阅读</span>
                     </div>
                   </div>
                 </div>
