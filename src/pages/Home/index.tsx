@@ -1,4 +1,3 @@
-import styles from './index.module.scss';
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import articlesService from '../../services/articles';
@@ -7,8 +6,11 @@ import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import ArticleList from '../../components/ArticleList';
 import ArticleRankings from '../../components/ArticleRankings';
+import Follow from '../../components/Follow';
 import dayjs from 'dayjs';
+import { useUser } from '../../contexts/UserContext';
 import { FireOutlined, StarOutlined, ThunderboltOutlined, AppstoreOutlined, CodeOutlined, MonitorOutlined, PhoneOutlined, AppleOutlined, RobotOutlined, ToolOutlined, BookOutlined, TrophyOutlined, ReloadOutlined } from '@ant-design/icons';
+import styles from './index.module.scss';
 
 const { Header: AntHeader, Content, Sider } = Layout;
 
@@ -30,6 +32,7 @@ export default function Home() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('1');
+  const [activeMenu, setActiveMenu] = useState('comprehensive');
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -128,7 +131,7 @@ export default function Home() {
 
   const menuItems = [
     { key: 'follow', icon: <StarOutlined />, label: '关注' },
-    { key: 'comprehensive', icon: <AppstoreOutlined />, label: '综合', className: styles.activeMenu },
+    { key: 'comprehensive', icon: <AppstoreOutlined />, label: '综合' },
     { key: 'backend', icon: <CodeOutlined />, label: '后端' },
     { key: 'frontend', icon: <MonitorOutlined />, label: '前端' },
     { key: 'android', icon: <PhoneOutlined />, label: 'Android' },
@@ -140,18 +143,20 @@ export default function Home() {
     { key: 'ranking', icon: <TrophyOutlined />, label: '排行榜' },
   ];
 
-  return (
-    <Layout className={styles.layout}>
-      <Sider width={"15%"} className={styles.sider}>
-        <Menu
-          mode="vertical"
-          items={menuItems}
-          style={{ height: '100%', borderRight: 0 }}
-        />
-      </Sider>
-      <Layout>
-        <Content className={styles.content}>
-          <Header />
+  // 处理菜单点击
+  const handleMenuClick = ({ key }: { key: string }) => {
+    setActiveMenu(key);
+    // 重置标签页为默认值
+    setActiveTab('1');
+  };
+
+  // 根据activeMenu渲染不同内容
+  const renderContent = () => {
+    switch (activeMenu) {
+      case 'follow':
+        return <Follow />;
+      case 'comprehensive':
+        return (
           <Tabs
             defaultActiveKey="1"
             activeKey={activeTab}
@@ -162,6 +167,39 @@ export default function Home() {
             className={styles.articleTabs}
             items={items}
           />
+        );
+      // 其他菜单的内容可以在这里添加
+      default:
+        return (
+          <Tabs
+            defaultActiveKey="1"
+            activeKey={activeTab}
+            onChange={(key) => setActiveTab(key)}
+            tabBarStyle={{ 
+              paddingLeft: '2vw' 
+            }}
+            className={styles.articleTabs}
+            items={items}
+          />
+        );
+    }
+  };
+
+  return (
+    <Layout className={styles.layout}>
+      <Sider width={"15%"} className={styles.sider}>
+        <Menu
+          mode="vertical"
+          items={menuItems}
+          selectedKeys={[activeMenu]}
+          onClick={handleMenuClick}
+          style={{ height: '100%', borderRight: 0 }}
+        />
+      </Sider>
+      <Layout>
+        <Content className={styles.content}>
+          <Header />
+          {renderContent()}
         </Content>
         <Sider width={"20%"} className={styles.rightSider}>
           <ArticleRankings articles={articles} />

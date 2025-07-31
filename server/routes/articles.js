@@ -20,6 +20,33 @@ router.get('/', async (req, res) => {
   }
 });
 
+// 获取关注作者的文章
+router.get('/following', authenticate, async (req, res) => {
+  try {
+    // 获取当前用户
+    const user = req.user;
+    
+    // 检查用户是否有关注的作者
+    if (!user.following || user.following.length === 0) {
+      return res.json([]);
+    }
+    
+    // 获取关注作者的公开文章
+    const now = new Date();
+    const articles = await Article.find({
+      author: { $in: user.following },
+      isDraft: false,
+      isPublic: true,
+      publishTime: { $lte: now }
+    }).populate('author', 'username avatar isVerified bio')
+    .sort({ publishTime: -1 });
+    
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // 获取当前用户的所有文章（包括草稿）
 router.get('/user', authenticate, async (req, res) => {
   try {

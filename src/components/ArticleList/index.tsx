@@ -22,67 +22,78 @@ interface ArticleListProps {
   loading: boolean;
   onArticleClick: (id: string) => void;
   showAction?: boolean;
+  emptyText?: string;
 }
 
 const ArticleList: React.FC<ArticleListProps> = ({ 
   articles, 
   loading, 
   onArticleClick, 
-  showAction = true 
+  showAction = true, 
+  emptyText = "暂无文章数据"
 }) => {
   return (
     <div className={styles.articleContainer}>
       <div className={styles.mainContent}>
-        <List
-          itemLayout="vertical"
-          size="large"
-          dataSource={articles}
-          loading={loading}
-          renderItem={(item: ArticleItem) => (
-            <List.Item
-              key={item._id}
-              className={styles.articleItem}
-              onClick={() => onArticleClick(item._id)}
-              style={{ cursor: showAction ? 'pointer' : 'default' }}
-            >
-              <div style={{ display: 'flex' }}>
-                <div style={{ flex: 1 }}>
-                  <List.Item.Meta
-                    title={<Link to={`/article/${item._id}`}>{item.title}</Link>}
-                    description={
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                        <div style={{ 
-                          display: '-webkit-box', 
-                          WebkitLineClamp: 3, 
-                          WebkitBoxOrient: 'vertical', 
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
-                          <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
-                          <span>{item.author.username}</span>
-                          <span>{item.views}浏览</span>
-                          <span>{item.likeCount}点赞</span>
+        {!loading && articles.length === 0 ? (
+          <div className={styles.emptyState}>
+            <div style={{ textAlign: 'center', padding: '40px 0' }}>
+              <div style={{ fontSize: '64px', marginBottom: '20px', color: '#f0f0f0' }}>💭</div>
+              <p style={{ fontSize: '16px', color: '#999' }}>{emptyText}</p>
+            </div>
+          </div>
+        ) : (
+          <List
+            itemLayout="vertical"
+            size="large"
+            dataSource={articles}
+            loading={loading}
+            renderItem={(item: ArticleItem) => (
+              <List.Item
+                key={item._id}
+                className={styles.articleItem}
+                onClick={() => onArticleClick(item._id)}
+                style={{ cursor: showAction ? 'pointer' : 'default' }}
+              >
+                <div style={{ display: 'flex' }}>
+                  <div style={{ flex: 1 }}>
+                    <List.Item.Meta
+                      title={<Link to={`/article/${item._id}`}>{item.title}</Link>}
+                      description={
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                          <div style={{ 
+                            display: '-webkit-box', 
+                            WebkitLineClamp: 3, 
+                            WebkitBoxOrient: 'vertical', 
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis'
+                          }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                            <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
+                            <span>{item.author.username}</span>
+                            <span>{item.views}浏览</span>
+                            <span>{item.likeCount}点赞</span>
+                          </div>
+                          <div style={{ display: 'flex', gap: '8px' }}>
+                            {item.tags?.slice(0, 3).map(tag => (
+                              <Tag key={tag} style={{ marginRight: '4px' }}>{tag}</Tag>
+                            ))}
+                            {item.tags?.length > 3 && <Tag>...</Tag>}
+                          </div>
                         </div>
-                        <div style={{ display: 'flex', gap: '8px' }}>
-                          {item.tags?.slice(0, 3).map(tag => (
-                            <Tag key={tag} style={{ marginRight: '4px' }}>{tag}</Tag>
-                          ))}
-                          {item.tags?.length > 3 && <Tag>...</Tag>}
-                        </div>
-                      </div>
-                    }
-                  />
-                </div>
-                {item.coverImage && (
-                  <div className={styles.articleImage} style={{ flexShrink: 0 }}>
-                    <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+                      }
+                    />
                   </div>
-                )}
-              </div>
-            </List.Item>
-          )}
-        />
+                  {item.coverImage && (
+                    <div className={styles.articleImage} style={{ flexShrink: 0 }}>
+                      <img src={item.coverImage} alt={item.title} style={{ width: '100%', height: 'auto', objectFit: 'cover' }} />
+                    </div>
+                  )}
+                </div>
+              </List.Item>
+            )}
+          />
+        )}
       </div>
     </div>
   );
