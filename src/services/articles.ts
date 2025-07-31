@@ -8,6 +8,7 @@ interface Article {
   publishTime?: string;
   coverImage?: string;
   desc?: string;
+  comments?: { _id: string; content: string; author: string; createdAt: string; }[];
   author?: {
     _id: string;
     username: string;

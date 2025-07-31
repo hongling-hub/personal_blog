@@ -17,6 +17,9 @@ export interface Article {
   createdAt: string;
   updatedAt: string;
   status: 'published' | 'pending' | 'draft';
+  likes?: number;
+  collections?: number;
+  comments?: { _id: string; content: string; author: string; createdAt: string; }[];
 }
 
 

@@ -27,7 +27,7 @@ interface UserInfoResponse {
   id: string;
   username: string;
   avatar: string;
-  joinDate: string;
+  createdAt: string;
   stats: {
     followers: number;
     following: number;
