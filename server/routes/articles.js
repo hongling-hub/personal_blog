@@ -96,12 +96,12 @@ router.get('/:id', async (req, res) => {
     }
     if (!article) return res.status(404).json({ message: '文章未找到' });
 
-    // 检查当前用户是否点赞/收藏了该文章（采用comments.js中更健壮的方式）
+    // 检查当前用户是否点赞/收藏了该文章
     const isLiked = req.user && req.user._id ? 
-      article.likes.some(like => like && like.toString && like.toString() === req.user._id.toString()) : 
+      article.likes.some(like => like && like.equals && like.equals(req.user._id)) : 
       false;
     const isCollected = req.user && req.user._id ? 
-      article.collections.some(collect => collect && collect.toString && collect.toString() === req.user._id.toString()) : 
+      article.collections.some(collect => collect && collect.equals && collect.equals(req.user._id)) : 
       false;
 
     // 将状态添加到响应中

@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import articlesService from '../../services/articles';
+import commentService from '../../services/comments';
 import type { Article } from '../../types';
 import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { HomeOutlined, FileTextOutlined, BarChartOutlined, SyncOutlined } from '@ant-design/icons';
 import { useUser } from '../../contexts/UserContext';
+import { useComment } from '../../contexts/CommentContext';
 import styles from './index.module.scss';
 import SubHeader from '@/components/SubHeader';
 // 导入ArticleList组件和样式
@@ -17,6 +19,8 @@ const { Title, Text } = Typography;
 // 首页组件 - 修正了箭头函数语法
 const HomePage = () => {
   const { user } = useUser();
+  // 未使用的函数，已移除
+  const { getTotalComments } = useComment();
   const [articleStats, setArticleStats] = useState<{ views: number; comments: number; likes: number; collections: number }>({ views: 0, comments: 0, likes: 0, collections: 0 });
   const [articleCount, setArticleCount] = useState<number>(0);
   const [previousStats, setPreviousStats] = useState<{
@@ -29,23 +33,41 @@ const HomePage = () => {
     date: string;
   } | null>(null);
 
+  // 获取所有文章的评论总数
+  const getTotalCommentsForAllArticles = async (articles: Article[]) => {
+    let totalComments = 0;
+    for (const article of articles) {
+      try {
+        // 获取单篇文章的评论数
+        // 确保传递的是有效的文章ID字符串
+        const articleId = typeof article._id === 'string' ? article._id : article.id;
+        const comments = await commentService.getComments(articleId);
+        totalComments += comments.length;
+      } catch (error) {
+        console.error(`获取文章 ${article.id} 的评论数失败:`, error);
+      }
+    }
+    return totalComments;
+  };
+
   // 获取文章统计数据
   const fetchArticleStats = async () => {
     try {
       const articles = await articlesService.getUserArticles();
       let totalViews = 0;
-      let totalComments = 0;
       let totalLikes = 0;
       let totalCollections = 0;
 
       articles.forEach((article: Article) => {
         totalViews += article.views || 0;
-        totalComments += article.comments?.length || 0;
         // 处理点赞数（如果是数组则取长度，否则取数值）
         totalLikes += Array.isArray(article.likes) ? article.likes.length : (article.likes || 0);
         // 处理收藏数（如果是数组则取长度，否则取数值）
         totalCollections += Array.isArray(article.collections) ? article.collections.length : (article.collections || 0);
       });
+
+      // 确保获取所有文章的评论数
+      const totalComments = await getTotalCommentsForAllArticles(articles);
 
       // 获取今日日期
       const today = dayjs().format('YYYY-MM-DD');
@@ -443,34 +465,53 @@ const CreatorCenter: React.FC = () => {
 
   return (
     <div>
-       <SubHeader />
-    <Layout className={styles.layout}>
-      <Sider width={200} theme="light" className={styles.sider}>
-        <Menu
-          mode="inline"
-          selectedKeys={[selectedKey]}
-          onClick={handleMenuClick}
-          className={styles.menu}
-        >
-          <Menu.Item key="home" icon={<HomeOutlined />}>首页</Menu.Item>
-          <Menu.Item key="contentManagement" icon={<FileTextOutlined />}>内容管理</Menu.Item>
-          <Menu.SubMenu key="dataCenter" icon={<BarChartOutlined />} title="数据中心">
-            <Menu.Item key="articleData">内容数据</Menu.Item>
-            <Menu.Item key="fanData">粉丝数据</Menu.Item>
-          </Menu.SubMenu>
-        </Menu>
-      </Sider>
-      <Layout className={styles.mainLayout}>
-        <Content className={styles.content}>
-          {selectedKey === 'home' && <HomePage />}
-          {selectedKey === 'contentManagement' && <ContentManagementPage />}
-          {selectedKey === 'articleData' && <ArticleDataPage />}
-          {selectedKey === 'fanData' && <FanDataPage />}
-        </Content>
+      <SubHeader />
+      <Layout className={styles.layout}>
+        <Sider width={200} theme="light" className={styles.sider}>
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            onClick={handleMenuClick}
+            className={styles.menu}
+            items={[
+              {
+                key: 'home',
+                icon: <HomeOutlined />,
+                label: '首页',
+              },
+              {
+                key: 'contentManagement',
+                icon: <FileTextOutlined />,
+                label: '内容管理',
+              },
+              {
+                key: 'dataCenter',
+                icon: <BarChartOutlined />,
+                label: '数据中心',
+                children: [
+                  {
+                    key: 'articleData',
+                    label: '内容数据',
+                  },
+                  {
+                    key: 'fanData',
+                    label: '粉丝数据',
+                  },
+                ],
+              },
+            ]}
+          />
+        </Sider>
+        <Layout className={styles.mainLayout}>
+          <Content className={styles.content}>
+            {selectedKey === 'home' && <HomePage />}
+            {selectedKey === 'contentManagement' && <ContentManagementPage />}
+            {selectedKey === 'articleData' && <ArticleDataPage />}
+            {selectedKey === 'fanData' && <FanDataPage />}
+          </Content>
+        </Layout>
       </Layout>
-    </Layout>
     </div>
-     
   );
 };
 

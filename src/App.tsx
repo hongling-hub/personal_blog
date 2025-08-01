@@ -3,6 +3,7 @@ import { Layout } from 'antd';
 import { Outlet, useLocation, Navigate, useNavigate } from 'react-router-dom';
 import Header from './components/Header';
 import Footer from './components/Footer';
+// CommentProvider已在main.tsx中导入并使用，此处移除重复导入
 
 const { Content } = Layout;
 
@@ -59,12 +60,12 @@ export default function App() {
   }
   
   return (
-    <Layout className="app-container">
+      <Layout className="app-container">
 
-      <Content className="app-content">
-        <Outlet />
-    </Content>
-  </Layout>
+        <Content className="app-content">
+          <Outlet />
+      </Content>
+    </Layout>
   );
 }
 

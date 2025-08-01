@@ -37,6 +37,7 @@ import relativeTime from 'dayjs/plugin/relativeTime';
 import styles from './index.module.scss';
 import articlesService from '../../services/articles';
 import { useUser } from '../../contexts/UserContext';
+import { useComment } from '../../contexts/CommentContext';
 import CommentList from '../../components/CommentList';
 import RenderKatex from '../../components/RenderKatex';
 import { format } from 'date-fns';
@@ -87,9 +88,9 @@ export default function ArticleDetail() {
   const [collectCount, setCollectCount] = useState(0);
   const [isCollected, setIsCollected] = useState(false);
   const { user } = useUser();
+  const { commentStats } = useComment();
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
-  const [commentCount, setCommentCount] = useState(0);
   const [recommendedArticles, setRecommendedArticles] = useState<RecommendedArticle[]>([]);
 
   const handleSendComment = async () => {
@@ -135,7 +136,6 @@ export default function ArticleDetail() {
       setIsCollected(data.isCollected || false);
       setLikeCount(data.likeCount || 0);
       setCollectCount(data.collectCount || 0);
-      setCommentCount(data.comments?.length || 0);
     } catch (error) {
       console.error('Failed to fetch article:', error);
       message.error('获取文章失败，请重试');
@@ -331,12 +331,12 @@ export default function ArticleDetail() {
 
               <Button
                 className={
-                  `${styles.actionButton} ${commentCount > 0 ? 'active' : ''}`
+                  `${styles.actionButton} ${(commentStats[article?._id || ''] || 0) > 0 ? 'active' : ''}`
                 }
                 onClick={() => scrollToComments()}
               >
-                <Badge count={commentCount} showZero onClick={() => scrollToComments()}>
-                  {commentCount > 0 ? <MessageFilled /> : <MessageOutlined />}
+                <Badge count={commentStats[article?._id || ''] || 0} showZero onClick={() => scrollToComments()}>
+                  {(commentStats[article?._id || ''] || 0) > 0 ? <MessageFilled /> : <MessageOutlined />}
                 </Badge>
               </Button>
 
@@ -411,11 +411,11 @@ export default function ArticleDetail() {
               </Button>
 
               <Button
-                icon={commentCount > 0 ? <MessageFilled /> : <MessageOutlined />}
-                className={`${styles.mobileActionButton} ${commentCount > 0 ? 'active' : ''}`}
+                icon={(commentStats[article?._id || ''] || 0) > 0 ? <MessageFilled /> : <MessageOutlined />}
+                className={`${styles.mobileActionButton} ${(commentStats[article?._id || ''] || 0) > 0 ? 'active' : ''}`}
                 onClick={() => scrollToComments()}
               >
-                <span className={styles.mobileActionText}>{commentCount}</span>
+                <span className={styles.mobileActionText}>{commentStats[article?._id || ''] || 0}</span>
               </Button>
 
               <Button 
@@ -447,9 +447,8 @@ export default function ArticleDetail() {
             <div id="comments">
               {article && (
                 <CommentList
-                  articleId={article._id}
-                  onCommentCountChange={setCommentCount}
-                />
+                articleId={article._id}
+              />
               )}
             </div>
           </div>

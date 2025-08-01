@@ -4,6 +4,7 @@ import ReactDOM from 'react-dom/client';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import PrivateRoute from './PrivateRoute';
 import { UserProvider } from './contexts/UserContext';
+import { CommentProvider } from './contexts/CommentContext';
 import App from './App';
 import Home from './pages/Home';
 import AuthPage from './pages/AuthPage';
@@ -47,7 +48,9 @@ const router = createBrowserRouter([
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
     <UserProvider>
-      <RouterProvider router={router} />
+        <CommentProvider>
+          <RouterProvider router={router} />
+        </CommentProvider>
     </UserProvider>
   </React.StrictMode>
 );

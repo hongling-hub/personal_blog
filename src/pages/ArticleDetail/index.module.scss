@@ -414,6 +414,20 @@
     border-color: #4096ff;
   }
 
+    &:global(.active) {
+    color: #0066ff !important;
+  }
+
+
+  &:global(.active) :global(.anticon){
+    color: #0066ff !important;
+  }
+
+  &:global(.active) :global(.ant-badge-count) {
+    background-color: #0066ff !important;
+    color: #fff !important;
+  }
+
 
 
 
@@ -429,6 +443,10 @@
         right: -5px;
         background-color: #c2c8d1 !important;
       }
+    }
+
+    &:global(.active) :global(.ant-badge-count) {
+      background-color: #0066ff !important;
     }
 
 

@@ -123,16 +123,20 @@ router.post('/:commentId/replies', authenticate, async (req, res) => {
       .populate('author', 'username avatar')
       .populate({ path: 'replies.author', select: 'username avatar' });
 
+    if (!updatedComment) {
+      return res.status(404).json({ message: '评论不存在' });
+    }
+
     // 格式化回复数据，添加id字段
 const formattedComment = updatedComment.toJSON();
-formattedComment.id = formattedComment._id.toString();
-formattedComment.replies = formattedComment.replies.map(reply => ({
+formattedComment.id = formattedComment._id ? formattedComment._id.toString() : null;
+formattedComment.replies = Array.isArray(formattedComment.replies) ? formattedComment.replies.map(reply => ({
   ...reply,
-  id: reply._id.toString()
-}));
+  id: reply._id ? reply._id.toString() : null
+})) : [];
 delete formattedComment._id;
 
-es.status(201).json(formattedComment);
+res.status(201).json(formattedComment);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -219,7 +223,7 @@ router.post('/:commentId/like', authenticate, async (req, res) => {
 
 
 
-module.exports = router;
+
 
 // 删除某条回复（放在所有路由定义之后）
 router.delete('/:commentId/replies/:replyId', authenticate, async (req, res) => {
@@ -233,7 +237,7 @@ router.delete('/:commentId/replies/:replyId', authenticate, async (req, res) => 
     if (reply.author.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: '无权限删除该回复' });
     }
-    reply.remove();
+    comment.replies.pull(replyId);
     await comment.save();
     res.json({ message: '回复已删除' });
   } catch (err) {
@@ -256,3 +260,5 @@ router.delete('/:commentId', authenticate, async (req, res) => {
     res.status(500).json({ message: err.message });
   }
 });
+
+module.exports = router;

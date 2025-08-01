@@ -5,6 +5,7 @@ import { UserOutlined, HeartOutlined, HeartFilled, MessageOutlined, MessageFille
 import commentService from '@/services/comments';
 import styles from './index.module.scss';
 import { useUser } from '../../contexts/UserContext';
+import { useComment } from '../../contexts/CommentContext';
 
 const { TextArea } = Input;
 
@@ -13,15 +14,15 @@ import { CommentType } from '../../types.d';
 interface CommentListProps {
   articleId: string;
   refreshKey?: number;
-  onCommentCountChange?: (count: number) => void;
 }
 
-const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey, onCommentCountChange }) => {
-  console.log('CommentList接收到的articleId:', articleId);
+const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey }) => {
+  // console.log('CommentList接收到的articleId:', articleId);
   if (!articleId) {
     console.error('CommentList未接收到有效的articleId');
   }
   const { user } = useUser();
+  const { updateCommentCount } = useComment();
   const [replyingTo, setReplyingTo] = useState<string | null>(null);
   const [replyContent, setReplyContent] = useState('');
   const [showReplyForm, setShowReplyForm] = useState<boolean>(false);
@@ -31,11 +32,19 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey, onComm
   const [submitting, setSubmitting] = useState(false);
   const [value, setValue] = useState('');
 
+  // 组件挂载时获取评论
   useEffect(() => {
-    if (onCommentCountChange) {
-      onCommentCountChange(comments.length);
+    if (articleId) {
+      fetchComments();
     }
-  }, [comments, onCommentCountChange]);
+  }, [articleId, sortType, refreshKey]);
+
+  // 评论列表更新时更新评论数
+  useEffect(() => {
+    if (articleId && comments.length > 0) {
+      updateCommentCount(articleId, comments.length);
+    }
+  }, [comments.length, articleId, updateCommentCount]);
 
     const fetchComments = async () => {
   setLoading(true);
@@ -130,9 +139,9 @@ const CommentList: React.FC<CommentListProps> = ({ articleId, refreshKey, onComm
     }
   };
 
-  useEffect(() => {
-    fetchComments();
-  }, [articleId, sortType, refreshKey]);
+  // 移除重复的useEffect钩子
+  // 组件挂载和依赖项变化时已通过上方的useEffect处理
+
 
   const handleSubmit = async () => {
     if (!value) {
