@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
 import { Menu, Input, Space, Avatar, Dropdown, Button, Badge } from 'antd';
 import { SearchOutlined, BellOutlined, UserOutlined, HomeOutlined, FileTextOutlined, StarOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, QuestionCircleOutlined, ReadOutlined } from '@ant-design/icons';
+import articlesService from '@/services/articles';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './index.module.scss';
 
@@ -125,13 +126,27 @@ const Header: React.FC = () => {
             )}
           </Space>
         </div>
-        <div className={styles.subHeader}>
-        <div className={styles.searchContainer}>
+        <div className={styles.fixedSearch}>
+        <div className={styles.searchContainer} style={{minWidth: '150px'}}>
           <Search
             placeholder="搜索文章、作者、标签"
             allowClear
             enterButton={<SearchOutlined />}
             size="middle"
+            onSearch={async (value) => {
+              if (value) {
+                try {
+                  const results = await articlesService.search(value);
+                  // 将搜索结果存储在localStorage中，以便搜索结果页面可以获取
+                  localStorage.setItem('searchResults', JSON.stringify(results));
+                  localStorage.setItem('searchQuery', value);
+                  // 导航到搜索结果页面
+                  navigate('/search');
+                } catch (error) {
+                  console.error('搜索失败:', error);
+                }
+              }
+            }}
           />
         </div>
       </div>

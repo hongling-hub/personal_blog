@@ -10,7 +10,7 @@
   padding: 0 24px;
   background-color: #fff;
   height: 66px;
-  overflow: hidden;
+  overflow: scroll;
   
 
   .container {
@@ -22,8 +22,7 @@
     align-items: center;
 
     .searchContainer {
-      flex: 1;
-      margin: 0 20px;
+      
 
       .ant-input-search {
         width: 100%;
@@ -48,6 +47,11 @@
           border: none;
         }
       }
+    }
+
+    .fixedSearch {
+      flex: 1;
+      margin-left: 5px;
     }
 
     .logo {
@@ -121,6 +125,10 @@
   .header {
   height: 70px;
   overflow-x: auto;
+  
 }
+
+
+
 
 }

@@ -3,6 +3,35 @@ const router = express.Router();
 const Article = require('../models/Article');
 const { authenticate } = require('../middleware/auth');
 
+// 搜索文章
+router.get('/search', async (req, res) => {
+  try {
+    const { query } = req.query;
+    if (!query) {
+      return res.status(400).json({ message: '搜索参数不能为空' });
+    }
+
+    const now = new Date();
+    const articles = await Article.find({
+      isDraft: false,
+      isPublic: true,
+      publishTime: { $lte: now },
+      $or: [
+        { title: { $regex: query, $options: 'i' } },
+        { content: { $regex: query, $options: 'i' } },
+        { tags: { $in: [query] } },
+        { 'author.username': { $regex: query, $options: 'i' } }
+      ]
+    })
+    .populate('author', 'username avatar isVerified bio')
+    .sort({ publishTime: -1 });
+
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // 获取已发布文章
 router.get('/', async (req, res) => {
   try {

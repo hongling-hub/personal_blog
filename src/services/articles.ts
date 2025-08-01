@@ -34,9 +34,17 @@ interface ArticlesService {
   toggleLike: (id: string) => Promise<any>;
   toggleCollect: (id: string) => Promise<any>;
   delete: (id: string) => Promise<any>;
+  search: (query: string) => Promise<Article[]>;
 }
 
 export default {
+  // 搜索文章
+  search: (query: string) => fetch(`/api/articles/search?query=${encodeURIComponent(query)}`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
+  }).then(res => res.json()),
+
   // 获取文章列表
   getList: () => fetch('/api/articles').then(res => res.json()),
 
