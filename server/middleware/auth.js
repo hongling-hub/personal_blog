@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 
+
 // 身份验证中间件
 const authenticate = async (req, res, next) => {
   try {

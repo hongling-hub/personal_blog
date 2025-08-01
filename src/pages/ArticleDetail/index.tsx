@@ -114,26 +114,38 @@ export default function ArticleDetail() {
     }
   };
 
+  // 提取为独立函数以便复用
+  const fetchArticleDetail = async () => {
+    if (!id) {
+      console.error('Article ID is undefined');
+      message.error('文章ID不存在');
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching article detail...');
+    try {
+      setLoading(true);
+      const data = await articlesService.getById(id);
+      console.log('文章详情数据:', data);
+      console.log('初始isLiked状态:', data.isLiked);
+      console.log('初始isCollected状态:', data.isCollected);
+      setArticle(data);
+      setIsLiked(data.isLiked);
+      setIsCollected(data.isCollected || false);
+      setLikeCount(data.likeCount || 0);
+      setCollectCount(data.collectCount || 0);
+      setCommentCount(data.comments?.length || 0);
+    } catch (error) {
+      console.error('Failed to fetch article:', error);
+      message.error('获取文章失败，请重试');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!id) return;
-
-    const fetchArticleDetail = async () => {
-      console.log('Fetching article detail...');
-      try {
-        setLoading(true);
-        const data = await articlesService.getById(id);
-        setArticle(data);
-        setLikeCount(data.likeCount);
-        setIsLiked(data.isLiked);
-        setCollectCount(data.collectCount || 0);
-        setIsCollected(data.isCollected || false);
-      } catch (error) {
-        console.error('Failed to fetch article:', error);
-        message.error('获取文章失败，请重试');
-      } finally {
-        setLoading(false);
-      }
-    };
 
     const fetchRecommendedArticles = async () => {
       try {
@@ -159,6 +171,12 @@ export default function ArticleDetail() {
     fetchRecommendedArticles();
   }, [id]);
 
+  // 用户登录状态变化时重新获取文章详情
+  useEffect(() => {
+    if (!id) return;
+    fetchArticleDetail();
+  }, [user]);
+
   const handleLike = async () => {
     if (!user) {
       message.info('请先登录');
@@ -166,14 +184,13 @@ export default function ArticleDetail() {
     }
 
     try {
-      if (isLiked) {
-        await articlesService.cancelLike(id!);
-        setLikeCount(prev => Math.max(0, prev - 1));
-      } else {
-        await articlesService.like(id!);
-        setLikeCount(prev => prev + 1);
-      }
-      setIsLiked(!isLiked);
+      console.log('准备点赞/取消点赞，文章ID:', id);
+      const result = await articlesService.toggleLike(id!);
+      console.log('点赞/取消点赞结果:', result);
+      // 用后端返回的 isLiked 和 likeCount 更新本地状态
+      setIsLiked(result.isLiked);
+      setLikeCount(result.likeCount);
+      message.success(result.message);
     } catch (error) {
       console.error('Failed to like article:', error);
       message.error('操作失败，请重试');
@@ -187,17 +204,14 @@ export default function ArticleDetail() {
     }
 
     try {
-      if (isCollected) {
-        await articlesService.cancelCollect(id!);
-        setCollectCount(prev => Math.max(0, prev - 1));
-      } else {
-        await articlesService.collect(id!);
-        setCollectCount(prev => prev + 1);
-      }
-      setIsCollected(!isCollected);
-      message.success(isCollected ? '取消收藏成功' : '收藏成功');
+      console.log('准备收藏/取消收藏，文章ID:', id);
+      const result = await articlesService.toggleCollect(id!);
+      console.log('收藏/取消收藏结果:', result);
+      setIsCollected(result.isCollected);
+      setCollectCount(result.collectCount);
+      message.success(result.message);
     } catch (error) {
-      console.error('Failed to collect article:', error);
+      console.error('Failed to toggle collect:', error);
       message.error('操作失败，请重试');
     }
   };
@@ -308,7 +322,7 @@ export default function ArticleDetail() {
             <div className={styles.actionButtonGroup}>
               <Button
                 onClick={handleLike}
-                className={`${styles.actionButton} ${isLiked ? 'liked' : ''}`}
+                className={`${styles.actionButton} ${isLiked ? 'active' : ''}`}
               >
                 <Badge count={likeCount} showZero>
                   {isLiked ? <LikeFilled /> : <LikeOutlined />}
@@ -317,7 +331,7 @@ export default function ArticleDetail() {
 
               <Button
                 className={
-                  `${styles.actionButton} ${commentCount > 0 ? 'commented' : ''}`
+                  `${styles.actionButton} ${commentCount > 0 ? 'active' : ''}`
                 }
                 onClick={() => scrollToComments()}
               >
@@ -328,7 +342,7 @@ export default function ArticleDetail() {
 
               <Button
                 onClick={handleCollect}
-                className={`${styles.actionButton} ${isCollected ? 'collected' : ''}`}
+                className={`${styles.actionButton} ${isCollected ? 'active' : ''}`}
               >
                 <Badge count={collectCount} showZero>
                   {isCollected ? <StarFilled /> : <StarOutlined />}
@@ -391,16 +405,14 @@ export default function ArticleDetail() {
               <Button 
                 icon={isLiked ? <LikeFilled /> : <LikeOutlined />} 
                 onClick={handleLike} 
-                className={`${styles.mobileActionButton} ${isLiked ? styles.liked : ''}`} 
+                className={`${styles.mobileActionButton} ${isLiked ? 'active' : ''}`} 
               >
                 <span className={styles.mobileActionText}>{likeCount}</span>
               </Button>
 
               <Button
                 icon={commentCount > 0 ? <MessageFilled /> : <MessageOutlined />}
-                className={
-                  `${styles.mobileActionButton} ${commentCount > 0 ? styles.commented : ''}`
-                }
+                className={`${styles.mobileActionButton} ${commentCount > 0 ? 'active' : ''}`}
                 onClick={() => scrollToComments()}
               >
                 <span className={styles.mobileActionText}>{commentCount}</span>
@@ -409,7 +421,7 @@ export default function ArticleDetail() {
               <Button 
                 icon={isCollected ? <StarFilled /> : <StarOutlined />} 
                 onClick={handleCollect} 
-                className={`${styles.mobileActionButton} ${isCollected ? styles.collected : ''}`} 
+                className={`${styles.mobileActionButton} ${isCollected ? 'active' : ''}`} 
               >
                 <span className={styles.mobileActionText}>{collectCount}</span>
               </Button>

@@ -31,10 +31,8 @@ interface ArticlesService {
   create: (data: Article) => Promise<Article>;
   update: (id: string, data: Partial<Article>) => Promise<Article>;
   addComment: (articleId: string, commentData: CommentData) => Promise<any>;
-  like: (id: string) => Promise<any>;
-  cancelLike: (id: string) => Promise<any>;
-  collect: (id: string) => Promise<any>;
-  cancelCollect: (id: string) => Promise<any>;
+  toggleLike: (id: string) => Promise<any>;
+  toggleCollect: (id: string) => Promise<any>;
   delete: (id: string) => Promise<any>;
 }
 
@@ -102,33 +100,17 @@ export default {
     }
   }).then(res => res.json()),
 
-  // 点赞文章
-  like: (id: string) => fetch(`/api/articles/${id}/like`, {
+  // 点赞/取消点赞文章
+  toggleLike: (id: string) => fetch(`/api/articles/${id}/like`, {
     method: 'POST',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   }).then(res => res.json()),
 
-  // 取消点赞
-  cancelLike: (id: string) => fetch(`/api/articles/${id}/like`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
-
-  // 收藏文章
-  collect: (id: string) => fetch(`/api/articles/${id}/collect`, {
+  // 收藏/取消收藏文章
+  toggleCollect: (id: string) => fetch(`/api/articles/${id}/collect`, {
     method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
-
-  // 取消收藏
-  cancelCollect: (id: string) => fetch(`/api/articles/${id}/collect`, {
-    method: 'DELETE',
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }

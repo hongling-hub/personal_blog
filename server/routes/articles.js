@@ -96,9 +96,13 @@ router.get('/:id', async (req, res) => {
     }
     if (!article) return res.status(404).json({ message: '文章未找到' });
 
-    // 检查当前用户是否点赞/收藏了该文章
-    const isLiked = req.user ? article.likes.includes(req.user._id) : false;
-    const isCollected = req.user ? article.collections.includes(req.user._id) : false;
+    // 检查当前用户是否点赞/收藏了该文章（采用comments.js中更健壮的方式）
+    const isLiked = req.user && req.user._id ? 
+      article.likes.some(like => like && like.toString && like.toString() === req.user._id.toString()) : 
+      false;
+    const isCollected = req.user && req.user._id ? 
+      article.collections.some(collect => collect && collect.toString && collect.toString() === req.user._id.toString()) : 
+      false;
 
     // 将状态添加到响应中
     const articleData = article.toObject();
@@ -175,95 +179,67 @@ router.patch('/:id', async (req, res) => {
   }
 });
 
-// 点赞文章
+// 点赞/取消点赞文章（切换）
 router.post('/:id/like', authenticate, async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
     if (!article) return res.status(404).json({ message: '文章未找到' });
 
     const userId = req.user._id;
-    // 检查用户是否已经点赞
-    if (article.likes.includes(userId)) {
-      return res.status(400).json({ message: '已经点赞过该文章' });
-    }
+    const likeIndex = article.likes.findIndex(like => like.toString() === userId.toString());
+    let isLiked;
 
-    // 添加点赞
-    article.likes.push(userId);
-    article.likeCount += 1;
-
-    await article.save();
-    res.json({ message: '点赞成功', likeCount: article.likeCount });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// 取消点赞文章
-router.delete('/:id/like', authenticate, async (req, res) => {
-  try {
-    const article = await Article.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: '文章未找到' });
-
-    const userId = req.user._id;
-    // 检查用户是否已经点赞
-    const likeIndex = article.likes.indexOf(userId);
     if (likeIndex === -1) {
-      return res.status(400).json({ message: '尚未点赞该文章' });
+      // 点赞
+      article.likes.push(userId);
+      article.likeCount = (article.likeCount || 0) + 1;
+      isLiked = true;
+    } else {
+      // 取消点赞
+      article.likes.splice(likeIndex, 1);
+      article.likeCount = Math.max((article.likeCount || 1) - 1, 0);
+      isLiked = false;
     }
 
-    // 移除点赞
-    article.likes.splice(likeIndex, 1);
-    article.likeCount -= 1;
-
     await article.save();
-    res.json({ message: '取消点赞成功', likeCount: article.likeCount });
+    res.json({
+      message: isLiked ? '点赞成功' : '取消点赞成功',
+      likeCount: article.likeCount,
+      isLiked
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// 收藏文章
+// 收藏/取消收藏文章（切换）
 router.post('/:id/collect', authenticate, async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
     if (!article) return res.status(404).json({ message: '文章未找到' });
 
     const userId = req.user._id;
-    // 检查用户是否已经收藏
-    if (article.collections.includes(userId)) {
-      return res.status(400).json({ message: '已经收藏过该文章' });
-    }
+    const collectIndex = article.collections.findIndex(collect => collect.toString() === userId.toString());
+    let isCollected;
 
-    // 添加收藏
-    article.collections.push(userId);
-    article.collectCount += 1;
-
-    await article.save();
-    res.json({ message: '收藏成功', collectCount: article.collectCount });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// 取消收藏文章
-router.delete('/:id/collect', authenticate, async (req, res) => {
-  try {
-    const article = await Article.findById(req.params.id);
-    if (!article) return res.status(404).json({ message: '文章未找到' });
-
-    const userId = req.user._id;
-    // 检查用户是否已经收藏
-    const collectIndex = article.collections.indexOf(userId);
     if (collectIndex === -1) {
-      return res.status(400).json({ message: '尚未收藏该文章' });
+      // 收藏
+      article.collections.push(userId);
+      article.collectCount = (article.collectCount || 0) + 1;
+      isCollected = true;
+    } else {
+      // 取消收藏
+      article.collections.splice(collectIndex, 1);
+      article.collectCount = Math.max((article.collectCount || 1) - 1, 0);
+      isCollected = false;
     }
 
-    // 移除收藏
-    article.collections.splice(collectIndex, 1);
-    article.collectCount -= 1;
-
     await article.save();
-    res.json({ message: '取消收藏成功', collectCount: article.collectCount });
+    res.json({
+      message: isCollected ? '收藏成功' : '取消收藏成功',
+      collectCount: article.collectCount,
+      isCollected
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

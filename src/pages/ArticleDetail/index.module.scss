@@ -187,11 +187,13 @@
   display: none;
 }
 
+.actionButton:global(.active) {
+  color: #1890ff !important;
+}
+
 .mobileActionButton {
-  &.liked,
-  &.collected,
-  &.commented {
-    color: #0066ff !important;
+  &:global(.active) {
+    color: #1890ff !important;
   }
 }
 
@@ -394,6 +396,17 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 0;
 
+  &:hover {
+    border-color: #0066ff;
+    color: #0066ff;
+  }
+
+  &.active {
+    color: #0066ff !important;
+    border-color: #0066ff;
+    background-color: rgba(0, 102, 255, 0.05);
+  }
+
   &:global(:hover),
     &:global(:focus) {
     color: #0066ff !important;
@@ -401,23 +414,10 @@
     border-color: #4096ff;
   }
 
-  &:global(.liked),
-  &:global(.collected),
-  &:global(.commented) {
-    color: #0066ff !important;
-  }
 
 
-  &:global(.liked) :global(.anticon),
-  &:global(.collected) :global(.anticon),
-  &:global(.commented) :global(.anticon) {
-    color: #0066ff !important;
-  }
 
-  &:global(.commented) :global(.ant-badge-count) {
-    background-color: #0066ff !important;
-    color: #fff !important;
-  }
+
 
 
   :global(.ant-badge) {
@@ -431,11 +431,7 @@
       }
     }
 
-    &:global(.liked) :global(.ant-badge-count),
-    &:global(.collected) :global(.ant-badge-count),
-    &:global(.commented) :global(.ant-badge-count) {
-      background-color: #0066ff !important;
-    }
+
 }
 
 
