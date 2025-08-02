@@ -375,45 +375,82 @@ const ContentManagementPage = () => {
 };
 
 // 内容数据页面组件
-const ArticleDataPage = () => (
+interface ArticleDataPageProps {
+  user: any; // 实际项目中应定义具体的User类型
+  previousStats: { followers: number; articleCount: number; views: number; likes: number; comments: number; collections: number } | null;
+  articleCount: number;
+  articleStats: { views: number; likes: number; comments: number; collections: number };
+}
+
+const ArticleDataPage = ({ user, previousStats, articleCount, articleStats }: ArticleDataPageProps) => (
   <div className={styles.articleDataPage}>
     <div className={styles.header}>
       <Title level={2}>文章数据</Title>
-      <Text>2025-07-20 数据表现</Text>
+      <Text>{dayjs().format('YYYY-MM-DD')} 数据表现</Text>
     </div>
     
-    <div className={styles.dataCards}>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>总文章数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章展现数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章阅读数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章点赞数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章评论数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-      <Card className={styles.dataCard}>
-        <Title level={2}>0</Title>
-        <Text>文章收藏数</Text>
-        <Text type="secondary">较前日 --</Text>
-      </Card>
-    </div>
+      <div className={styles.dataCards}>
+        <Card className={styles.dataCard}>
+          <Title level={2}>{user?.stats?.followers || 0}</Title>
+          <Text>总粉丝数</Text>
+          <Text type="secondary">较前日 {previousStats ? (
+            user?.stats?.followers! - previousStats.followers > 0 ?
+            '+' + (user?.stats?.followers! - previousStats.followers) :
+            user?.stats?.followers! === previousStats.followers ?
+            '--' : (user?.stats?.followers! - previousStats.followers)
+          ) : '--'}</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>{articleCount}</Title>
+          <Text>文章展示数</Text>
+          <Text type="secondary">较前日 {previousStats ? (
+            articleCount - previousStats.articleCount > 0 ?
+            '+' + (articleCount - previousStats.articleCount) :
+            articleCount === previousStats.articleCount ?
+            '--' : (articleCount - previousStats.articleCount)
+          ) : '--'}</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>{articleStats.views}</Title>
+          <Text>文章阅读数</Text>
+          <Text type="secondary">较前日 {previousStats ? (
+            articleStats.views - previousStats.views > 0 ?
+            '+' + (articleStats.views - previousStats.views) :
+            articleStats.views === previousStats.views ?
+            '--' : (articleStats.views - previousStats.views)
+          ) : '--'}</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>{articleStats.likes}</Title>
+          <Text>文章点赞数</Text>
+          <Text type="secondary">较前日 {previousStats ? (
+            articleStats.likes - previousStats.likes > 0 ?
+            '+' + (articleStats.likes - previousStats.likes) :
+            articleStats.likes === previousStats.likes ?
+            '--' : (articleStats.likes - previousStats.likes)
+          ) : '--'}</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>{articleStats.comments}</Title>
+          <Text>文章评论数</Text>
+          <Text type="secondary">较前日 {previousStats ? (
+            articleStats.comments - previousStats.comments > 0 ?
+            '+' + (articleStats.comments - previousStats.comments) :
+            articleStats.comments === previousStats.comments ?
+            '--' : (articleStats.comments - previousStats.comments)
+          ) : '--'}</Text>
+        </Card>
+        <Card className={styles.dataCard}>
+          <Title level={2}>{articleStats.collections}</Title>
+          <Text>文章收藏数</Text>
+          <Text type="secondary">较前日 {previousStats ? (
+            articleStats.collections - previousStats.collections > 0 ?
+            '+' + (articleStats.collections - previousStats.collections) :
+            articleStats.collections === previousStats.collections ?
+            '--' : (articleStats.collections - previousStats.collections)
+          ) : '--'}</Text>
+        </Card>
+      </div>
   </div>
 );
 
@@ -422,7 +459,7 @@ const FanDataPage = () => (
   <div className={styles.fanDataPage}>
     <div className={styles.header}>
       <Title level={2}>粉丝数据</Title>
-      <Text>2025-07-20 数据表现</Text>
+      <Text>{dayjs().format('YYYY-MM-DD')} 数据表现</Text>
     </div>
     
     <div className={styles.dataCards}>
@@ -458,9 +495,104 @@ const FanDataPage = () => (
 const CreatorCenter: React.FC = () => {
   const navigate = useNavigate();
   const [selectedKey, setSelectedKey] = useState('home');
+  const { user } = useUser();
+  const [articleStats, setArticleStats] = useState<{ views: number; comments: number; likes: number; collections: number }>({ views: 0, comments: 0, likes: 0, collections: 0 });
+  const [articleCount, setArticleCount] = useState<number>(0);
+  const [previousStats, setPreviousStats] = useState<{
+    followers: number;
+    views: number;
+    likes: number;
+    collections: number;
+    comments: number;
+    articleCount: number;
+    date: string;
+  } | null>(null);
+
+  // 获取所有文章的评论总数
+  const getTotalCommentsForAllArticles = async (articles: Article[]) => {
+    let totalComments = 0;
+    for (const article of articles) {
+      try {
+        // 获取单篇文章的评论数
+        // 确保传递的是有效的文章ID字符串
+        const articleId = typeof article._id === 'string' ? article._id : article.id;
+        const comments = await commentService.getComments(articleId);
+        totalComments += comments.length;
+      } catch (error) {
+        console.error(`获取文章 ${article.id} 的评论数失败:`, error);
+      }
+    }
+    return totalComments;
+  };
+
+  // 获取文章统计数据
+  const fetchArticleStats = async () => {
+    try {
+      const articles = await articlesService.getUserArticles();
+      let totalViews = 0;
+      let totalLikes = 0;
+      let totalCollections = 0;
+
+      articles.forEach((article: Article) => {
+        totalViews += article.views || 0;
+        // 处理点赞数（如果是数组则取长度，否则取数值）
+        totalLikes += Array.isArray(article.likes) ? article.likes.length : (article.likes || 0);
+        // 处理收藏数（如果是数组则取长度，否则取数值）
+        totalCollections += Array.isArray(article.collections) ? article.collections.length : (article.collections || 0);
+      });
+
+      // 确保获取所有文章的评论数
+      const totalComments = await getTotalCommentsForAllArticles(articles);
+
+      // 获取今日日期
+      const today = dayjs().format('YYYY-MM-DD');
+
+      // 从localStorage获取前日数据
+      const storedStats = localStorage.getItem('articleStats');
+      let prevStats = null;
+
+      if (storedStats) {
+        const parsed = JSON.parse(storedStats);
+        // 检查是否是今日数据
+        if (parsed.date === today) {
+          prevStats = parsed;
+        }
+      }
+
+      // 更新前日数据状态
+      setPreviousStats(prevStats);
+
+      // 存储今日数据到localStorage
+      localStorage.setItem('articleStats', JSON.stringify({
+        followers: user?.stats?.followers || 0,
+        views: totalViews,
+        likes: totalLikes,
+        collections: totalCollections,
+        comments: totalComments,
+        articleCount: articles.length,
+        date: today
+      }));
+
+      setArticleStats({ views: totalViews, comments: totalComments, likes: totalLikes, collections: totalCollections });
+      setArticleCount(articles.length);
+    } catch (error) {
+      console.error('获取文章统计数据失败:', error);
+    }
+  };
+
+  // 初始加载和用户变化时获取数据
+  useEffect(() => {
+    if (user) {
+      fetchArticleStats();
+    }
+  }, [user, selectedKey]);
 
   const handleMenuClick = (e: { key: string }) => {
     setSelectedKey(e.key);
+    // 当切换到数据页面时，重新获取数据
+    if (e.key === 'articleData') {
+      fetchArticleStats();
+    }
   };
 
   return (
@@ -506,7 +638,7 @@ const CreatorCenter: React.FC = () => {
           <Content className={styles.content}>
             {selectedKey === 'home' && <HomePage />}
             {selectedKey === 'contentManagement' && <ContentManagementPage />}
-            {selectedKey === 'articleData' && <ArticleDataPage />}
+            {selectedKey === 'articleData' && <ArticleDataPage user={user} previousStats={previousStats} articleCount={articleCount} articleStats={articleStats} />}
             {selectedKey === 'fanData' && <FanDataPage />}
           </Content>
         </Layout>
