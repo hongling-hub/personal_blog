@@ -39,7 +39,8 @@ const ProfilePage: React.FC = () => {
         const data = await authService.getUserInfo();
         setUserData({
           ...data,
-          bioItems: ['+ 你从事什么职业？', '+ 你有哪些爱好？']
+          bioItems: ['+ 你从事什么职业？', '+ 你有哪些爱好？'],
+          joinDate: data.createdAt || new Date().toISOString()
         });
       } catch (error) {
         message.error('获取用户信息失败');
@@ -78,7 +79,12 @@ const ProfilePage: React.FC = () => {
       const newAvatarUrl = await authService.uploadAvatar(file);
       
       setUserData(prev => prev ? {...prev, avatar: newAvatarUrl} : prev);
-      updateUser({ ...user, avatar: newAvatarUrl });
+      // 确保user不为null且包含必需的属性
+      if (user && user.id && user.username) {
+        updateUser({ ...user, avatar: newAvatarUrl });
+      } else {
+        console.error('无法更新用户头像：用户信息不完整');
+      }
       message.success('头像上传成功');
       hideLoading();
     } catch (error) {

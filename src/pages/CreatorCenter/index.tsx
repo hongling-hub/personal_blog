@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import dayjs from 'dayjs';
 import articlesService from '../../services/articles';
 import commentService from '../../services/comments';
+// 导入authService
+import authService from '../../services/auth';
 import type { Article } from '../../types';
 import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag } from 'antd';
 import { useNavigate } from 'react-router-dom';
@@ -18,9 +20,9 @@ const { Title, Text } = Typography;
 
 // 首页组件 - 修正了箭头函数语法
 const HomePage = () => {
-  const { user } = useUser();
+  const { user, updateUser } = useUser();
   // 未使用的函数，已移除
-  const { getTotalComments } = useComment();
+  // const { getTotalComments } = useComment();
   const [articleStats, setArticleStats] = useState<{ views: number; comments: number; likes: number; collections: number }>({ views: 0, comments: 0, likes: 0, collections: 0 });
   const [articleCount, setArticleCount] = useState<number>(0);
   const [previousStats, setPreviousStats] = useState<{
@@ -107,17 +109,44 @@ const HomePage = () => {
 
   // 初始加载和用户变化时获取数据
   useEffect(() => {
+    console.log('用户数据:', user);
     if (user) {
       fetchArticleStats();
     }
   }, [user]);
 
+  // 确保组件挂载时获取最新的用户信息（包括粉丝数）
+  useEffect(() => {
+    const fetchLatestUserInfo = async () => {
+      try {
+        const userData = await authService.getUserInfo();
+        updateUser(userData);
+      } catch (error) {
+        console.error('获取最新用户信息失败:', error);
+      }
+    };
+
+    // 组件挂载时立即获取一次用户信息
+    fetchLatestUserInfo();
+  }, []);
+
   // 手动刷新数据
-  const handleRefresh = () => {
+  const handleRefresh = async () => {
     if (user) {
-      fetchArticleStats();
+      // 刷新文章统计数据
+      await fetchArticleStats();
+      
+      // 刷新用户信息
+      try {
+        const userData = await authService.getUserInfo();
+        updateUser(userData);
+      } catch (error) {
+        console.error('刷新用户信息失败:', error);
+      }
     }
   };
+
+
 
   return (
     <div className={styles.homePage}>
@@ -136,13 +165,13 @@ const HomePage = () => {
     
       <div className={styles.dataCards}>
         <Card className={styles.dataCard}>
-          <Title level={2}>{user?.stats?.followers || 0}</Title>
+          <Title level={2}>{user?.stats?.followers !== undefined ? user.stats.followers : 0}</Title>
           <Text>总粉丝数</Text>
           <Text type="secondary">较前日 {previousStats ? (
-            user?.stats?.followers! - previousStats.followers > 0 ?
-            '+' + (user?.stats?.followers! - previousStats.followers) :
-            user?.stats?.followers! === previousStats.followers ?
-            '--' : (user?.stats?.followers! - previousStats.followers)
+            (user?.stats?.followers || 0) - previousStats.followers > 0 ?
+            '+' + ((user?.stats?.followers || 0) - previousStats.followers) :
+            (user?.stats?.followers || 0) === previousStats.followers ?
+            '--' : ((user?.stats?.followers || 0) - previousStats.followers)
           ) : '--'}</Text>
         </Card>
         <Card className={styles.dataCard}>
@@ -391,13 +420,13 @@ const ArticleDataPage = ({ user, previousStats, articleCount, articleStats }: Ar
     
       <div className={styles.dataCards}>
         <Card className={styles.dataCard}>
-          <Title level={2}>{user?.stats?.followers || 0}</Title>
+          <Title level={2}>{user?.stats?.followers !== undefined ? user.stats.followers : 0}</Title>
           <Text>总粉丝数</Text>
           <Text type="secondary">较前日 {previousStats ? (
-            user?.stats?.followers! - previousStats.followers > 0 ?
-            '+' + (user?.stats?.followers! - previousStats.followers) :
-            user?.stats?.followers! === previousStats.followers ?
-            '--' : (user?.stats?.followers! - previousStats.followers)
+            (user?.stats?.followers || 0) - previousStats.followers > 0 ?
+            '+' + ((user?.stats?.followers || 0) - previousStats.followers) :
+            (user?.stats?.followers || 0) === previousStats.followers ?
+            '--' : ((user?.stats?.followers || 0) - previousStats.followers)
           ) : '--'}</Text>
         </Card>
         <Card className={styles.dataCard}>
