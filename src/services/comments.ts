@@ -19,14 +19,17 @@ const commentService = {
       headers: token ? { 'Authorization': `Bearer ${token}` } : {}
     }).then(res => res.json());
   },
-  createComment: (data: { articleId: string; content: string; author: string }) =>
-    fetch('/api/comments', {
+  createComment: (data: { articleId: string; content: string; author: string }) => {
+    const token = localStorage.getItem('token');
+    return fetch('/api/comments', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
-        'Content-Type': 'application/json'
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`
       }
-    }).then(res => res.json()),
+    }).then(res => res.json());
+  },
   likeComment: (commentId: string) => {
     const token = localStorage.getItem('token');
     return fetch(`/api/comments/${commentId}/like`, {
@@ -72,13 +75,19 @@ const commentService = {
   },
   createReply: (commentId: string, content: string) => {
     const token = localStorage.getItem('token');
-    return fetch(`/api/comments/${commentId}/replies`, {
+    // 获取当前文章ID（从URL或其他地方）
+    const articleId = window.location.pathname.split('/').pop();
+    return fetch('/api/comments', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`
       },
-      body: JSON.stringify({ content })
+      body: JSON.stringify({ 
+        articleId, 
+        content, 
+        parentCommentId: commentId 
+      })
     }).then(res => res.json())
   },
   deleteReply,

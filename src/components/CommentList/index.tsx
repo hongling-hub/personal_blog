@@ -199,15 +199,14 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
 
     try {
       const newReply = await commentService.createReply(commentId, replyContent);
+      console.log('回复成功，返回的数据:', newReply);
       fetchComments(); // 提交后重新获取评论列表
-      // setComments(comments.map(comment => 
-      //   comment.id === commentId
-      //     ? { ...comment, replies: [...(comment.replies || []), newReply] }
-      //     : comment
-      // ));
+      setReplyContent(''); // 清空回复内容
+      setReplyingTo(null); // 关闭回复表单
       setShowReplyForm(false);
       message.success('回复成功');
     } catch (error) {
+      console.error('回复失败:', error);
       message.error('回复失败');
     }
   };
@@ -358,7 +357,7 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                                         />
                                         <Button
                                           type="primary"
-                                          onClick={() => handleReplySubmit(item.id)}
+                                          onClick={() => handleReplySubmit(reply.id)}
                                           style={{ marginTop: 8, marginRight: 8 }}
                                         >
                                           提交回复
