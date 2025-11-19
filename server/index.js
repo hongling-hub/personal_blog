@@ -71,7 +71,10 @@ app.use('/api/auth', limiter);
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/articles', require('./routes/articles'));
 app.use('/api/comments', require('./routes/comments'));
-app.use('/api/admin', require('./routes/admin'));
+// 导入认证中间件
+const { authenticate } = require('./middleware/auth');
+// 管理员路由需要认证保护
+app.use('/api/admin', authenticate, require('./routes/admin'));
 app.use('/api/users', require('./routes/user'));
 
 // 8. 健康检查端点
@@ -82,7 +85,6 @@ app.get('/api/health', (req, res) => {
     timestamp: new Date() 
   });
 });
-// server/index.js
 app.get('/api/test', (req, res) => {
   res.json({ message: "Backend API is working!" });
 });

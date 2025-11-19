@@ -20,6 +20,11 @@ const ArticleSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  category: {
+    type: String,
+    trim: true,
+    default: '未分类'
+  },
   isDraft: {
     type: Boolean,
     default: true

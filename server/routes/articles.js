@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const Article = require('../models/Article');
+const Comment = require('../models/Comment');
 const { authenticate } = require('../middleware/auth');
 
 // 搜索文章
@@ -32,16 +33,29 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// 获取已发布文章
+// 获取已发布文章（支持分类和标签筛选）
 router.get('/', async (req, res) => {
   try {
     const now = new Date();
-    const articles = await Article.find({
+    const query = {
       isDraft: false,
       isPublic: true,
       publishTime: { $lte: now }
-    }).populate('author', 'username avatar isVerified bio')
-    .sort({ publishTime: -1 });
+    };
+    
+    // 支持按分类筛选
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+    
+    // 支持按标签筛选
+    if (req.query.tag) {
+      query.tags = req.query.tag;
+    }
+
+    const articles = await Article.find(query)
+      .populate('author', 'username avatar isVerified bio')
+      .sort({ publishTime: -1 });
 
     res.json(articles);
   } catch (err) {
@@ -79,10 +93,23 @@ router.get('/following', authenticate, async (req, res) => {
 // 获取当前用户的所有文章（包括草稿）
 router.get('/user', authenticate, async (req, res) => {
   try {
-    const articles = await Article.find({
+    const query = {
       author: req.user._id
-    }).populate('author', 'username avatar isVerified bio')
-    .sort({ updatedAt: -1 });
+    };
+    
+    // 支持按分类筛选
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+    
+    // 支持按标签筛选
+    if (req.query.tag) {
+      query.tags = req.query.tag;
+    }
+
+    const articles = await Article.find(query)
+      .populate('author', 'username avatar isVerified bio')
+      .sort({ updatedAt: -1 });
 
     res.json(articles);
   } catch (err) {
@@ -172,8 +199,8 @@ router.post('/', authenticate, async (req, res) => {
     publishTime: req.body.publishTime,
     coverImage: req.body.coverImage,
     desc: req.body.desc,
-    tags: req.body.tags,
-
+    tags: req.body.tags || [],
+    category: req.body.category || '未分类',
     views: 0
   });
 
@@ -186,10 +213,15 @@ router.post('/', authenticate, async (req, res) => {
 });
 
 // 更新文章
-router.patch('/:id', async (req, res) => {
+router.patch('/:id', authenticate, async (req, res) => {
   try {
     const article = await Article.findById(req.params.id);
     if (!article) return res.status(404).json({ message: '文章未找到' });
+    
+    // 检查权限
+    if (article.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: '没有权限修改此文章' });
+    }
 
     if (req.body.title) article.title = req.body.title;
     if (req.body.content) article.content = req.body.content;
@@ -199,7 +231,9 @@ router.patch('/:id', async (req, res) => {
     if (req.body.publishTime) article.publishTime = req.body.publishTime;
     if (req.body.coverImage) article.coverImage = req.body.coverImage;
     if (req.body.desc) article.desc = req.body.desc;
-    if (req.body.tags) article.tags = req.body.tags;
+    if (req.body.tags !== undefined) article.tags = req.body.tags;
+    if (req.body.category !== undefined) article.category = req.body.category;
+    article.updatedAt = Date.now();
 
     const updatedArticle = await article.save();
     res.json(updatedArticle);
@@ -269,6 +303,117 @@ router.post('/:id/collect', authenticate, async (req, res) => {
       collectCount: article.collectCount,
       isCollected
     });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 删除自己的文章（作者功能）
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const articleId = req.params.id;
+    const userId = req.user._id;
+    
+    // 首先检查文章是否存在且属于当前用户
+    const article = await Article.findById(articleId);
+    if (!article) {
+      return res.status(404).json({ message: '文章不存在' });
+    }
+    
+    // 验证权限：只有文章作者可以删除自己的文章
+    if (article.author.toString() !== userId.toString()) {
+      return res.status(403).json({ message: '没有权限删除此文章' });
+    }
+    
+    // 级联删除相关评论
+    const commentsDeleted = await Comment.deleteMany({ article: articleId });
+    
+    // 删除文章
+    await Article.findByIdAndDelete(articleId);
+    
+    res.json({
+      message: '文章及相关评论已删除',
+      details: {
+        articleDeleted: true,
+        commentsDeleted: commentsDeleted.deletedCount
+      }
+    });
+  } catch (err) {
+    console.error('删除文章失败:', err);
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 获取热门文章
+router.get('/hot', async (req, res) => {
+  try {
+    const now = new Date();
+    const query = {
+      isDraft: false,
+      isPublic: true,
+      publishTime: { $lte: now }
+    };
+    
+    // 支持按分类筛选热门文章
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+    
+    const articles = await Article.find(query)
+      .populate('author', 'username avatar isVerified bio')
+      .sort({ views: -1 })
+      .limit(10);
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 获取其他用户的文章
+router.get('/user/:userId', async (req, res) => {
+  try {
+    const now = new Date();
+    const query = {
+      author: req.params.userId,
+      isDraft: false,
+      isPublic: true,
+      publishTime: { $lte: now }
+    };
+    
+    // 支持按分类筛选
+    if (req.query.category) {
+      query.category = req.query.category;
+    }
+    
+    // 支持按标签筛选
+    if (req.query.tag) {
+      query.tags = req.query.tag;
+    }
+    
+    const articles = await Article.find(query)
+      .populate('author', 'username avatar isVerified bio')
+      .sort({ publishTime: -1 });
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 获取所有文章分类
+router.get('/categories', async (req, res) => {
+  try {
+    const categories = await Article.distinct('category');
+    res.json(categories);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 获取所有文章标签
+router.get('/tags', async (req, res) => {
+  try {
+    const tags = await Article.distinct('tags');
+    res.json(tags);
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

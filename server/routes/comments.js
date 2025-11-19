@@ -6,66 +6,98 @@ const router = express.Router();
 const Comment = require('../models/Comment');
 const { authenticate } = require('../middleware/auth');
 
-// 获取文章评论（需要登录，返回 isLiked 正确）
+// 获取文章评论（支持嵌套结构）
 router.get('/article/:articleId', authenticate, async (req, res) => {
   if (!mongoose.Types.ObjectId.isValid(req.params.articleId)) {
     return res.status(400).json({ message: '无效的文章ID格式' });
   }
   try {
-    const comments = await Comment.find({ article: req.params.articleId })
+    // 先获取所有根评论（非回复）
+    const rootComments = await Comment.find({ 
+      article: req.params.articleId,
+      parentComment: null 
+    })
+      .sort({ createdAt: -1 })
+      .populate('author', 'username avatar');
+    
+    // 获取所有回复评论
+    const replyComments = await Comment.find({ 
+      article: req.params.articleId,
+      parentComment: { $ne: null } 
+    })
       .populate('author', 'username avatar')
-      .populate({ path: 'replies.author', select: 'username avatar' });
-    const formattedComments = comments.map(comment => {
-  const commentObj = comment.toJSON();
-  // 处理评论的点赞状态
-  const likesArr = Array.isArray(comment.likes) ? comment.likes : [];
-  let isLiked = false;
-  if (req.user && req.user._id && likesArr.length > 0) {
-    isLiked = likesArr.some(like => like && like.equals && like.equals(req.user._id));
-  }
-
-  // 处理回复的点赞状态
-  const processedReplies = (commentObj.replies || []).map(reply => {
-    const replyLikesArr = Array.isArray(reply.likes) ? reply.likes : [];
-    let replyIsLiked = false;
-    if (req.user && req.user._id && replyLikesArr.length > 0) {
-      replyIsLiked = replyLikesArr.some(like => like.toString() === req.user._id.toString());
-    }
-    const processedReply = {
-      ...reply,
-      id: reply._id.toString(),
-      likes: replyLikesArr.length,
-      isLiked: replyIsLiked
-    };
-    delete processedReply._id;
-    return processedReply;
-  });
-
-  return {
-    ...commentObj,
-    id: comment._id.toString(),
-    likes: likesArr.length,
-    isLiked,
-    replies: processedReplies
-  };
-});
-    res.json(formattedComments);
+      .populate('replyTo', 'username avatar');
+    
+    // 组织嵌套结构
+    const commentsMap = new Map();
+    rootComments.forEach(comment => {
+      const commentObj = comment.toJSON();
+      const likesArr = Array.isArray(commentObj.likes) ? commentObj.likes : [];
+      let isLiked = false;
+      if (req.user && req.user._id) {
+        isLiked = likesArr.some(like => like && like.equals && like.equals(req.user._id));
+      }
+      commentsMap.set(comment._id.toString(), {
+        ...commentObj,
+        id: comment._id.toString(),
+        likes: likesArr.length,
+        isLiked,
+        replies: []
+      });
+    });
+    
+    // 将回复添加到对应的父评论下
+    replyComments.forEach(reply => {
+      const replyObj = reply.toJSON();
+      const replyLikesArr = Array.isArray(replyObj.likes) ? replyObj.likes : [];
+      let replyIsLiked = false;
+      if (req.user && req.user._id) {
+        replyIsLiked = replyLikesArr.some(like => like && like.toString() === req.user._id.toString());
+      }
+      
+      const formattedReply = {
+        ...replyObj,
+        id: reply._id.toString(),
+        likes: replyLikesArr.length,
+        isLiked: replyIsLiked
+      };
+      
+      const parentId = reply.parentComment.toString();
+      if (commentsMap.has(parentId)) {
+        commentsMap.get(parentId).replies.push(formattedReply);
+      }
+    });
+    
+    res.json(Array.from(commentsMap.values()));
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// 添加评论
-router.post('/', async (req, res) => {
-  const comment = new Comment({
-      content: req.body.content,
-      article: req.body.articleId,
-      author: req.body.author
-    });
-
+// 添加评论或回复
+router.post('/', authenticate, async (req, res) => {
   try {
-    const newComment = await comment.save();
-    res.status(201).json(newComment);
+    const commentData = {
+      article: req.body.articleId,
+      author: req.user._id,
+      content: req.body.content
+    };
+    
+    // 如果是回复评论
+    if (req.body.parentCommentId) {
+      commentData.parentComment = req.body.parentCommentId;
+      commentData.replyTo = req.body.replyToUserId;
+    }
+    
+    const comment = new Comment(commentData);
+    await comment.save();
+    
+    // 更新文章的评论数
+    await Article.findByIdAndUpdate(req.body.articleId, {
+      $inc: { comments: 1 }
+    });
+    
+    res.status(201).json(comment);
   } catch (err) {
     res.status(400).json({ message: err.message });
   }
@@ -256,6 +288,47 @@ router.delete('/:commentId', authenticate, async (req, res) => {
     }
     await comment.deleteOne();
     res.json({ message: '评论已删除' });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 删除评论（仅作者可删除）
+router.delete('/:id', authenticate, async (req, res) => {
+  try {
+    const comment = await Comment.findById(req.params.id);
+    if (!comment) {
+      return res.status(404).json({ message: '评论不存在' });
+    }
+    
+    // 验证权限
+    if (comment.author.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: '没有权限删除此评论' });
+    }
+    
+    // 删除评论及其所有回复
+    const commentId = comment._id;
+    const articleId = comment.article;
+    
+    // 删除所有回复
+    const repliesDeleted = await Comment.deleteMany({ parentComment: commentId });
+    
+    // 删除根评论
+    await Comment.findByIdAndDelete(commentId);
+    
+    // 更新文章评论数（包括根评论和所有回复）
+    const totalDeleted = repliesDeleted.deletedCount + 1;
+    await Article.findByIdAndUpdate(articleId, {
+      $inc: { comments: -totalDeleted }
+    });
+    
+    res.json({
+      message: '评论及回复已删除',
+      details: {
+        commentDeleted: true,
+        repliesDeleted: repliesDeleted.deletedCount
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

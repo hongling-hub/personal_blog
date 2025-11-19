@@ -29,6 +29,18 @@ const CommentSchema = new mongoose.Schema({
     type: Number,
     default: 0
   },
+  // 支持回复功能
+  parentComment: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Comment',
+    default: null
+  },
+  // 记录回复的用户，null表示直接评论文章
+  replyTo: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
+  },
   replies: [{
     _id: {
       type: mongoose.Schema.Types.ObjectId,
