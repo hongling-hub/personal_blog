@@ -425,10 +425,14 @@ const ContentManagementPage = () => {
             <ArticleList
               articles={filterArticles()}
               loading={false}
-              onArticleClick={(id) => navigate(`/article/${id}`)}
+              onArticleClick={() => {}}
               showAction={false}
               showDeleteButton={true}
               onDeleteArticle={handleDeleteArticle}
+              showEditButton={true}
+              onEditArticle={(id) => navigate(`/write/${id}`)}
+              showViewButton={true}
+              onViewArticle={(id) => navigate(`/article/${id}`)}
             />
           </div>
         )
@@ -438,10 +442,14 @@ const ContentManagementPage = () => {
           <ArticleList
               articles={filterArticles()}
               loading={false}
-              onArticleClick={(id) => navigate(`/write/${id}`)}
+              onArticleClick={() => {}}
               showAction={false}
               showDeleteButton={true}
               onDeleteArticle={handleDeleteArticle}
+              showEditButton={true}
+              onEditArticle={(id) => navigate(`/write/${id}`)}
+              showViewButton={true}
+              onViewArticle={(id) => navigate(`/article/${id}`)}
             />
         </div>
       )}

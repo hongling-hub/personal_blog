@@ -2,7 +2,7 @@ import React from 'react';
 import { List, Tag, Button } from 'antd';
 import { Link } from 'react-router-dom';
 import dayjs from 'dayjs';
-import { DeleteOutlined } from '@ant-design/icons';
+import { DeleteOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import styles from './index.module.scss';
 
 interface ArticleItem {
@@ -26,6 +26,10 @@ interface ArticleListProps {
   emptyText?: string;
   onDeleteArticle?: (id: string) => void;
   showDeleteButton?: boolean;
+  showEditButton?: boolean;
+  onEditArticle?: (id: string) => void;
+  showViewButton?: boolean;
+  onViewArticle?: (id: string) => void;
 }
 
 const ArticleList: React.FC<ArticleListProps> = ({ 
@@ -35,7 +39,11 @@ const ArticleList: React.FC<ArticleListProps> = ({
   showAction = true, 
   emptyText = "暂无文章数据",
   onDeleteArticle,
-  showDeleteButton = false // 默认不显示删除按钮，确保首页不显示
+  showDeleteButton = false, // 默认不显示删除按钮，确保首页不显示
+  showEditButton = false, // 默认不显示编辑按钮
+  onEditArticle,
+  showViewButton = false, // 默认不显示浏览按钮
+  onViewArticle
 }) => {
   return (
     <div className={styles.articleContainer}>
@@ -73,7 +81,7 @@ const ArticleList: React.FC<ArticleListProps> = ({
                             overflow: 'hidden',
                             textOverflow: 'ellipsis'
                           }}>{item.desc || (item.content ? item.content.substring(0, 200) + '...' : '')}</div>
-                          {showDeleteButton && onDeleteArticle ? (
+                          {(showDeleteButton && onDeleteArticle) || (showEditButton && onEditArticle) || (showViewButton && onViewArticle) ? (
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
                               <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
                                 <span>{dayjs(item.publishTime).format('YYYY-MM-DD')}</span>
@@ -81,17 +89,45 @@ const ArticleList: React.FC<ArticleListProps> = ({
                                 <span>{item.views}浏览</span>
                                 <span>{item.likeCount}点赞</span>
                               </div>
-                              <Button 
-                                type="text" 
-                                danger 
-                                icon={<DeleteOutlined />} 
-                                onClick={(e) => {
-                                  e.stopPropagation(); // 阻止事件冒泡
-                                  onDeleteArticle(item._id);
-                                }}
-                              >
-                                删除
-                              </Button>
+                              <div style={{ display: 'flex', gap: '8px' }}>
+                                {showViewButton && onViewArticle && (
+                                  <Button 
+                                    type="text" 
+                                    icon={<EyeOutlined />} 
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // 阻止事件冒泡
+                                      onViewArticle(item._id);
+                                    }}
+                                  >
+                                    浏览
+                                  </Button>
+                                )}
+                                {showEditButton && onEditArticle && (
+                                  <Button 
+                                    type="text" 
+                                    icon={<EditOutlined />} 
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // 阻止事件冒泡
+                                      onEditArticle(item._id);
+                                    }}
+                                  >
+                                    编辑
+                                  </Button>
+                                )}
+                                {showDeleteButton && onDeleteArticle && (
+                                  <Button 
+                                    type="text" 
+                                    danger 
+                                    icon={<DeleteOutlined />} 
+                                    onClick={(e) => {
+                                      e.stopPropagation(); // 阻止事件冒泡
+                                      onDeleteArticle(item._id);
+                                    }}
+                                  >
+                                    删除
+                                  </Button>
+                                )}
+                              </div>
                             </div>
                           ) : (
                             <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
