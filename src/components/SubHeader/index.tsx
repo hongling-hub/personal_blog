@@ -62,7 +62,7 @@ const SubHeader: React.FC = () => {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.logo}>
-            <img src="../src/assets/images/logo/image.png" alt="CSDN Logo" className={styles.logoImg} />
+            <img src="../src/assets/images/logo/image.png" alt="Logo" className={styles.logoImg} />
           </div>
           <div style={{ fontSize: '18px' }} className={styles.pushPage}>发布文章</div>
         </div>

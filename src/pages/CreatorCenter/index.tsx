@@ -5,7 +5,7 @@ import commentService from '../../services/comments';
 // 导入authService
 import authService from '../../services/auth';
 import type { Article } from '../../types';
-import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag } from 'antd';
+import { Layout, Menu, Card, Button, Empty, Typography, Input, Tag, message, Modal } from 'antd';
 import { useNavigate } from 'react-router-dom';
 import { HomeOutlined, FileTextOutlined, BarChartOutlined, SyncOutlined } from '@ant-design/icons';
 import { useUser } from '../../contexts/UserContext';
@@ -305,6 +305,48 @@ const ContentManagementPage = () => {
     }
   }
 
+  // 删除文章处理函数
+  const handleDeleteArticle = (articleId: string) => {
+    Modal.confirm({
+      title: '确认删除',
+      content: '确定要删除这篇文章吗？此操作不可撤销。',
+      onOk: async () => {
+        try {
+          await articlesService.delete(articleId);
+          message.success('文章删除成功');
+          // 重新获取文章列表
+          const data = await articlesService.getUserArticles();
+          const now = dayjs();
+          const counts = {
+            all: data.length,
+            published: 0,
+            reviewing: 0,
+            draft: 0
+          };
+
+          // 重新统计文章
+          data.forEach((article: Article) => {
+            if (article.isDraft) {
+              if (article.publishTime && dayjs(article.publishTime).isAfter(now)) {
+                counts.reviewing++;
+              } else {
+                counts.draft++;
+              }
+            } else if (article.isPublic && dayjs(article.publishTime).isBefore(now)) {
+              counts.published++;
+            }
+          });
+
+          setArticles(data);
+          setArticleCounts(counts);
+        } catch (error) {
+          console.error('删除文章失败:', error);
+          message.error('删除文章失败，请重试');
+        }
+      }
+    });
+  }
+
   // 状态标签配置
   const statusTabs = [
     {
@@ -385,6 +427,8 @@ const ContentManagementPage = () => {
               loading={false}
               onArticleClick={(id) => navigate(`/article/${id}`)}
               showAction={false}
+              showDeleteButton={true}
+              onDeleteArticle={handleDeleteArticle}
             />
           </div>
         )
@@ -396,6 +440,8 @@ const ContentManagementPage = () => {
               loading={false}
               onArticleClick={(id) => navigate(`/write/${id}`)}
               showAction={false}
+              showDeleteButton={true}
+              onDeleteArticle={handleDeleteArticle}
             />
         </div>
       )}
@@ -524,6 +570,7 @@ const FanDataPage = () => (
 const CreatorCenter: React.FC = () => {
   const navigate = useNavigate();
   const [selectedKey, setSelectedKey] = useState('home');
+  const [isMobile, setIsMobile] = useState(false);
   const { user } = useUser();
   const [articleStats, setArticleStats] = useState<{ views: number; comments: number; likes: number; collections: number }>({ views: 0, comments: 0, likes: 0, collections: 0 });
   const [articleCount, setArticleCount] = useState<number>(0);
@@ -536,6 +583,25 @@ const CreatorCenter: React.FC = () => {
     articleCount: number;
     date: string;
   } | null>(null);
+
+  // 检测屏幕宽度变化
+  useEffect(() => {
+    const checkIsMobile = () => {
+      const mobile = window.innerWidth <= 768;
+      setIsMobile(mobile);
+      // 在移动端自动设置为内容管理页面
+      if (mobile) {
+        setSelectedKey('contentManagement');
+      }
+    };
+
+    // 初始化检测
+    checkIsMobile();
+    // 添加事件监听
+    window.addEventListener('resize', checkIsMobile);
+    // 清理事件监听
+    return () => window.removeEventListener('resize', checkIsMobile);
+  }, []);
 
   // 获取所有文章的评论总数
   const getTotalCommentsForAllArticles = async (articles: Article[]) => {
@@ -628,41 +694,44 @@ const CreatorCenter: React.FC = () => {
     <div>
       <SubHeader />
       <Layout className={styles.layout}>
-        <Sider width={200} theme="light" className={styles.sider}>
-          <Menu
-            mode="inline"
-            selectedKeys={[selectedKey]}
-            onClick={handleMenuClick}
-            className={styles.menu}
-            items={[
-              {
-                key: 'home',
-                icon: <HomeOutlined />,
-                label: '首页',
-              },
-              {
-                key: 'contentManagement',
-                icon: <FileTextOutlined />,
-                label: '内容管理',
-              },
-              {
-                key: 'dataCenter',
-                icon: <BarChartOutlined />,
-                label: '数据中心',
-                children: [
-                  {
-                    key: 'articleData',
-                    label: '内容数据',
-                  },
-                  {
-                    key: 'fanData',
-                    label: '粉丝数据',
-                  },
-                ],
-              },
-            ]}
-          />
-        </Sider>
+        {/* 只在非移动端显示侧边栏 */}
+        {!isMobile && (
+          <Sider width={200} theme="light" className={styles.sider}>
+            <Menu
+              mode="inline"
+              selectedKeys={[selectedKey]}
+              onClick={handleMenuClick}
+              className={styles.menu}
+              items={[
+                {
+                  key: 'home',
+                  icon: <HomeOutlined />,
+                  label: '首页',
+                },
+                {
+                  key: 'contentManagement',
+                  icon: <FileTextOutlined />,
+                  label: '内容管理',
+                },
+                {
+                  key: 'dataCenter',
+                  icon: <BarChartOutlined />,
+                  label: '数据中心',
+                  children: [
+                    {
+                      key: 'articleData',
+                      label: '内容数据',
+                    },
+                    {
+                      key: 'fanData',
+                      label: '粉丝数据',
+                    },
+                  ],
+                },
+              ]}
+            />
+          </Sider>
+        )}
         <Layout className={styles.mainLayout}>
           <Content className={styles.content}>
             {selectedKey === 'home' && <HomePage />}

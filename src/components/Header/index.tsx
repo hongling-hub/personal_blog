@@ -46,7 +46,7 @@ const Header: React.FC = () => {
       <div className={styles.container}>
         <div className={styles.logo}>
           <Link to="/">
-            <img src="../src/assets/images/logo/image.png" alt="CSDN Logo" className={styles.logoImg} />
+            <img src="../src/assets/images/logo/image.png" alt="Logo" className={styles.logoImg} />
           </Link>
         </div>
 

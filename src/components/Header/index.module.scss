@@ -118,7 +118,9 @@
   }
 
 
-  
+    .logoImg{
+    height: 48px;
+  }
 }
 
 @media(min-width: 768px){
@@ -128,7 +130,9 @@
   
 }
 
-
+  .logoImg{
+    height: 60px;
+  }
 
 
 }

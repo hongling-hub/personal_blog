@@ -25,11 +25,17 @@
     height: 48px;
     width: 48px;
 }
+    .logoImg{
+    height: 48px;
+  }
 
 @media (min-width:768px) {
     .headerBar {
     background-color: white;
     
+    }
+     .logoImg{
+    height: 60px;
     }
     .header{
     height: 60px;
