@@ -734,6 +734,14 @@
   display: flex;
 }
 
+:global(.md-editor .cm-scroller .cm-line){
+  height: 35px;;
+}
+
+:global(.md-editor .cm-scroller .cm-content[contenteditable=true] ) {
+  padding: 0px;
+}
+
 :global(.md-editor-html) {
   padding:20px
 }
