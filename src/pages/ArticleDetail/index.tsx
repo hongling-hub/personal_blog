@@ -132,8 +132,24 @@ export default function ArticleDetail() {
       console.log('初始isLiked状态:', data.isLiked);
       console.log('初始isCollected状态:', data.isCollected);
       setArticle(data);
-      setIsLiked(data.isLiked);
-      setIsCollected(data.isCollected || false);
+      
+      // 优先使用localStorage中的点赞状态，如果用户已登录
+      if (user) {
+        const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '[]');
+        const isArticleLiked = likedArticles.includes(id);
+        console.log('localStorage点赞状态:', isArticleLiked);
+        setIsLiked(isArticleLiked);
+        
+        // 优先使用localStorage中的收藏状态
+        const collectedArticles = JSON.parse(localStorage.getItem('collectedArticles') || '[]');
+        const isArticleCollected = collectedArticles.includes(id);
+        console.log('localStorage收藏状态:', isArticleCollected);
+        setIsCollected(isArticleCollected);
+      } else {
+        setIsLiked(data.isLiked);
+        setIsCollected(data.isCollected || false);
+      }
+      
       setLikeCount(data.likeCount || 0);
       setCollectCount(data.collectCount || 0);
     } catch (error) {
@@ -187,6 +203,23 @@ export default function ArticleDetail() {
       console.log('准备点赞/取消点赞，文章ID:', id);
       const result = await articlesService.toggleLike(id!);
       console.log('点赞/取消点赞结果:', result);
+      
+      // 更新localStorage中的点赞状态
+      const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '[]');
+      if (result.isLiked) {
+        // 添加点赞
+        if (!likedArticles.includes(id)) {
+          likedArticles.push(id);
+        }
+      } else {
+        // 取消点赞
+        const index = likedArticles.indexOf(id);
+        if (index > -1) {
+          likedArticles.splice(index, 1);
+        }
+      }
+      localStorage.setItem('likedArticles', JSON.stringify(likedArticles));
+      
       // 用后端返回的 isLiked 和 likeCount 更新本地状态
       setIsLiked(result.isLiked);
       setLikeCount(result.likeCount);
@@ -207,11 +240,29 @@ export default function ArticleDetail() {
       console.log('准备收藏/取消收藏，文章ID:', id);
       const result = await articlesService.toggleCollect(id!);
       console.log('收藏/取消收藏结果:', result);
+      
+      // 更新localStorage中的收藏状态
+      const collectedArticles = JSON.parse(localStorage.getItem('collectedArticles') || '[]');
+      if (result.isCollected) {
+        // 添加收藏
+        if (!collectedArticles.includes(id)) {
+          collectedArticles.push(id);
+        }
+      } else {
+        // 取消收藏
+        const index = collectedArticles.indexOf(id);
+        if (index > -1) {
+          collectedArticles.splice(index, 1);
+        }
+      }
+      localStorage.setItem('collectedArticles', JSON.stringify(collectedArticles));
+      
+      // 用后端返回的 isCollected 和 collectCount 更新本地状态
       setIsCollected(result.isCollected);
       setCollectCount(result.collectCount);
       message.success(result.message);
     } catch (error) {
-      console.error('Failed to toggle collect:', error);
+      console.error('Failed to collect article:', error);
       message.error('操作失败，请重试');
     }
   };
