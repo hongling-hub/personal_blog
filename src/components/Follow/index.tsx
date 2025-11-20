@@ -37,9 +37,9 @@ export default function Follow() {
         }
 
         const data = await articlesService.getFollowingArticles();
-        setArticles(data);
+        setArticles(data.articles);
         // 检查是否有关注的文章
-        setHasFollowing(data.length > 0);
+        setHasFollowing(data.articles.length > 0);
       } catch (error) {
           console.error('获取关注文章失败:', error);
           // 确保articles始终是数组

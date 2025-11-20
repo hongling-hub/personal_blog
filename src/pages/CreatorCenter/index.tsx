@@ -425,6 +425,8 @@ const ContentManagementPage = () => {
             <ArticleList
               articles={filterArticles()}
               loading={false}
+              hasMore={false}
+              showNoMoreData={false}
               onArticleClick={() => {}}
               showAction={false}
               showDeleteButton={true}
@@ -442,6 +444,8 @@ const ContentManagementPage = () => {
           <ArticleList
               articles={filterArticles()}
               loading={false}
+              hasMore={false}
+              showNoMoreData={false}
               onArticleClick={() => {}}
               showAction={false}
               showDeleteButton={true}

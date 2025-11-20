@@ -23,11 +23,22 @@ interface CommentData {
   content: string;
 }
 
+interface PaginationResponse {
+  articles: Article[];
+  pagination: {
+    current: number;
+    pageSize: number;
+    total: number;
+    hasMore: boolean;
+  };
+}
+
 interface ArticlesService {
-  getList: () => Promise<Article[]>;
-  getUserArticles: () => Promise<Article[]>;
-  getFollowingArticles: () => Promise<Article[]>;
-  getLikedArticles: () => Promise<Article[]>;
+  getList: (page?: number, limit?: number) => Promise<PaginationResponse>;
+  getUserArticles: (page?: number, limit?: number) => Promise<PaginationResponse>;
+  getFollowingArticles: (page?: number, limit?: number) => Promise<PaginationResponse>;
+  getLikedArticles: (page?: number, limit?: number) => Promise<PaginationResponse>;
+  getCollectedArticles: (page?: number, limit?: number) => Promise<PaginationResponse>;
   getById: (id: string) => Promise<Article>;
   create: (data: Article) => Promise<Article>;
   update: (id: string, data: Partial<Article>) => Promise<Article>;
@@ -46,25 +57,32 @@ export default {
     }
   }).then(res => res.json()),
 
-  // 获取文章列表
-  getList: () => fetch('/api/articles').then(res => res.json()),
+  // 获取文章列表（支持分页）
+  getList: (page = 1, limit = 10) => fetch(`/api/articles?page=${page}&limit=${limit}`).then(res => res.json()),
 
-  // 获取当前用户的所有文章（包括草稿）
-  getUserArticles: () => fetch('/api/articles/user', {
+  // 获取当前用户的所有文章（包括草稿，支持分页）
+  getUserArticles: (page = 1, limit = 10) => fetch(`/api/articles/user?page=${page}&limit=${limit}`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   }).then(res => res.json()),
   
-  // 获取关注作者的文章
-  getFollowingArticles: () => fetch('/api/articles/following', {
+  // 获取关注作者的文章（支持分页）
+  getFollowingArticles: (page = 1, limit = 10) => fetch(`/api/articles/following?page=${page}&limit=${limit}`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }
   }).then(res => res.json()),
   
-  // 获取用户点赞的文章
-  getLikedArticles: () => fetch('/api/articles/liked', {
+  // 获取用户点赞的文章（支持分页）
+  getLikedArticles: (page = 1, limit = 10) => fetch(`/api/articles/liked?page=${page}&limit=${limit}`, {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
+  }).then(res => res.json()),
+  
+  // 获取用户收藏的文章（支持分页）
+  getCollectedArticles: (page = 1, limit = 10) => fetch(`/api/articles/collected?page=${page}&limit=${limit}`, {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }

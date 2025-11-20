@@ -215,7 +215,7 @@ const ProfilePage: React.FC = () => {
       setCollectedArticlesLoading(true);
       // 尝试使用API获取数据，如果失败则使用fallback
       try {
-        const data = await articlesService.getCollectedArticles();
+        const data = await articlesService.getCollectedArticles(1, 10);
         
         // 检查data是否为数组
         if (Array.isArray(data)) {
@@ -556,6 +556,7 @@ const ProfilePage: React.FC = () => {
                       showDeleteButton={false}
                       showEditButton={false}
                       showViewButton={false}
+                      showNoMoreData={false}
                     />
                   </div>
                 ),
@@ -574,6 +575,7 @@ const ProfilePage: React.FC = () => {
                       showDeleteButton={false}
                       showEditButton={false}
                       showViewButton={false}
+                      showNoMoreData={false}
                     />
                   </div>
                 ),
@@ -650,6 +652,7 @@ const ProfilePage: React.FC = () => {
                       showDeleteButton={false}
                       showEditButton={false}
                       showViewButton={false}
+                      showNoMoreData={false}
                     />
                   </div>
                 ),

@@ -33,7 +33,7 @@ router.get('/search', async (req, res) => {
   }
 });
 
-// 获取已发布文章（支持分类和标签筛选）
+// 获取已发布文章（支持分类、标签筛选和分页）
 router.get('/', async (req, res) => {
   try {
     const now = new Date();
@@ -53,11 +53,30 @@ router.get('/', async (req, res) => {
       query.tags = req.query.tag;
     }
 
+    // 分页参数
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
+
+    // 获取文章总数
+    const total = await Article.countDocuments(query);
+    
+    // 获取文章列表
     const articles = await Article.find(query)
       .populate('author', 'username avatar isVerified bio')
-      .sort({ publishTime: -1 });
+      .sort({ publishTime: -1 })
+      .skip(skip)
+      .limit(limit);
 
-    res.json(articles);
+    res.json({
+      articles,
+      pagination: {
+        current: page,
+        pageSize: limit,
+        total,
+        hasMore: skip + articles.length < total
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
@@ -71,20 +90,49 @@ router.get('/following', authenticate, async (req, res) => {
     
     // 检查用户是否有关注的作者
     if (!user.following || user.following.length === 0) {
-      return res.json([]);
+      return res.json({
+        articles: [],
+        pagination: {
+          current: 1,
+          pageSize: 10,
+          total: 0,
+          hasMore: false
+        }
+      });
     }
+    
+    // 分页参数
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 10;
+    const skip = (page - 1) * limit;
     
     // 获取关注作者的公开文章
     const now = new Date();
-    const articles = await Article.find({
+    const query = {
       author: { $in: user.following },
       isDraft: false,
       isPublic: true,
       publishTime: { $lte: now }
-    }).populate('author', 'username avatar isVerified bio')
-    .sort({ publishTime: -1 });
+    };
     
-    res.json(articles);
+    // 获取文章总数
+    const total = await Article.countDocuments(query);
+    
+    const articles = await Article.find(query)
+      .populate('author', 'username avatar isVerified bio')
+      .sort({ publishTime: -1 })
+      .skip(skip)
+      .limit(limit);
+    
+    res.json({
+      articles,
+      pagination: {
+        current: page,
+        pageSize: limit,
+        total,
+        hasMore: skip + articles.length < total
+      }
+    });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }

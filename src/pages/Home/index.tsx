@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import articlesService from '../../services/articles';
-import { Layout, Card, List, Tabs, Menu, Tag, Button, Divider, Avatar } from 'antd';
+import { Layout, Card, List, Tabs, Menu, Tag, Button, Divider, Avatar, Spin } from 'antd';
 import Footer from '../../components/Footer';
 import Header from '../../components/Header';
 import ArticleList from '../../components/ArticleList';
@@ -31,25 +31,83 @@ interface ArticleItem {
 export default function Home() {
   const [articles, setArticles] = useState<ArticleItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [activeTab, setActiveTab] = useState('1');
   const [activeMenu, setActiveMenu] = useState('comprehensive');
   const navigate = useNavigate();
+  const observerRef = useRef<IntersectionObserver | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement>(null);
 
-  useEffect(() => {
-    const fetchArticles = async () => {
-      try {
+  // 获取文章列表
+  const fetchArticles = useCallback(async (page = 1, append = false) => {
+    try {
+      if (page === 1) {
         setLoading(true);
-        const data = await articlesService.getList();
-        setArticles(data);
-      } catch (error) {
-        console.error('获取文章列表失败:', error);
-      } finally {
-        setLoading(false);
+      } else {
+        setLoadingMore(true);
+      }
+      
+      const response = await articlesService.getList(page, 10);
+      
+      if (append) {
+        setArticles(prev => [...prev, ...response.articles]);
+      } else {
+        setArticles(response.articles);
+      }
+      
+      setHasMore(response.pagination.hasMore);
+      setCurrentPage(page);
+    } catch (error) {
+      console.error('获取文章列表失败:', error);
+    } finally {
+      setLoading(false);
+      setLoadingMore(false);
+    }
+  }, []);
+
+  // 初始加载
+  useEffect(() => {
+    fetchArticles(1, false);
+  }, [fetchArticles]);
+
+  // 滚动加载更多
+  const loadMoreArticles = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+    
+    const nextPage = currentPage + 1;
+    await fetchArticles(nextPage, true);
+  }, [currentPage, hasMore, loadingMore, fetchArticles]);
+
+  // 监听滚动到底部
+  useEffect(() => {
+    if (!loadMoreRef.current || !hasMore) return;
+
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && !loadingMore) {
+          loadMoreArticles();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    observerRef.current.observe(loadMoreRef.current);
+
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
       }
     };
+  }, [loadMoreArticles, hasMore, loadingMore]);
 
-    fetchArticles();
-  }, []);
+  // 切换标签页时重置数据
+  useEffect(() => {
+    if (activeMenu === 'comprehensive') {
+      fetchArticles(1, false);
+    }
+  }, [activeTab, activeMenu, fetchArticles]);
 
   // 根据当前标签页排序文章
   const getSortedArticles = () => {
@@ -90,8 +148,11 @@ export default function Home() {
         <ArticleList
           articles={getSortedArticles()}
           loading={loading}
+          loadingMore={loadingMore}
+          hasMore={hasMore}
           onArticleClick={(id) => navigate(`/article/${id}`)}
           showAction={true}
+          loadMoreRef={loadMoreRef}
         />
       )
     },
@@ -106,8 +167,11 @@ export default function Home() {
         <ArticleList
           articles={getSortedArticles()}
           loading={loading}
+          loadingMore={loadingMore}
+          hasMore={hasMore}
           onArticleClick={(id) => navigate(`/article/${id}`)}
           showAction={false}
+          loadMoreRef={loadMoreRef}
         />
       )
     },
