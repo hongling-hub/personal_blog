@@ -61,6 +61,9 @@
       display: flex;
       align-items: center;
       margin-right: 15px;
+      .logoImg{
+        height: 48px;
+      }
     }
 
     .vipLink {
@@ -118,21 +121,26 @@
   }
 
 
-    .logoImg{
-    height: 48px;
-  }
+
 }
 
 @media(min-width: 768px){
   .header {
   height: 70px;
   overflow-x: auto;
-  
+  overflow: hidden;
 }
 
-  .logoImg{
-    height: 60px;
-  }
-
+     .logo {
+      color: white;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      margin-right: 15px;
+      .logoImg{
+        height: 48px;
+      }
+    }
 
 }

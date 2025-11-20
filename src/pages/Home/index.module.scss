@@ -313,7 +313,7 @@
   background: #fff;
   height:500px;
   position: fixed;
-  left: 10px;
+  left: 20px;
   display: block;
   margin-top:35px;
 }
@@ -321,8 +321,8 @@
 
 .rightSider {
   background: #f5f5f5;
-  position: absolute;
-  right: 0;
+  position: fixed; // 改为fixed定位
+  right: 20px;
   display: block;
   margin-top:35px;
 }
@@ -338,7 +338,8 @@
   padding: 24px;
   max-width: 1200px;
   margin: 0 auto;
-  width: 62% !important;
+  width: 60% !important; // 减小宽度为右侧边栏留出空间
+  margin-right: 300px; // 为右侧边栏留出空间，防止重叠
   flex:none
 }
 
