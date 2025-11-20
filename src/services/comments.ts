@@ -7,7 +7,17 @@ function deleteReply(commentId: string, replyId: string) {
   }).then(res => res.json());
 }
 
+// 获取当前用户的所有评论
+function getMyComments() {
+  const token = localStorage.getItem('token');
+  return fetch('/api/comments/my', {
+    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+  }).then(res => res.json());
+}
+
 const commentService = {
+  // 获取当前用户的所有评论
+  getMyComments,
   // ...existing code...
   getComments: (articleId: string, sortType?: string) => {
     let url = `/api/comments/article/${articleId}`;

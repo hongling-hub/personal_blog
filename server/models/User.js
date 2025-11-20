@@ -36,6 +36,14 @@ const UserSchema = new mongoose.Schema({
   following: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'
+  }],
+  likedArticles: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Article'
+  }],
+  collectedArticles: [{
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Article'
   }]
 }, { timestamps: true });
 

@@ -123,4 +123,26 @@ router.get('/check-following/:id', authenticate, async (req, res) => {
   }
 });
 
+// 获取当前用户关注的用户列表
+router.get('/following', authenticate, async (req, res) => {
+  try {
+    const user = req.user;
+    
+    // 检查用户是否有关注的用户
+    if (!user.following || user.following.length === 0) {
+      return res.json([]);
+    }
+    
+    // 获取关注的用户信息
+    const followingUsers = await User.find({
+      _id: { $in: user.following }
+    }).select('username avatar bio isVerified createdAt');
+    
+    res.json(followingUsers);
+  } catch (error) {
+    console.error('获取关注用户列表失败:', error);
+    res.status(500).json({ success: false, message: '服务器错误' });
+  }
+});
+
 module.exports = router;

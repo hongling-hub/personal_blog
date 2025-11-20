@@ -38,6 +38,16 @@ interface UserInfoResponse {
   }
 }
 
+// 定义关注用户类型
+interface FollowingUser {
+  _id: string;
+  username: string;
+  avatar: string;
+  bio?: string;
+  isVerified?: boolean;
+  createdAt: string;
+}
+
 export default {
   // 用户登录
   login: async (data: LoginParams): Promise<LoginResponse> => {
@@ -262,6 +272,31 @@ return {
       return await res.json();
     } catch (error) {
       console.error('检查关注状态失败:', error);
+      throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
+    }
+  },
+
+  // 获取当前用户关注的用户列表
+  getFollowingUsers: async (): Promise<FollowingUser[]> => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        throw new Error('未登录');
+      }
+      
+      const res = await fetch('/api/users/following', {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (!res.ok) {
+        throw new Error('获取关注用户列表失败');
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error('获取关注用户列表失败:', error);
       throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
     }
   }

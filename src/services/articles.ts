@@ -27,6 +27,8 @@ interface ArticlesService {
   getList: () => Promise<Article[]>;
   getUserArticles: () => Promise<Article[]>;
   getFollowingArticles: () => Promise<Article[]>;
+  getLikedArticles: () => Promise<Article[]>;
+  getCollectedArticles: () => Promise<Article[]>;
   getById: (id: string) => Promise<Article>;
   create: (data: Article) => Promise<Article>;
   update: (id: string, data: Partial<Article>) => Promise<Article>;
@@ -57,6 +59,20 @@ export default {
   
   // 获取关注作者的文章
   getFollowingArticles: () => fetch('/api/articles/following', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
+  }).then(res => res.json()),
+  
+  // 获取用户点赞的文章
+  getLikedArticles: () => fetch('/api/articles/liked', {
+    headers: {
+      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+    }
+  }).then(res => res.json()),
+  
+  // 获取用户收藏的文章
+  getCollectedArticles: () => fetch('/api/articles/collected', {
     headers: {
       'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
     }

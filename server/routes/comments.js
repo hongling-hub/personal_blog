@@ -4,7 +4,39 @@ const express = require('express');
 const mongoose = require('mongoose');
 const router = express.Router();
 const Comment = require('../models/Comment');
+const Article = require('../models/Article');
 const { authenticate } = require('../middleware/auth');
+
+// 获取当前用户的所有评论
+router.get('/my', authenticate, async (req, res) => {
+  try {
+    // 获取当前用户的所有评论，只获取根评论（非回复）
+    const comments = await Comment.find({ 
+      author: req.user._id,
+      parentComment: null
+    })
+      .sort({ createdAt: -1 }) // 按创建时间倒序
+      .populate('article', 'title author') // 获取文章标题和作者
+      .populate('author', 'username avatar');
+
+    // 格式化返回数据
+    const formattedComments = comments.map(comment => {
+      const commentObj = comment.toJSON();
+      return {
+        _id: comment._id.toString(),
+        content: commentObj.content,
+        articleId: commentObj.article ? commentObj.article._id.toString() : null,
+        articleTitle: commentObj.article ? commentObj.article.title : '未知文章',
+        articleAuthor: commentObj.article && commentObj.article.author ? commentObj.article.author.toString() : null,
+        createdAt: commentObj.createdAt
+      };
+    });
+
+    res.json(formattedComments);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
 
 // 获取文章评论（支持嵌套结构）
 router.get('/article/:articleId', authenticate, async (req, res) => {

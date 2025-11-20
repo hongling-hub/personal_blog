@@ -117,6 +117,60 @@ router.get('/user', authenticate, async (req, res) => {
   }
 });
 
+// 获取用户点赞的文章
+router.get('/liked', authenticate, async (req, res) => {
+  try {
+    // 获取当前用户
+    const user = req.user;
+    
+    // 检查用户是否有点赞的文章
+    if (!user.likedArticles || user.likedArticles.length === 0) {
+      return res.json([]);
+    }
+    
+    // 获取用户点赞的文章
+    const now = new Date();
+    const articles = await Article.find({
+      _id: { $in: user.likedArticles },
+      isDraft: false,
+      isPublic: true,
+      publishTime: { $lte: now }
+    }).populate('author', 'username avatar isVerified bio')
+    .sort({ publishTime: -1 });
+    
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
+// 获取用户收藏的文章
+router.get('/collected', authenticate, async (req, res) => {
+  try {
+    // 获取当前用户
+    const user = req.user;
+    
+    // 检查用户是否有收藏的文章
+    if (!user.collectedArticles || user.collectedArticles.length === 0) {
+      return res.json([]);
+    }
+    
+    // 获取用户收藏的文章
+    const now = new Date();
+    const articles = await Article.find({
+      _id: { $in: user.collectedArticles },
+      isDraft: false,
+      isPublic: true,
+      publishTime: { $lte: now }
+    }).populate('author', 'username avatar isVerified bio')
+    .sort({ publishTime: -1 });
+    
+    res.json(articles);
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
+});
+
 // 获取文章详情
 router.get('/:id', async (req, res) => {
   try {
@@ -257,14 +311,28 @@ router.post('/:id/like', authenticate, async (req, res) => {
       article.likes.push(userId);
       article.likeCount = (article.likeCount || 0) + 1;
       isLiked = true;
+      
+      // 添加到用户的点赞文章列表
+      req.user.likedArticles = req.user.likedArticles || [];
+      if (!req.user.likedArticles.includes(article._id)) {
+        req.user.likedArticles.push(article._id);
+      }
     } else {
       // 取消点赞
       article.likes.splice(likeIndex, 1);
       article.likeCount = Math.max((article.likeCount || 1) - 1, 0);
       isLiked = false;
+      
+      // 从用户的点赞文章列表中移除
+      req.user.likedArticles = req.user.likedArticles || [];
+      const userLikeIndex = req.user.likedArticles.findIndex(id => id.toString() === article._id.toString());
+      if (userLikeIndex !== -1) {
+        req.user.likedArticles.splice(userLikeIndex, 1);
+      }
     }
 
     await article.save();
+    await req.user.save(); // 保存用户信息
     res.json({
       message: isLiked ? '点赞成功' : '取消点赞成功',
       likeCount: article.likeCount,
@@ -290,14 +358,28 @@ router.post('/:id/collect', authenticate, async (req, res) => {
       article.collections.push(userId);
       article.collectCount = (article.collectCount || 0) + 1;
       isCollected = true;
+      
+      // 添加到用户的收藏文章列表
+      req.user.collectedArticles = req.user.collectedArticles || [];
+      if (!req.user.collectedArticles.includes(article._id)) {
+        req.user.collectedArticles.push(article._id);
+      }
     } else {
       // 取消收藏
       article.collections.splice(collectIndex, 1);
       article.collectCount = Math.max((article.collectCount || 1) - 1, 0);
       isCollected = false;
+      
+      // 从用户的收藏文章列表中移除
+      req.user.collectedArticles = req.user.collectedArticles || [];
+      const userCollectIndex = req.user.collectedArticles.findIndex(id => id.toString() === article._id.toString());
+      if (userCollectIndex !== -1) {
+        req.user.collectedArticles.splice(userCollectIndex, 1);
+      }
     }
 
     await article.save();
+    await req.user.save(); // 保存用户信息
     res.json({
       message: isCollected ? '收藏成功' : '取消收藏成功',
       collectCount: article.collectCount,
