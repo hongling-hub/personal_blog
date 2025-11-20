@@ -167,7 +167,7 @@ export default function ArticleDetail() {
       try {
         // 获取除当前文章外的最新文章作为推荐
         const data = await articlesService.getList();
-        const recommended = data
+        const recommended = data.articles
           .filter((item: ArticleData) => item._id !== id)
           .sort((a: ArticleData, b: ArticleData) => new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime())
           .slice(0, 5)
