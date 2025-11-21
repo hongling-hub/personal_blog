@@ -34,6 +34,7 @@
     "katex": "^0.16.22",
     "markdown-it": "^14.1.0",
     "markdown-it-katex": "^2.0.3",
+    "markdown-it-toc-done-right": "^4.2.0",
     "md-editor-rt": "^5.8.2",
     "mongodb": "^6.17.0",
     "mongoose": "^8.0.3",

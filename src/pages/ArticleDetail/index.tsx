@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   message, 
@@ -92,6 +92,9 @@ export default function ArticleDetail() {
   const navigate = useNavigate();
   const [commentText, setCommentText] = useState('');
   const [recommendedArticles, setRecommendedArticles] = useState<RecommendedArticle[]>([]);
+  const [tocContent, setTocContent] = useState<string>('');
+  const articleContentRef = useRef<HTMLDivElement>(null);
+  const tocRef = useRef<HTMLDivElement>(null);
 
   const handleSendComment = async () => {
     if (!commentText.trim()) {
@@ -301,6 +304,130 @@ export default function ArticleDetail() {
     </Menu>
   );
 
+  // 提取和更新目录内容 - 增强的版本
+  useEffect(() => {
+    // 调试信息：检查文章内容
+    console.log('=== ArticleDetail 调试信息 ===');
+    console.log('文章内容长度:', article?.content?.length || 0);
+    console.log('是否包含@TOC:', article?.content?.includes('@TOC') || false);
+    console.log('是否包含[toc]:', article?.content?.includes('[toc]') || false);
+    console.log('文章内容前100字符:', article?.content?.substring(0, 100) || '');
+    console.log('===========================');
+    
+    // 延迟执行以确保RenderKatex有足够时间渲染内容
+    const timer = setTimeout(() => {
+      if (articleContentRef.current) {
+        // 查找由markdown-it-toc-done-right生成的目录元素
+        const generatedToc = articleContentRef.current.querySelector('.article-toc') as HTMLElement | null;
+        
+        if (generatedToc) {
+          setTocContent(generatedToc.innerHTML);
+          // 从原始内容中移除目录，避免重复显示
+          generatedToc.style.display = 'none';
+        } else {
+          // 检查是否存在@TOC、@[TOC](目录)或[toc]标记但没有生成目录
+          const hasTocMarker = article && article.content && 
+            (article.content.includes('@TOC') || article.content.includes('[toc]') || 
+             article.content.includes('@[TOC]'));
+          
+          if (hasTocMarker) {
+            // 如果有@TOC标记但没有生成目录，尝试手动提取标题
+            const headings = articleContentRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6');
+            if (headings.length > 0) {
+              // 手动构建目录HTML
+              let manualTocHtml = '<ul class="article-toc-list">';
+              let currentLevel = 1;
+              
+              headings.forEach((heading, index) => {
+                const level = parseInt(heading.tagName.substring(1));
+                const text = heading.textContent || '';
+                
+                // 生成更友好的ID：使用文本内容创建slug，或者使用索引作为备用
+                let id = heading.id;
+                if (!id) {
+                  // 尝试使用文本内容创建slug（保持原样，不转换为小写）
+                  const slug = text.trim()
+                    .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+                    .replace(/^-+|-+$/g, '');
+                  id = slug || `heading-${index}`;
+                  heading.id = id;
+                }
+                
+                // 调试信息：显示标题和生成的ID
+                console.log(`标题: "${text}", 生成的ID: "${id}", 原始ID: "${heading.id}", 编码后的链接: "#${encodeURIComponent(id)}"`);
+                
+                // 添加适当的嵌套结构
+                while (currentLevel < level) {
+                  manualTocHtml += '<ul class="article-toc-list">';
+                  currentLevel++;
+                }
+                while (currentLevel > level) {
+                  manualTocHtml += '</ul>';
+                  currentLevel--;
+                }
+                
+                manualTocHtml += `
+                  <li class="article-toc-item">
+                    <a href="#${encodeURIComponent(id)}" class="article-toc-link">${text}</a>
+                  </li>
+                `;
+              });
+              
+              // 关闭所有未闭合的列表标签
+              while (currentLevel >= 1) {
+                manualTocHtml += '</ul>';
+                currentLevel--;
+              }
+              
+              setTocContent(manualTocHtml);
+            } else {
+              setTocContent('<div class="no-headings">文章中没有找到标题</div>');
+            }
+          } else {
+            setTocContent('<div class="no-toc">暂无目录</div>');
+          }
+        }
+      }
+    }, 300); // 增加延迟时间确保内容完全渲染
+    
+    return () => clearTimeout(timer);
+  }, [article?.content]);
+
+  // 点击目录项滚动到对应位置 - 增强版本
+  const handleTocClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    const target = e.target as HTMLElement;
+    
+    // 检查点击的是链接还是链接内的文本
+    const link = target.tagName === 'A' ? target as HTMLAnchorElement : target.closest('a') as HTMLAnchorElement;
+    
+    if (link && link.hash) {
+      // 解码URL编码的hash值（处理中文标题）
+      const decodedHash = decodeURIComponent(link.hash);
+      const element = document.querySelector(decodedHash);
+      
+      if (element) {
+        // 添加一些偏移量，避免被固定头部遮挡
+        const offset = 80;
+        const elementPosition = element.getBoundingClientRect().top + window.pageYOffset;
+        const offsetPosition = elementPosition - offset;
+        
+        window.scrollTo({
+          top: offsetPosition,
+          behavior: 'smooth'
+        });
+        
+        // 添加高亮效果
+        element.classList.add('toc-highlight');
+        setTimeout(() => {
+          element.classList.remove('toc-highlight');
+        }, 2000);
+      } else {
+        console.warn('找不到对应的标题元素:', decodedHash);
+      }
+    }
+  };
+
   const formatDate = (dateString: string): string => {
     return format(new Date(dateString), 'yyyy-MM-dd HH:mm');
   };
@@ -440,7 +567,7 @@ export default function ArticleDetail() {
             </div>
 
             {/* 文章内容 */}
-            <div className={styles.articleContent}>
+            <div className={styles.articleContent} ref={articleContentRef}>
               <RenderKatex content={article.content} />
               <div className={styles.tags}>标签：
                 <div>
@@ -512,8 +639,12 @@ export default function ArticleDetail() {
             {/* 文章目录 */}
             <div className={styles.tableOfContents}>
               <div className={styles.tocTitle}>目录</div>
-              <div className={styles.tocContent}>
-                {/* 目录内容将通过JavaScript动态生成 */}
+              <div className={styles.tocContent} ref={tocRef} onClick={handleTocClick}>
+                {tocContent ? (
+                  <div dangerouslySetInnerHTML={{ __html: tocContent }} />
+                ) : (
+                  <div className={styles.noToc}>暂无目录</div>
+                )}
               </div>
             </div>
 

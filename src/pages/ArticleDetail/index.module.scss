@@ -148,6 +148,14 @@
   border-radius: 8px;
 }
 
+// 目录点击高亮效果
+.toc-highlight {
+  background-color: #e6f7ff !important;
+  border-left: 3px solid #1890ff !important;
+  padding-left: 10px !important;
+  transition: all 0.3s ease !important;
+}
+
 :global(.katex .base) {
     white-space: pre-wrap !important;
     width: 100% !important;
@@ -569,10 +577,94 @@
   background: rgba(26, 123, 251, 0.05) !important;
 }
 
-.tocTitle{
-    padding: 16px;
+.tableOfContents {
   background-color: #fff;
-  margin-bottom: 32px;
+  padding: 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+
+  .tocTitle {
+    font-size: 18px;
+    font-weight: 600;
+    margin-bottom: 15px;
+    color: #333;
+    padding: 0;
+    background-color: transparent;
+    margin-bottom: 15px;
+  }
+
+  .tocContent {
+    font-size: 14px;
+    line-height: 1.8;
+    
+    // 为markdown-it-toc-done-right生成的目录添加样式
+    .article-toc-list {
+      list-style: none;
+      padding-left: 0;
+      margin: 0;
+    }
+    
+    .article-toc-list .article-toc-list {
+      padding-left: 20px;
+    }
+    
+    .article-toc-item {
+      margin-bottom: 8px;
+    }
+    
+    .article-toc-link {
+      color: #666;
+      text-decoration: none;
+      display: block;
+      padding: 4px 0;
+      transition: all 0.3s;
+      
+      &:hover {
+        color: #1890ff;
+        transform: translateX(2px);
+      }
+    }
+  }
+  
+  .noToc {
+    color: #999;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 14px;
+  }
+  
+  // 为手动生成的目录添加样式
+  .no-headings {
+    color: #999;
+    text-align: center;
+    padding: 20px 0;
+    font-size: 14px;
+  }
+  
+  // 目录滚动和固定样式
+  .tocContent {
+    max-height: 400px;
+    overflow-y: auto;
+    
+    // 滚动条样式
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+    
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 2px;
+    }
+    
+    &::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  }
 }
 
 .coverImageContainer {
