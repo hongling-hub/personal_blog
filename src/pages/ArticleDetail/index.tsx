@@ -450,10 +450,12 @@ export default function ArticleDetail() {
         // 查找由markdown-it-toc-done-right生成的目录元素
         const generatedToc = articleContentRef.current.querySelector('.article-toc') as HTMLElement | null;
         
-        if (generatedToc) {
+        // 不再隐藏生成的目录，让它正常显示在文章内容中
+        // 注释掉这行代码，允许markdown-it-toc-done-right生成的目录正常显示
+        /*if (generatedToc) {
           // 从原始内容中移除目录，避免重复显示
           generatedToc.style.display = 'none';
-        }
+        }*/
         
         // 检查是否存在@TOC、@[TOC](目录)或[toc]标记
         const hasTocMarker = article && article.content && 
