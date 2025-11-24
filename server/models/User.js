@@ -25,6 +25,14 @@ const UserSchema = new mongoose.Schema({
     enum: ['user', 'admin'],
     default: 'user'
   },
+  refreshToken: {
+    type: String,
+    default: null
+  },
+  refreshTokenExpires: {
+    type: Date,
+    default: null
+  },
   favorites: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Article'
@@ -67,8 +75,48 @@ UserSchema.methods.generateAuthToken = function() {
   return jwt.sign(
     { userId: this._id, role: this.role },
     process.env.JWT_SECRET,
-    { expiresIn: '1d' }
+    { expiresIn: '4h' } // 4小时过期
   );
+};
+
+// 生成refresh token
+UserSchema.methods.generateRefreshToken = function() {
+  return jwt.sign(
+    { userId: this._id },
+    process.env.JWT_SECRET + 'refresh', // 使用不同的密钥
+    { expiresIn: '7d' } // 7天过期
+  );
+};
+
+// 保存refresh token
+UserSchema.methods.saveRefreshToken = async function(refreshToken) {
+  this.refreshToken = refreshToken;
+  this.refreshTokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); // 7天后过期
+  await this.save();
+  return this;
+};
+
+// 验证refresh token
+UserSchema.methods.verifyRefreshToken = function(refreshToken) {
+  if (!this.refreshToken || !this.refreshTokenExpires) {
+    return false;
+  }
+  
+  // 检查是否过期
+  if (this.refreshTokenExpires < new Date()) {
+    return false;
+  }
+  
+  // 检查token是否匹配
+  return this.refreshToken === refreshToken;
+};
+
+// 清除refresh token
+UserSchema.methods.clearRefreshToken = async function() {
+  this.refreshToken = null;
+  this.refreshTokenExpires = null;
+  await this.save();
+  return this;
 };
 
 UserSchema.methods.setPassword = async function(password) {

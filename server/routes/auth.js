@@ -78,16 +78,19 @@ router.post('/login', async (req, res) => {
     return res.status(401).json({ message: '用户名或密码错误' });
   }
   
-  // 生成JWT
-  const token = jwt.sign(
-  { userId: user._id, role: user.role },
-  process.env.JWT_SECRET || 'your-secret-key',
-  { expiresIn: '2h' }
-);
+  // 生成access token和refresh token
+  const accessToken = user.generateAuthToken();
+  const refreshToken = user.generateRefreshToken();
+  
+  // 保存refresh token到数据库
+  await user.saveRefreshToken(refreshToken);
+  
+  console.log('用户登录成功:', username);
   
   res.json({ 
     success: true,
-    token,
+    accessToken,
+    refreshToken,
     message: '登录成功'
   });
 });
@@ -219,6 +222,53 @@ router.patch('/update-username', authenticateToken, async (req, res) => {
   } catch (error) {
     console.error('更新用户名错误:', error);
     res.status(500).json({ message: '服务器错误，更新用户名失败' });
+  }
+});
+
+// Refresh token接口
+router.post('/refresh', async (req, res) => {
+  try {
+    const { refreshToken } = req.body;
+    
+    if (!refreshToken) {
+      return res.status(400).json({ message: 'Refresh token不能为空' });
+    }
+
+    // 验证refresh token
+    let decoded;
+    try {
+      decoded = jwt.verify(refreshToken, process.env.JWT_SECRET + 'refresh');
+    } catch (error) {
+      console.log('Refresh token验证失败:', error.message);
+      return res.status(401).json({ message: 'Refresh token无效或已过期' });
+    }
+
+    // 查找用户
+    const user = await User.findById(decoded.userId);
+    if (!user) {
+      return res.status(404).json({ message: '用户不存在' });
+    }
+
+    // 验证数据库中的refresh token
+    if (!user.verifyRefreshToken(refreshToken)) {
+      console.log('数据库中的refresh token不匹配或已过期');
+      return res.status(401).json({ message: 'Refresh token无效' });
+    }
+
+    // 生成新的access token
+    const newAccessToken = user.generateAuthToken();
+    
+    console.log('Token刷新成功，用户:', user.username);
+    
+    res.json({
+      success: true,
+      accessToken: newAccessToken,
+      message: 'Token刷新成功'
+    });
+    
+  } catch (error) {
+    console.error('Refresh token处理错误:', error);
+    res.status(500).json({ message: '服务器错误，token刷新失败' });
   }
 });
 

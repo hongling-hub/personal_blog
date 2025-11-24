@@ -1,3 +1,5 @@
+import { createApiInterceptor } from '../utils/apiInterceptor';
+
 interface Article {
   title: string;
   tags: string[];
@@ -51,57 +53,32 @@ interface ArticlesService {
 
 export default {
   // 搜索文章
-  search: (query: string) => fetch(`/api/articles/search?query=${encodeURIComponent(query)}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
+  search: (query: string) => fetch(`/api/articles/search?query=${encodeURIComponent(query)}`).then(res => res.json()),
 
   // 获取文章列表（支持分页）
   getList: (page = 1, limit = 10) => fetch(`/api/articles?page=${page}&limit=${limit}`).then(res => res.json()),
 
   // 获取当前用户的所有文章（包括草稿，支持分页）
-  getUserArticles: (page = 1, limit = 10) => fetch(`/api/articles/user?page=${page}&limit=${limit}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
+  getUserArticles: (page = 1, limit = 10) => fetch(`/api/articles/user?page=${page}&limit=${limit}`).then(res => res.json()),
   
   // 获取关注作者的文章（支持分页）
-  getFollowingArticles: (page = 1, limit = 10) => fetch(`/api/articles/following?page=${page}&limit=${limit}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
+  getFollowingArticles: (page = 1, limit = 10) => fetch(`/api/articles/following?page=${page}&limit=${limit}`).then(res => res.json()),
   
   // 获取用户点赞的文章（支持分页）
-  getLikedArticles: (page = 1, limit = 10) => fetch(`/api/articles/liked?page=${page}&limit=${limit}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
+  getLikedArticles: (page = 1, limit = 10) => fetch(`/api/articles/liked?page=${page}&limit=${limit}`).then(res => res.json()),
   
   // 获取用户收藏的文章（支持分页）
-  getCollectedArticles: (page = 1, limit = 10) => fetch(`/api/articles/collected?page=${page}&limit=${limit}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
+  getCollectedArticles: (page = 1, limit = 10) => fetch(`/api/articles/collected?page=${page}&limit=${limit}`).then(res => res.json()),
   
   // 获取文章详情
-  getById: (id: string) => fetch(`/api/articles/${id}`, {
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
-  }).then(res => res.json()),
+  getById: (id: string) => fetch(`/api/articles/${id}`).then(res => res.json()),
   
   // 创建文章
   create: (data: Article) => fetch('/api/articles', {
     method: 'POST',
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      'Content-Type': 'application/json'
     }
   }).then(async res => {
     if (!res.ok) {
@@ -119,8 +96,7 @@ export default {
     method: 'PATCH',
     body: JSON.stringify(data),
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      'Content-Type': 'application/json'
     }
   }).then(res => res.json()),
 
@@ -129,32 +105,22 @@ export default {
     method: 'POST',
     body: JSON.stringify(commentData),
     headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+      'Content-Type': 'application/json'
     }
   }).then(res => res.json()),
 
   // 点赞/取消点赞文章
   toggleLike: (id: string) => fetch(`/api/articles/${id}/like`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
+    method: 'POST'
   }).then(res => res.json()),
 
   // 收藏/取消收藏文章
   toggleCollect: (id: string) => fetch(`/api/articles/${id}/collect`, {
-    method: 'POST',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
+    method: 'POST'
   }).then(res => res.json()),
 
   // 删除文章
   delete: (id: string) => fetch(`/api/articles/${id}`, {
-    method: 'DELETE',
-    headers: {
-      'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
-    }
+    method: 'DELETE'
   }).then(res => res.json())
 };

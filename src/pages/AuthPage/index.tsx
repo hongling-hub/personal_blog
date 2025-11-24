@@ -78,15 +78,14 @@ const { updateUser } = useUser();
       captcha: values.captcha
     });
 
-    // 修改这里的判断条件
-    if (response.token) { // 改为检查token而不是response.success
+    // 检查token是否存在
+    if (response.token) {
       message.success('登录成功');
-      // 存储token
-      localStorage.setItem('token', response.token);
-        // 获取用户信息并更新Context
-        const userData = await authService.getUserInfo();
-        updateUser(userData);
-        navigate('/', { replace: true });
+      // token已经在authService中保存到localStorage
+      // 获取用户信息并更新Context
+      const userData = await authService.getUserInfo();
+      updateUser(userData);
+      navigate('/', { replace: true });
     } else {
       throw new Error(response.message || '登录失败');
     }

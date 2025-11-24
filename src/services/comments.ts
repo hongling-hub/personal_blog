@@ -1,18 +1,15 @@
+import { createApiInterceptor } from '../utils/apiInterceptor';
+
 // 删除某条回复
 function deleteReply(commentId: string, replyId: string) {
-  const token = localStorage.getItem('token');
   return fetch(`/api/comments/${commentId}/replies/${replyId}`, {
-    method: 'DELETE',
-    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+    method: 'DELETE'
   }).then(res => res.json());
 }
 
 // 获取当前用户的所有评论
 function getMyComments() {
-  const token = localStorage.getItem('token');
-  return fetch('/api/comments/my', {
-    headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-  }).then(res => res.json());
+  return fetch('/api/comments/my').then(res => res.json());
 }
 
 const commentService = {
@@ -24,74 +21,49 @@ const commentService = {
     if (sortType) {
       url += `?sort=${sortType}`;
     }
-    const token = localStorage.getItem('token');
-    return fetch(url, {
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
-    }).then(res => res.json());
+    return fetch(url).then(res => res.json());
   },
   createComment: (data: { articleId: string; content: string; author: string }) => {
-    const token = localStorage.getItem('token');
     return fetch('/api/comments', {
       method: 'POST',
       body: JSON.stringify(data),
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       }
     }).then(res => res.json());
   },
   likeComment: (commentId: string) => {
-    const token = localStorage.getItem('token');
     return fetch(`/api/comments/${commentId}/like`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      method: 'POST'
     }).then(res => res.json());
   },
   unlikeComment: (commentId: string) => {
-    const token = localStorage.getItem('token');
     return fetch(`/api/comments/${commentId}/like`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      method: 'DELETE'
     }).then(res => res.json());
   },
   likeReply: (commentId: string, replyId: string) => {
-    const token = localStorage.getItem('token');
     return fetch(`/api/comments/${commentId}/replies/${replyId}/like`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      method: 'POST'
     }).then(res => res.json());
   },
   unlikeReply: (commentId: string, replyId: string) => {
-    const token = localStorage.getItem('token');
     return fetch(`/api/comments/${commentId}/replies/${replyId}/like`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
+      method: 'POST'
     }).then(res => res.json());
   },
   deleteComment: (commentId: string) => {
-    const token = localStorage.getItem('token');
     return fetch(`/api/comments/${commentId}`, {
-      method: 'DELETE',
-      headers: token ? { 'Authorization': `Bearer ${token}` } : {}
+      method: 'DELETE'
     }).then(res => res.json());
   },
   createReply: (commentId: string, content: string) => {
-    const token = localStorage.getItem('token');
     // 获取当前文章ID（从URL或其他地方）
     const articleId = window.location.pathname.split('/').pop();
     return fetch('/api/comments', {
       method: 'POST',
       headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
+        'Content-Type': 'application/json'
       },
       body: JSON.stringify({ 
         articleId, 

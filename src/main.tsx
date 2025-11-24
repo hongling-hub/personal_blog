@@ -13,9 +13,13 @@ import WriteArticle from './pages/WriteArticle';
 import AdminDashboard from './pages/AdminDashboard';
 import Profile from './pages/Profile';
 import CreatorCenter from './pages/CreatorCenter';
+import initApiInterceptor from './utils/initApiInterceptor';
 
 import './index.css';
 import 'antd/dist/reset.css';
+
+// 初始化API拦截器
+initApiInterceptor();
 
 const router = createBrowserRouter([
   {
