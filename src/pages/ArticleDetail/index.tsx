@@ -11,8 +11,16 @@ import {
   Tooltip, 
   Dropdown, 
   Menu, 
-  Badge 
+  Badge,
+  Tree
 } from 'antd';
+
+// Tree组件的节点接口定义
+interface TreeDataNode {
+  title: React.ReactNode;
+  key: string;
+  children?: TreeDataNode[];
+}
 import AuthorCard from '../../components/AuthorCard';
 import RecommendedReading from '../../components/RecommendedReading';
 import {
@@ -94,6 +102,7 @@ export default function ArticleDetail() {
   const [recommendedArticles, setRecommendedArticles] = useState<RecommendedArticle[]>([]);
   const [tocContent, setTocContent] = useState<string>('');
   const [isSidebarFixed, setIsSidebarFixed] = useState(false);
+  const [isTocExpanded, setIsTocExpanded] = useState(true);
   const articleContentRef = useRef<HTMLDivElement>(null);
   const tocRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
@@ -344,7 +353,9 @@ export default function ArticleDetail() {
     </Menu>
   );
 
-  // 提取和更新目录内容 - 增强的版本
+  // 提取和更新目录内容 - 使用Ant Design Tree组件
+  const [treeData, setTreeData] = useState<TreeDataNode[]>([]);
+  
   useEffect(() => {
     // 调试信息：检查文章内容
     console.log('=== ArticleDetail 调试信息 ===');
@@ -361,86 +372,98 @@ export default function ArticleDetail() {
         const generatedToc = articleContentRef.current.querySelector('.article-toc') as HTMLElement | null;
         
         if (generatedToc) {
-          setTocContent(generatedToc.innerHTML);
           // 从原始内容中移除目录，避免重复显示
           generatedToc.style.display = 'none';
-        } else {
-          // 检查是否存在@TOC、@[TOC](目录)或[toc]标记但没有生成目录
-          const hasTocMarker = article && article.content && 
-            (article.content.includes('@TOC') || article.content.includes('[toc]') || 
-             article.content.includes('@[TOC]'));
-          
-          if (hasTocMarker) {
-            // 如果有@TOC标记但没有生成目录，尝试手动提取标题
-            const headings = articleContentRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6');
-            if (headings.length > 0) {
-              // 手动构建目录HTML
-              let manualTocHtml = '<ul class="article-toc-list">';
-              let currentLevel = 1;
+        }
+        
+        // 检查是否存在@TOC、@[TOC](目录)或[toc]标记
+        const hasTocMarker = article && article.content && 
+          (article.content.includes('@TOC') || article.content.includes('[toc]') || 
+           article.content.includes('@[TOC]'));
+        
+        if (hasTocMarker) {
+          // 提取标题并构建Tree数据
+          const headings = articleContentRef.current.querySelectorAll('h1, h2, h3, h4, h5, h6');
+          if (headings.length > 0) {
+            // 使用全局定义的TreeDataNode接口
+            const newTreeData: TreeDataNode[] = [];
+            const headingMap = new Map<number, TreeDataNode[]>(); // 用于跟踪每个级别的节点数组
+            
+            // 初始化根级别
+            headingMap.set(0, newTreeData);
+            
+            headings.forEach((heading, index) => {
+              const level = parseInt(heading.tagName.substring(1));
+              const text = heading.textContent || '';
               
-              headings.forEach((heading, index) => {
-                const level = parseInt(heading.tagName.substring(1));
-                const text = heading.textContent || '';
-                
-                // 生成更友好的ID：使用文本内容创建slug，或者使用索引作为备用
-                let id = heading.id;
-                if (!id) {
-                  // 尝试使用文本内容创建slug（保持原样，不转换为小写）
-                  const slug = text.trim()
-                    .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
-                    .replace(/^-+|-+$/g, '');
-                  id = slug || `heading-${index}`;
-                }
-                
-                // 确保ID是URL编码的，与目录链接保持一致
-                const encodedId = encodeURIComponent(id);
-                
-                // 设置标题元素的ID为编码后的ID，确保与目录链接匹配
-                heading.id = encodedId;
-                
-                // 调试信息：显示标题和生成的ID
-                console.log(`标题: "${text}", 生成的ID: "${id}", 编码ID: "${encodedId}", 原始ID: "${heading.id}", 编码后的链接: "#${encodedId}"`);
-                
-                // 添加适当的嵌套结构
-                while (currentLevel < level) {
-                  manualTocHtml += '<ul class="article-toc-list">';
-                  currentLevel++;
-                }
-                while (currentLevel > level) {
-                  manualTocHtml += '</ul>';
-                  currentLevel--;
-                }
-                
-                manualTocHtml += `
-                  <li class="article-toc-item">
-                    <a href="#${encodedId}" class="article-toc-link">${text}</a>
-                  </li>
-                `;
-              });
-              
-              // 关闭所有未闭合的列表标签
-              while (currentLevel >= 1) {
-                manualTocHtml += '</ul>';
-                currentLevel--;
+              // 生成更友好的ID：使用文本内容创建slug，添加索引确保唯一
+              let id = heading.id;
+              if (!id) {
+                // 尝试使用文本内容创建slug，并添加索引确保唯一性
+                const slug = text.trim()
+                  .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
+                  .replace(/^-+|-+$/g, '');
+                // 总是为ID添加索引，确保即使文本相同也能生成唯一ID
+                id = slug ? `${slug}-${index}` : `heading-${index}`;
               }
               
-              setTocContent(manualTocHtml);
-            } else {
-              setTocContent('<div class="no-headings">文章中没有找到标题</div>');
-            }
+              // 确保ID是URL编码的，与目录链接保持一致
+              const encodedId = encodeURIComponent(id);
+              
+              // 设置标题元素的ID为编码后的ID，确保与目录链接匹配
+              heading.id = encodedId;
+              
+              // 创建树节点 - 使用唯一ID作为key
+              const node: TreeDataNode = {
+                title: <a href={`#${encodedId}`} className="article-toc-link" onClick={(e) => handleTocClick(e)}>{text}</a>,
+                key: encodedId,
+                children: []
+              };
+              
+              // 确定父级节点数组
+              let parentLevel = level - 1;
+              while (!headingMap.has(parentLevel) && parentLevel >= 0) {
+                parentLevel--;
+              }
+              
+              const parentNodes = headingMap.get(parentLevel) || newTreeData;
+              parentNodes.push(node);
+              
+              // 更新当前级别的节点数组引用为刚添加节点的children
+              headingMap.set(level, node.children!);
+            });
+            
+            setTreeData(newTreeData);
+            setTocContent(''); // 清空原HTML内容
           } else {
-            setTocContent('<div class="no-toc">暂无目录</div>');
+            setTocContent('<div class="no-headings">文章中没有找到标题</div>');
+            setTreeData([]);
           }
+        } else {
+          setTocContent('<div class="no-toc">暂无目录</div>');
+          setTreeData([]);
         }
+      } else {
+        setTocContent('<div class="no-toc">暂无目录</div>');
+        setTreeData([]);
       }
     }, 300); // 增加延迟时间确保内容完全渲染
     
     return () => clearTimeout(timer);
   }, [article?.content]);
 
-  // 点击目录项滚动到对应位置 - 增强版本
+  // 处理目录链接点击事件，兼容Tree组件和普通目录
   const handleTocClick = (e: React.MouseEvent) => {
+    // 对于Tree组件中的链接，只阻止冒泡，让浏览器默认处理锚点跳转
+    if (e.target instanceof HTMLElement && e.target.closest('.article-toc-tree')) {
+      e.stopPropagation(); // 阻止冒泡，避免Tree节点展开/折叠
+      // 不阻止默认行为，让浏览器处理锚点跳转
+      return;
+    } 
+    
+    // 原有增强版本的目录处理逻辑
     e.preventDefault();
+    e.stopPropagation(); // 阻止事件冒泡，避免触发Tree节点的默认行为
     const target = e.target as HTMLElement;
     
     // 检查点击的是链接还是链接内的文本
@@ -511,6 +534,130 @@ export default function ArticleDetail() {
       }
     }
   };
+  
+  // 为Tree组件添加全局样式
+  useEffect(() => {
+    // 添加Tree组件的自定义样式
+    const style = document.createElement('style');
+    style.textContent = `
+      .article-toc-tree .ant-tree-node-content-wrapper:hover {
+        background-color: #f5f7fa;
+        border-radius: 4px;
+      }
+      .article-toc-tree .ant-tree-node-selected > .ant-tree-node-content-wrapper {
+        background-color: #e6f7ff;
+        color: #1890ff;
+        font-weight: 500;
+      }
+      .article-toc-link {
+        color: inherit;
+        display: block;
+        padding: 2px 0;
+        text-decoration: none;
+      }
+      .article-toc-link:hover {
+        color: #1890ff;
+      }
+    `;
+    document.head.appendChild(style);
+    
+    return () => {
+      document.head.removeChild(style);
+    };
+  }, []);
+
+  // 滚动监听：当滚动到对应标题时，目录中对应的标题高亮
+  useEffect(() => {
+    if (!articleContentRef.current || treeData.length === 0) return;
+
+    const handleScroll = () => {
+      const headings = articleContentRef.current?.querySelectorAll('h1, h2, h3, h4, h5, h6') || [];
+      const scrollTop = window.scrollY;
+      const windowHeight = window.innerHeight;
+      
+      let activeHeadingId = '';
+      let minDistance = Infinity;
+      
+      // 找到当前视图中最接近顶部的标题
+      for (let i = 0; i < headings.length; i++) {
+        const heading = headings[i] as HTMLElement;
+        const rect = heading.getBoundingClientRect();
+        const headingTop = rect.top + scrollTop;
+        
+        // 计算标题距离顶部的距离
+        const distanceFromTop = Math.abs(rect.top - 100); // 距离顶部100px的位置
+        
+        // 如果标题在视图中，并且距离顶部最近
+        if (rect.top < windowHeight && rect.bottom > 0 && distanceFromTop < minDistance) {
+          minDistance = distanceFromTop;
+          activeHeadingId = heading.id;
+        }
+      }
+      
+      // 如果没找到可见标题，使用最后一个滚过的标题
+      if (!activeHeadingId && headings.length > 0) {
+        for (let i = headings.length - 1; i >= 0; i--) {
+          const heading = headings[i] as HTMLElement;
+          const rect = heading.getBoundingClientRect();
+          if (rect.top < 0) {
+            activeHeadingId = heading.id;
+            break;
+          }
+        }
+      }
+      
+      // 更新Tree组件的选中状态
+      if (activeHeadingId) {
+        // 清除所有高亮状态
+        const allTreeNodes = document.querySelectorAll('.article-toc-tree .ant-tree-node-content-wrapper');
+        allTreeNodes.forEach(node => {
+          node.classList.remove('ant-tree-node-selected');
+        });
+        
+        // 找到包含对应ID的链接并高亮
+        const targetLinks = document.querySelectorAll(`.article-toc-link[href="#${activeHeadingId}"]`);
+        targetLinks.forEach(link => {
+          const treeNode = link.closest('.ant-tree-node-content-wrapper');
+          if (treeNode) {
+            treeNode.classList.add('ant-tree-node-selected');
+            
+            // 滚动到可见区域（如果需要）
+            const treeContainer = treeNode.closest('.ant-tree');
+            if (treeContainer) {
+              const containerRect = treeContainer.getBoundingClientRect();
+              const nodeRect = treeNode.getBoundingClientRect();
+              
+              // 如果节点不在容器可见区域内，滚动到节点位置
+              if (nodeRect.top < containerRect.top || nodeRect.bottom > containerRect.bottom) {
+                treeNode.scrollIntoView({ behavior: 'smooth', block: 'center' });
+              }
+            }
+          }
+        });
+      }
+    };
+
+    // 添加滚动监听（使用防抖优化性能）
+    let ticking = false;
+    const debouncedScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          handleScroll();
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
+    
+    // 初始执行一次
+    setTimeout(() => handleScroll(), 100);
+    
+    return () => {
+      window.removeEventListener('scroll', debouncedScroll);
+    };
+  }, [treeData, article?.content]);
 
   const formatDate = (dateString: string): string => {
     return format(new Date(dateString), 'yyyy-MM-dd HH:mm');
@@ -727,9 +874,34 @@ export default function ArticleDetail() {
             >
               {/* 文章目录 */}
               <div className={styles.tableOfContents}>
-                <div className={styles.tocTitle}>目录</div>
-                <div className={styles.tocContent} ref={tocRef} onClick={handleTocClick}>
-                  {tocContent ? (
+                <div className={styles.tocTitle}>
+                  目录
+                  <span 
+                    className={styles.tocToggle} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsTocExpanded(!isTocExpanded);
+                    }}
+                  >
+                    {isTocExpanded ? '收起 ▲' : '展开 ▼'}
+                  </span>
+                </div>
+                <div 
+                  className={`${styles.tocContent} ${!isTocExpanded ? styles.tocContentCollapsed : ''}`} 
+                  ref={tocRef}
+                >
+                  {treeData.length > 0 ? (
+                    <Tree
+                      className="article-toc-tree"
+                      treeData={treeData}
+                      defaultExpandAll
+                      showLine={false}
+                      titleRender={(node) => {
+                        // 直接返回节点的title，它已经是React元素
+                        return node.title;
+                      }}
+                    />
+                  ) : tocContent ? (
                     <div dangerouslySetInnerHTML={{ __html: tocContent }} />
                   ) : (
                     <div className={styles.noToc}>暂无目录</div>
@@ -749,10 +921,34 @@ export default function ArticleDetail() {
             className={`${styles.sidebar} ${styles.fixedSidebar} ${isSidebarFixed ? styles.fixedSidebarActive : ''}`}
           >
             {/* 文章目录 */}
-            <div className={styles.tableOfContents}>
-              <div className={styles.tocTitle}>目录</div>
-              <div className={styles.tocContent} onClick={handleTocClick}>
-                {tocContent ? (
+              <div className={styles.tableOfContents}>
+                <div className={styles.tocTitle}>
+                  目录
+                  <span 
+                    className={styles.tocToggle} 
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsTocExpanded(!isTocExpanded);
+                    }}
+                  >
+                    {isTocExpanded ? '收起 ▲' : '展开 ▼'}
+                  </span>
+                </div>
+                <div 
+                  className={`${styles.tocContent} ${!isTocExpanded ? styles.tocContentCollapsed : ''}`}
+                >
+                {treeData.length > 0 ? (
+                  <Tree
+                    className="article-toc-tree"
+                    treeData={treeData}
+                    defaultExpandAll
+                    showLine={false}
+                    titleRender={(node) => {
+                      // 直接返回节点的title，它已经是React元素
+                      return node.title;
+                    }}
+                  />
+                ) : tocContent ? (
                   <div dangerouslySetInnerHTML={{ __html: tocContent }} />
                 ) : (
                   <div className={styles.noToc}>暂无目录</div>

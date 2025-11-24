@@ -161,6 +161,7 @@
   .article-toc {
     max-width: 100%;
   }
+  
 }
 
 :global(.katex .base) {
@@ -378,6 +379,10 @@
 
 @media (min-width:768px){
 
+
+  .ant-tree .ant-tree-switcher{
+    width: 0px;
+  }
   .authorInfoLine{
    display: flex;
   //  justify-content: space-evenly ;
@@ -390,6 +395,7 @@
   flex-direction: column;
   gap: 16px;
 }
+
 
 .actionButton {
   display: block;
@@ -591,48 +597,186 @@
   margin-bottom: 20px;
 
   .tocTitle {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: 600;
     margin-bottom: 15px;
     color: #333;
     padding: 0;
     background-color: transparent;
     margin-bottom: 15px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
-  .tocContent {
+  .tocToggle {
     font-size: 14px;
-    line-height: 1.8;
+    color: #999;
+    cursor: pointer;
+    transition: color 0.2s;
+    font-weight: normal;
+  }
+
+  .tocToggle:hover {
+    color: #1890ff;
+  }
+
+  /* 目录内容折叠样式 */
+  .tocContentCollapsed {
+    display: none;
+  }
+
+  /* 目录样式 */
+  .tocContent {
+    overflow-y: auto;
+    height: 400px; /* 设置固定高度 */
+    padding-right: 10px;
     
-    // 为markdown-it-toc-done-right生成的目录添加样式
-    .article-toc-list {
-      list-style: none;
-      padding-left: 0;
-      margin: 0;
+    /* 目录滚动条样式 */
+    &::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
     }
     
-    .article-toc-list .article-toc-list {
-      padding-left: 20px;
+    &::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
     }
     
-    .article-toc-item {
-      margin-bottom: 8px;
+    &::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    
+    &::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+  }
+
+  /* Tree组件样式 */
+  .article-toc-tree {
+    /* 去掉连接线 */
+    .ant-tree-line {
+      background: none !important;
+    }
+    
+    .ant-tree-indent-unit::before {
+      border-left: none !important;
+    }
+    
+    .ant-tree-indent-unit:last-child::before {
+      border-left: none !important;
+    }
+    
+    /* 隐藏展开/收起图标 */
+    .ant-tree-switcher-icon {
+      opacity: 0;
+    }
+    
+    .ant-tree-node-content-wrapper {
+      padding: 4px 8px !important;
+      transition: all 0.3s ease;
+      border-radius: 6px;
+      margin: 2px 0;
+    }
+    
+    .ant-tree-node-content-wrapper:hover {
+      background-color: #f0f7ff !important;
+      transform: translateX(2px);
+    }
+    
+    /* 使用最高优先级的选择器来覆盖Ant Design默认样式 */
+    :global(.article-toc-tree .ant-tree-node-selected > .ant-tree-node-content-wrapper) {
+      background-color: transparent !important;
+      background: transparent !important;
+      color: #1890ff !important;
+      font-weight: 600 !important;
+      box-shadow: none !important;
+      transform: none !important;
+      border: none !important;
+    }
+    
+    /* 直接覆盖Ant Design的默认类名选择器 */
+    :global(.ant-tree .ant-tree-node-content-wrapper.ant-tree-node-selected) {
+      background-color: transparent !important;
+      background: transparent !important;
+      color: #1890ff !important;
+    }
+    
+    /* 确保链接本身也没有背景色 */
+    :global(.article-toc-tree .ant-tree-node-selected > .ant-tree-node-content-wrapper .article-toc-link) {
+      color: #1890ff !important;
+      text-decoration: underline !important;
+      text-underline-offset: 4px !important;
+      text-decoration-thickness: 2px !important;
+      text-decoration-color: #1890ff !important;
+      background: transparent !important;
+      background-color: transparent !important;
     }
     
     .article-toc-link {
-      color: #666;
-      text-decoration: none;
+      color: inherit;
       display: block;
-      padding: 4px 0;
-      transition: all 0.3s;
+      text-decoration: none;
+      width: 100%;
+      transition: color 0.3s ease;
+    }
+    
+    .article-toc-link:hover {
+      color: #1890ff;
+    }
+    
+    /* 为不同级别的标题添加缩进和样式 */
+    .ant-tree-treenode-level-1 > .ant-tree-node-content-wrapper {
+      font-size: 16px;
+      font-weight: 600;
+      padding-left: 12px !important;
+    }
+    
+    .ant-tree-treenode-level-2 > .ant-tree-node-content-wrapper {
+      font-size: 15px;
+      font-weight: 500;
+      padding-left: 24px !important;
+    }
+    
+    .ant-tree-treenode-level-3 > .ant-tree-node-content-wrapper {
+      font-size: 14px;
+      padding-left: 36px !important;
+    }
+    
+    .ant-tree-treenode-level-4 > .ant-tree-node-content-wrapper {
+      font-size: 13px;
+      padding-left: 48px !important;
+    }
+    
+    /* 适应响应式设计 */
+    @media (max-width: 768px) {
+      .ant-tree-indent {
+        width: 8px !important;
+      }
       
-      &:hover {
-        color: #1890ff;
-        transform: translateX(2px);
+      .ant-tree-node-content-wrapper {
+        padding: 3px 6px !important;
+        font-size: 14px;
+      }
+      
+      .ant-tree-treenode-level-1 > .ant-tree-node-content-wrapper {
+        padding-left: 8px !important;
+        font-size: 15px;
+      }
+      
+      .ant-tree-treenode-level-2 > .ant-tree-node-content-wrapper {
+        padding-left: 16px !important;
+        font-size: 14px;
+      }
+      
+      .ant-tree-treenode-level-3 > .ant-tree-node-content-wrapper {
+        padding-left: 24px !important;
+        font-size: 13px;
       }
     }
   }
-  
+
   .noToc {
     color: #999;
     text-align: center;
@@ -646,31 +790,6 @@
     text-align: center;
     padding: 20px 0;
     font-size: 14px;
-  }
-  
-  // 目录滚动和固定样式
-  .tocContent {
-    max-height: 400px;
-    overflow-y: auto;
-    
-    // 滚动条样式
-    &::-webkit-scrollbar {
-      width: 4px;
-    }
-    
-    &::-webkit-scrollbar-track {
-      background: #f1f1f1;
-      border-radius: 2px;
-    }
-    
-    &::-webkit-scrollbar-thumb {
-      background: #c1c1c1;
-      border-radius: 2px;
-    }
-    
-    &::-webkit-scrollbar-thumb:hover {
-      background: #a8a8a8;
-    }
   }
 }
 
