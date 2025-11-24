@@ -93,8 +93,11 @@ export default function ArticleDetail() {
   const [commentText, setCommentText] = useState('');
   const [recommendedArticles, setRecommendedArticles] = useState<RecommendedArticle[]>([]);
   const [tocContent, setTocContent] = useState<string>('');
+  const [isSidebarFixed, setIsSidebarFixed] = useState(false);
   const articleContentRef = useRef<HTMLDivElement>(null);
   const tocRef = useRef<HTMLDivElement>(null);
+  const sidebarRef = useRef<HTMLDivElement>(null);
+  const recommendedReadingRef = useRef<HTMLDivElement>(null);
 
   const handleSendComment = async () => {
     if (!commentText.trim()) {
@@ -195,6 +198,43 @@ export default function ArticleDetail() {
     if (!id) return;
     fetchArticleDetail();
   }, [user]);
+
+  // 滚动监听：当推荐阅读卡片完全滚动出视口时，固定整个侧边栏
+  useEffect(() => {
+    let ticking = false;
+    let timeoutId: NodeJS.Timeout;
+
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          if (recommendedReadingRef.current && sidebarRef.current) {
+            const cardRect = recommendedReadingRef.current.getBoundingClientRect();
+            // 当推荐阅读卡片底部完全滚出视口时，固定侧边栏
+            const shouldFix = cardRect.bottom <= 0;
+            setIsSidebarFixed(shouldFix);
+          }
+          ticking = false;
+        });
+        ticking = true;
+      }
+    };
+
+    // 防抖处理
+    const debouncedScroll = () => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(handleScroll, 16); // 约60fps
+    };
+
+    window.addEventListener('scroll', debouncedScroll, { passive: true });
+    
+    // 初始检查一次
+    handleScroll();
+
+    return () => {
+      window.removeEventListener('scroll', debouncedScroll);
+      clearTimeout(timeoutId);
+    };
+  }, []);
 
   const handleLike = async () => {
     if (!user) {
@@ -350,11 +390,16 @@ export default function ArticleDetail() {
                     .replace(/[^\w\u4e00-\u9fa5]+/g, '-')
                     .replace(/^-+|-+$/g, '');
                   id = slug || `heading-${index}`;
-                  heading.id = id;
                 }
                 
+                // 确保ID是URL编码的，与目录链接保持一致
+                const encodedId = encodeURIComponent(id);
+                
+                // 设置标题元素的ID为编码后的ID，确保与目录链接匹配
+                heading.id = encodedId;
+                
                 // 调试信息：显示标题和生成的ID
-                console.log(`标题: "${text}", 生成的ID: "${id}", 原始ID: "${heading.id}", 编码后的链接: "#${encodeURIComponent(id)}"`);
+                console.log(`标题: "${text}", 生成的ID: "${id}", 编码ID: "${encodedId}", 原始ID: "${heading.id}", 编码后的链接: "#${encodedId}"`);
                 
                 // 添加适当的嵌套结构
                 while (currentLevel < level) {
@@ -368,7 +413,7 @@ export default function ArticleDetail() {
                 
                 manualTocHtml += `
                   <li class="article-toc-item">
-                    <a href="#${encodeURIComponent(id)}" class="article-toc-link">${text}</a>
+                    <a href="#${encodedId}" class="article-toc-link">${text}</a>
                   </li>
                 `;
               });
@@ -402,9 +447,32 @@ export default function ArticleDetail() {
     const link = target.tagName === 'A' ? target as HTMLAnchorElement : target.closest('a') as HTMLAnchorElement;
     
     if (link && link.hash) {
-      // 解码URL编码的hash值（处理中文标题）
-      const decodedHash = decodeURIComponent(link.hash);
-      const element = document.querySelector(decodedHash);
+      // 解码URL编码的hash值后再使用querySelector
+      const hash = link.hash;
+      const encodedId = hash.substring(1); // 提取编码后的ID（不包含#号）
+      const decodedId = decodeURIComponent(encodedId); // 解码ID
+      console.log(`目录点击: 原始hash=${hash}, 编码ID=${encodedId}, 解码ID=${decodedId}`);
+      
+      // 尝试多种方式查找元素
+      let element = document.getElementById(decodedId);
+      
+      // 如果找不到，尝试使用编码的ID查找
+      if (!element) {
+        element = document.getElementById(encodedId);
+        console.log('尝试使用编码ID查找:', encodedId, '结果:', element ? '找到' : '未找到');
+      }
+      
+      // 如果还是找不到，尝试在所有标题中查找匹配的文本
+      if (!element) {
+        const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        for (const heading of allHeadings) {
+          if (heading.textContent?.trim() === decodedId) {
+            element = heading as HTMLElement;
+            console.log('通过文本内容找到标题:', decodedId);
+            break;
+          }
+        }
+      }
       
       if (element) {
         // 添加一些偏移量，避免被固定头部遮挡
@@ -423,7 +491,23 @@ export default function ArticleDetail() {
           element.classList.remove('toc-highlight');
         }, 2000);
       } else {
-        console.warn('找不到对应的标题元素:', decodedHash);
+        console.warn('找不到对应的标题元素:', decodedId);
+        console.warn('尝试查找所有标题:', document.querySelectorAll('h1, h2, h3, h4, h5, h6'));
+        
+        // 提供更详细的调试信息
+        const allHeadings = document.querySelectorAll('h1, h2, h3, h4, h5, h6');
+        console.warn('页面中所有标题的ID和文本内容:');
+        allHeadings.forEach((heading, i) => {
+          console.warn(`标题${i + 1}: ID="${heading.id}", 文本="${heading.textContent}"`);
+        });
+        
+        // 尝试使用原始滚动方式作为备用方案
+        try {
+          window.location.hash = hash;
+          console.log('使用原生hash跳转作为备用方案');
+        } catch (error) {
+          console.error('备用跳转方案也失败:', error);
+        }
       }
     }
   };
@@ -633,13 +717,41 @@ export default function ArticleDetail() {
 
           {/* PC端右侧边栏 - 仅在大屏幕显示 */}
           <div className={styles.sidebar}>
-            {/* 作者信息卡片 */}
+            {/* 作者信息卡片 - 始终正常滚动 */}
             <AuthorCard article={{ ...article, author: { ...article.author, id: article.author._id } }} isAuthor={isAuthor} />
 
+            {/* 正常滚动的侧边栏（目录+推荐阅读） */}
+            <div 
+              className={`${styles.normalSidebar} ${isSidebarFixed ? styles.hiddenSidebar : ''}`}
+              ref={sidebarRef}
+            >
+              {/* 文章目录 */}
+              <div className={styles.tableOfContents}>
+                <div className={styles.tocTitle}>目录</div>
+                <div className={styles.tocContent} ref={tocRef} onClick={handleTocClick}>
+                  {tocContent ? (
+                    <div dangerouslySetInnerHTML={{ __html: tocContent }} />
+                  ) : (
+                    <div className={styles.noToc}>暂无目录</div>
+                  )}
+                </div>
+              </div>
+
+              {/* 推荐阅读 */}
+              <div ref={recommendedReadingRef}>
+                <RecommendedReading articles={recommendedArticles} />
+              </div>
+            </div>
+          </div>
+
+          {/* 固定版本的侧边栏（目录+推荐阅读） */}
+          <div 
+            className={`${styles.sidebar} ${styles.fixedSidebar} ${isSidebarFixed ? styles.fixedSidebarActive : ''}`}
+          >
             {/* 文章目录 */}
             <div className={styles.tableOfContents}>
               <div className={styles.tocTitle}>目录</div>
-              <div className={styles.tocContent} ref={tocRef} onClick={handleTocClick}>
+              <div className={styles.tocContent} onClick={handleTocClick}>
                 {tocContent ? (
                   <div dangerouslySetInnerHTML={{ __html: tocContent }} />
                 ) : (
@@ -648,10 +760,10 @@ export default function ArticleDetail() {
               </div>
             </div>
 
-              {/* 右侧边栏 */}
+            {/* 推荐阅读 */}
             <div>
-                <RecommendedReading articles={recommendedArticles} />
-              </div>
+              <RecommendedReading articles={recommendedArticles} />
+            </div>
           </div>
         </div>
       </div>

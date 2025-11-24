@@ -152,8 +152,15 @@
 .toc-highlight {
   background-color: #e6f7ff !important;
   border-left: 3px solid #1890ff !important;
-  padding-left: 10px !important;
+  padding-left: 8px !important;
   transition: all 0.3s ease !important;
+}
+
+/* 响应式设计 */
+@media (min-width: 768px) {
+  .article-toc {
+    max-width: 100%;
+  }
 }
 
 :global(.katex .base) {
@@ -822,6 +829,38 @@
 .sidebar {
   margin-left: 20px;
   display: block;
+}
+
+/* 正常滚动的侧边栏 */
+.normalSidebar {
+  transition: opacity 0.3s ease;
+}
+
+/* 固定版本的侧边栏 */
+.fixedSidebar {
+  display: none;
+  position: fixed;
+  top: 20px;
+  right: 110px;
+  z-index: 100;
+  transition: opacity 0.3s ease;
+}
+
+/* 固定侧边栏激活状态 */
+.fixedSidebarActive {
+  display: block;
+}
+
+/* 当固定侧边栏激活时，隐藏正常侧边栏 */
+.fixedSidebarActive ~ .normalSidebar {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 隐藏侧边栏的辅助类 */
+.hiddenSidebar {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .sidebarCard {
