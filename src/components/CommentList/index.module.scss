@@ -83,9 +83,7 @@
   transition: color 0.2s;
 }
 
-.commentActions .actionButton:global(.active) {
-  color: #1890ff !important;
-}
+/* 移除评论点赞按钮的激活状态样式 */
 
 
 .actionButton:hover {

@@ -250,5 +250,28 @@ export default {
       console.error('获取关注用户列表失败:', error);
       throw new Error(typeof error === 'string' ? error : '网络错误，请稍后重试');
     }
+  },
+
+  // 注销账号
+  deleteAccount: async (): Promise<{ success: boolean; message: string }> => {
+    try {
+      const res = await fetch('/api/auth/account', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.message || '注销账号失败');
+      }
+      
+      return await res.json();
+    } catch (error) {
+      console.error('注销账号失败:', error);
+      const errorMessage = error instanceof Error ? error.message : '网络错误，请稍后重试';
+      throw new Error(errorMessage);
+    }
   }
 };

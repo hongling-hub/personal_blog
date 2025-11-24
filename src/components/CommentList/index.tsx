@@ -273,13 +273,13 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                       <div>{item.content}</div>
                       <div style={{ marginTop: 8 }}>{dayjs(item.createdAt).format('YYYY-MM-DD')}</div>
                       <div className={styles.commentActions} style={{ marginTop: 8 }}>
-                        <span onClick={() => handleLike(item.id)} className={`${styles.actionButton} ${item.isLiked ? 'active' : ''}`}>
-                          {item.isLiked ? <HeartFilled /> : <HeartOutlined />} {item.likeCount > 0 ? item.likeCount : '点赞'}
+                        <span onClick={() => handleLike(item.id)} className={styles.actionButton}>
+                          <HeartOutlined /> {item.likeCount > 0 ? item.likeCount : '点赞'}
                         </span>
                         <span onClick={() => handleReply(item.id)}  className={`${styles.actionButton} ${replyingTo === item.id ? 'active' : ''}`}>
                           {replyingTo === item.id ? <MessageFilled /> : <MessageOutlined />} {(item.replies?.length ?? 0) > 0 ? (item.replies?.length ?? 0) : '回复'}
                         </span>
-                        {user?.username === item.author.username && (
+                        {user?.username === item.author?.username && (
                           <Popconfirm
                             title="确定要删除这条评论吗？"
                             onConfirm={() => handleDelete(item.id)}
@@ -322,20 +322,20 @@ console.log('提交评论前检查 - 参数:', { articleId, userExists: !!user, 
                           renderItem={(reply) => (
                             <List.Item className={styles.replyItem}>
                               <List.Item.Meta
-                                avatar={reply.author.avatar ? <Avatar src={reply.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
-                                title={`${reply.author.username} 回复 ${item.author.username}`}
+                                avatar={reply.author?.avatar ? <Avatar src={reply.author.avatar} /> : <Avatar icon={<UserOutlined />} />}
+                                title={`${reply.author?.username || '匿名用户'} 回复 ${item.author?.username || '匿名用户'}`}
                                 description={
                                   <>
                                     <div>{reply.content}</div>
                                     <div style={{ marginTop: 8 }}>{dayjs(reply.createdAt).format('YYYY-MM-DD')}</div>
                                     <div className={styles.commentActions} style={{ marginTop: 8 }}>
-                                      <span onClick={() => handleLike(reply.id, true, item.id)} className={`${styles.actionButton} ${reply.isLiked ? 'active' : ''}`}>
-                                        {reply.isLiked ? <HeartFilled /> : <HeartOutlined />} {reply.likeCount > 0 ? reply.likeCount : '点赞'}
+                                      <span onClick={() => handleLike(reply.id, true, item.id)} className={styles.actionButton}>
+                                        <HeartOutlined /> {reply.likeCount > 0 ? reply.likeCount : '点赞'}
                                       </span> 
                                       <span onClick={() => handleReply(reply.id)} className={`${styles.actionButton} ${replyingTo === reply.id ? 'active' : ''}`}>
                                         {replyingTo === reply.id ? <MessageFilled /> : <MessageOutlined />} {(reply.replies?.length ?? 0) > 0 ? (reply.replies?.length ?? 0) : '回复'}
                                       </span>
-                                      {user?.username === reply.author.username && (
+                                      {user?.username === reply.author?.username && (
                                         <Popconfirm
                                           title="确定要删除这条回复吗？"
                                           onConfirm={() => handleDelete(item.id, reply.id)}

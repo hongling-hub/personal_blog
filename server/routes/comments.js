@@ -65,10 +65,8 @@ router.get('/article/:articleId', authenticate, async (req, res) => {
     rootComments.forEach(comment => {
       const commentObj = comment.toJSON();
       const likesArr = Array.isArray(commentObj.likes) ? commentObj.likes : [];
-      let isLiked = false;
-      if (req.user && req.user._id) {
-        isLiked = likesArr.some(like => like && like.equals && like.equals(req.user._id));
-      }
+      // 始终返回isLiked为false，确保评论点赞按钮不显示激活状态
+      const isLiked = false;
       commentsMap.set(comment._id.toString(), {
         ...commentObj,
         id: comment._id.toString(),
@@ -82,10 +80,8 @@ router.get('/article/:articleId', authenticate, async (req, res) => {
     replyComments.forEach(reply => {
       const replyObj = reply.toJSON();
       const replyLikesArr = Array.isArray(replyObj.likes) ? replyObj.likes : [];
-      let replyIsLiked = false;
-      if (req.user && req.user._id) {
-        replyIsLiked = replyLikesArr.some(like => like && like.toString() === req.user._id.toString());
-      }
+      // 始终返回isLiked为false，确保回复点赞按钮不显示激活状态
+      const replyIsLiked = false;
       
       const formattedReply = {
         ...replyObj,
@@ -289,46 +285,49 @@ router.post('/:commentId/like', authenticate, async (req, res) => {
 
 
 
-// 删除某条回复（放在所有路由定义之后）
+// 删除某条回复
 router.delete('/:commentId/replies/:replyId', authenticate, async (req, res) => {
   try {
-    const { commentId, replyId } = req.params;
-    const comment = await Comment.findById(commentId);
-    if (!comment) return res.status(404).json({ message: '评论不存在' });
-    const reply = comment.replies.id(replyId);
-    if (!reply) return res.status(404).json({ message: '回复不存在' });
+    const { replyId } = req.params;
+    
+    // 根据回复ID查找回复（作为独立的Comment文档）
+    const reply = await Comment.findOne({
+      _id: replyId,
+      parentComment: { $ne: null } // 确保是回复而不是根评论
+    });
+    
+    if (!reply) {
+      return res.status(404).json({ message: '回复不存在' });
+    }
+    
     // 只允许回复作者本人删除
     if (reply.author.toString() !== req.user._id.toString()) {
       return res.status(403).json({ message: '无权限删除该回复' });
     }
-    comment.replies.pull(replyId);
-    await comment.save();
+    
+    // 记录文章ID用于更新评论数
+    const articleId = reply.article;
+    
+    // 删除回复
+    await Comment.findByIdAndDelete(replyId);
+    
+    // 更新文章的评论数
+    await Article.findByIdAndUpdate(articleId, {
+      $inc: { comments: -1 }
+    });
+    
     res.json({ message: '回复已删除' });
   } catch (err) {
     res.status(500).json({ message: err.message });
   }
 });
 
-// 删除评论（放在所有路由定义之后）
+// 删除评论（仅作者可删除）
 router.delete('/:commentId', authenticate, async (req, res) => {
   try {
-    const comment = await Comment.findById(req.params.commentId);
-    if (!comment) return res.status(404).json({ message: '评论不存在' });
-    // 只允许作者本人或管理员删除
-    if (comment.author.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: '无权限删除该评论' });
-    }
-    await comment.deleteOne();
-    res.json({ message: '评论已删除' });
-  } catch (err) {
-    res.status(500).json({ message: err.message });
-  }
-});
-
-// 删除评论（仅作者可删除）
-router.delete('/:id', authenticate, async (req, res) => {
-  try {
-    const comment = await Comment.findById(req.params.id);
+    const commentId = req.params.commentId;
+    const comment = await Comment.findById(commentId);
+    
     if (!comment) {
       return res.status(404).json({ message: '评论不存在' });
     }
@@ -338,8 +337,7 @@ router.delete('/:id', authenticate, async (req, res) => {
       return res.status(403).json({ message: '没有权限删除此评论' });
     }
     
-    // 删除评论及其所有回复
-    const commentId = comment._id;
+    // 记录文章ID用于更新评论数
     const articleId = comment.article;
     
     // 删除所有回复

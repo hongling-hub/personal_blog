@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const User = require('../models/User');
+const Article = require('../models/Article');
 const svgCaptcha = require('svg-captcha');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
-
 // 配置multer存储
 const storage = multer.diskStorage({
   destination: function(req, file, cb) {
@@ -269,6 +270,24 @@ router.post('/refresh', async (req, res) => {
   } catch (error) {
     console.error('Refresh token处理错误:', error);
     res.status(500).json({ message: '服务器错误，token刷新失败' });
+  }
+});
+
+// 注销账号
+router.delete('/account', authenticate, async (req, res) => {
+  try {
+    const user = req.user;
+    
+    // 删除用户数据
+    await User.findByIdAndDelete(user._id);
+    
+    // 删除用户的所有文章
+    await Article.deleteMany({ author: user._id });
+    
+    res.json({ success: true, message: '账号注销成功' });
+  } catch (error) {
+    console.error('注销账号失败:', error);
+    res.status(500).json({ success: false, message: '注销账号失败，请重试' });
   }
 });
 

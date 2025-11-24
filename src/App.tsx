@@ -17,8 +17,9 @@ export default function App() {
   const handleLogout = useCallback(() => {
     // 清除本地存储的令牌
     localStorage.removeItem('token');
+    localStorage.removeItem('refreshToken');
     // 重定向到登录页
-    navigate('/auth/login');
+    navigate('/login');
   }, [navigate]);
   
   // 重置不活动计时器

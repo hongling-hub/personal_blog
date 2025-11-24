@@ -49,6 +49,7 @@ import { useComment } from '../../contexts/CommentContext';
 import CommentList from '../../components/CommentList';
 import RenderKatex from '../../components/RenderKatex';
 import { format } from 'date-fns';
+import commentService from '@/services/comments';
 
 dayjs.extend(relativeTime);
 
@@ -107,6 +108,35 @@ export default function ArticleDetail() {
   const tocRef = useRef<HTMLDivElement>(null);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const recommendedReadingRef = useRef<HTMLDivElement>(null);
+  // 添加新状态来跟踪用户是否发表了评论
+  const [userHasCommented, setUserHasCommented] = useState(false);
+
+  // 定义评论类型接口
+  interface UserComment {
+    _id: string;
+    content: string;
+    articleId: string;
+    articleTitle?: string;
+    articleAuthor?: string;
+    createdAt: string;
+  }
+
+  // 检查用户是否对当前文章发表了评论
+  const checkUserCommentStatus = async () => {
+    if (!user || !article) return;
+    
+    try {
+      // 获取用户的所有评论
+      const userComments = await commentService.getMyComments();
+      // 检查是否有对当前文章的评论
+      const hasComment = userComments.some((comment: UserComment) => comment.articleId === article._id);
+      setUserHasCommented(hasComment);
+    } catch (error) {
+      console.error('检查用户评论状态失败:', error);
+      // 出错时默认设置为false
+      setUserHasCommented(false);
+    }
+  };
 
   const handleSendComment = async () => {
     if (!commentText.trim()) {
@@ -123,7 +153,8 @@ export default function ArticleDetail() {
       await articlesService.addComment(article?._id || '', { content: commentText.trim() });
       message.success('评论成功');
       setCommentText('');
-      // 刷新评论列表可以在这里实现
+      // 评论成功后，设置用户已评论状态为true
+      setUserHasCommented(true);
     } catch (error) {
       console.error('Failed to send comment:', error);
       message.error('评论失败，请重试');
@@ -148,26 +179,54 @@ export default function ArticleDetail() {
       console.log('初始isCollected状态:', data.isCollected);
       setArticle(data);
       
-      // 优先使用localStorage中的点赞状态，如果用户已登录
+      // 使用后端返回的点赞和收藏状态，确保状态正确
+      setIsLiked(data.isLiked || false);
+      setIsCollected(data.isCollected || false);
+      
+      // 同步更新localStorage中的状态，确保与后端一致
       if (user) {
         const likedArticles = JSON.parse(localStorage.getItem('likedArticles') || '[]');
-        const isArticleLiked = likedArticles.includes(id);
-        console.log('localStorage点赞状态:', isArticleLiked);
-        setIsLiked(isArticleLiked);
-        
-        // 优先使用localStorage中的收藏状态
         const collectedArticles = JSON.parse(localStorage.getItem('collectedArticles') || '[]');
-        const isArticleCollected = collectedArticles.includes(id);
-        console.log('localStorage收藏状态:', isArticleCollected);
-        setIsCollected(isArticleCollected);
-      } else {
-        setIsLiked(data.isLiked);
-        setIsCollected(data.isCollected || false);
+        
+        // 更新点赞状态
+        if (data.isLiked) {
+          if (!likedArticles.includes(id)) {
+            likedArticles.push(id);
+          }
+        } else {
+          const likeIndex = likedArticles.indexOf(id);
+          if (likeIndex > -1) {
+            likedArticles.splice(likeIndex, 1);
+          }
+        }
+        
+        // 更新收藏状态
+        if (data.isCollected) {
+          if (!collectedArticles.includes(id)) {
+            collectedArticles.push(id);
+          }
+        } else {
+          const collectIndex = collectedArticles.indexOf(id);
+          if (collectIndex > -1) {
+            collectedArticles.splice(collectIndex, 1);
+          }
+        }
+        
+        localStorage.setItem('likedArticles', JSON.stringify(likedArticles));
+        localStorage.setItem('collectedArticles', JSON.stringify(collectedArticles));
+        
+        console.log('同步后的localStorage点赞状态:', data.isLiked);
+        console.log('同步后的localStorage收藏状态:', data.isCollected);
       }
       
       setLikeCount(data.likeCount || 0);
       setCollectCount(data.collectCount || 0);
-    } catch (error) {
+        
+        // 检查用户是否发表了评论
+        if (user) {
+          checkUserCommentStatus();
+        }
+      } catch (error) {
       console.error('Failed to fetch article:', error);
       message.error('获取文章失败，请重试');
     } finally {
@@ -206,7 +265,27 @@ export default function ArticleDetail() {
   useEffect(() => {
     if (!id) return;
     fetchArticleDetail();
-  }, [user]);
+  }, [id]);
+
+  // 当用户变化时，重新检查评论状态
+  useEffect(() => {
+    if (user && article) {
+      checkUserCommentStatus();
+    } else {
+      // 如果用户未登录，设置为未评论状态
+      setUserHasCommented(false);
+    }
+  }, [user, article]);
+
+  // 当用户变化时，重新检查评论状态
+  useEffect(() => {
+    if (user && article) {
+      checkUserCommentStatus();
+    } else {
+      // 如果用户未登录，设置为未评论状态
+      setUserHasCommented(false);
+    }
+  }, [user, article]);
 
   // 滚动监听：当推荐阅读卡片完全滚动出视口时，固定整个侧边栏
   useEffect(() => {
@@ -739,13 +818,11 @@ export default function ArticleDetail() {
               </Button>
 
               <Button
-                className={
-                  `${styles.actionButton} ${(commentStats[article?._id || ''] || 0) > 0 ? 'active' : ''}`
-                }
+                className={`${styles.actionButton} ${userHasCommented ? 'active' : ''}`}
                 onClick={() => scrollToComments()}
               >
                 <Badge count={commentStats[article?._id || ''] || 0} showZero onClick={() => scrollToComments()}>
-                  {(commentStats[article?._id || ''] || 0) > 0 ? <MessageFilled /> : <MessageOutlined />}
+                  {userHasCommented ? <MessageFilled /> : <MessageOutlined />}
                 </Badge>
               </Button>
 
@@ -820,8 +897,8 @@ export default function ArticleDetail() {
               </Button>
 
               <Button
-                icon={(commentStats[article?._id || ''] || 0) > 0 ? <MessageFilled /> : <MessageOutlined />}
-                className={`${styles.mobileActionButton} ${(commentStats[article?._id || ''] || 0) > 0 ? 'active' : ''}`}
+                icon={userHasCommented ? <MessageFilled /> : <MessageOutlined />}
+                className={`${styles.mobileActionButton} ${userHasCommented ? 'active' : ''}`}
                 onClick={() => scrollToComments()}
               >
                 <span className={styles.mobileActionText}>{commentStats[article?._id || ''] || 0}</span>

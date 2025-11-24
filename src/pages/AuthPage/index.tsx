@@ -90,7 +90,9 @@ const { updateUser } = useUser();
       throw new Error(response.message || '登录失败');
     }
   } catch (error) {
-    // ...错误处理...
+    // 错误处理
+    const err = error as Error;
+    message.error(err.message || '登录失败，请检查您的用户名、密码和验证码');
     refreshCaptcha();
   } finally {
     setLoading(false);

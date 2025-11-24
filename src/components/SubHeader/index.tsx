@@ -1,8 +1,9 @@
 import React from 'react';
-import { Badge, Dropdown, MenuProps } from 'antd';
-import { BellOutlined, UserOutlined, FileTextOutlined, SettingOutlined, LogoutOutlined } from '@ant-design/icons';
+import { Badge, Dropdown, MenuProps, Modal, message, Button } from 'antd';
+import { BellOutlined, UserOutlined, FileTextOutlined, SettingOutlined, LogoutOutlined, DeleteOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
 import { useUser } from '../../contexts/UserContext';
+import authService from '../../services/auth';
 import styles from './index.module.scss';
 
 const SubHeader: React.FC = () => {
@@ -11,8 +12,32 @@ const SubHeader: React.FC = () => {
 
   const handleLogout = () => {
     localStorage.removeItem('token');
-    updateUser({});
+    localStorage.removeItem('refreshToken');
+    updateUser(null);
     navigate('/');
+  };
+
+  const handleDeleteAccount = () => {
+    Modal.confirm({
+      title: '注销账号',
+      icon: <DeleteOutlined />,
+      content: '您确定要注销账号吗？此操作不可撤销，您的所有数据（文章、评论等）都将被永久删除！',
+      okText: '确定注销',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          const result = await authService.deleteAccount();
+          message.success('账号注销成功');
+          // 清空本地存储并跳转到首页
+          localStorage.clear();
+          updateUser(null);
+          navigate('/');
+        } catch (error) {
+          message.error(error instanceof Error ? error.message : '注销账号失败，请重试');
+        }
+      }
+    });
   };
 
   const userMenuItems: MenuProps['items'] = [
@@ -39,6 +64,13 @@ const SubHeader: React.FC = () => {
       icon: <LogoutOutlined />,
       label: '退出登录',
       onClick: handleLogout,
+    },
+    {
+      key: 'deleteAccount',
+      icon: <DeleteOutlined />,
+      label: '注销账号',
+      danger: true,
+      onClick: handleDeleteAccount,
     },
   ];
 

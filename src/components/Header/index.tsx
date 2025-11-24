@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useUser } from '../../contexts/UserContext';
-import { Menu, Input, Space, Avatar, Dropdown, Button, Badge } from 'antd';
-import { SearchOutlined, BellOutlined, UserOutlined, HomeOutlined, FileTextOutlined, StarOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, QuestionCircleOutlined, ReadOutlined } from '@ant-design/icons';
+import { Menu, Input, Space, Avatar, Dropdown, Button, Badge, Modal, message } from 'antd';
+import { SearchOutlined, BellOutlined, UserOutlined, HomeOutlined, FileTextOutlined, StarOutlined, SettingOutlined, LogoutOutlined, MessageOutlined, QuestionCircleOutlined, ReadOutlined, DeleteOutlined } from '@ant-design/icons';
 import articlesService from '@/services/articles';
+import authService from '../../services/auth';
 import { Link, useNavigate } from 'react-router-dom';
 import styles from './index.module.scss';
 
@@ -13,6 +14,29 @@ const Header: React.FC = () => {
   const navigate = useNavigate();
   const isLoggedIn = !!user;
   
+
+  const handleDeleteAccount = () => {
+    Modal.confirm({
+      title: '注销账号',
+      icon: <DeleteOutlined />,
+      content: '您确定要注销账号吗？此操作不可撤销，您的所有数据（文章、评论等）都将被永久删除！',
+      okText: '确定注销',
+      okType: 'danger',
+      cancelText: '取消',
+      onOk: async () => {
+        try {
+          const result = await authService.deleteAccount();
+          message.success('账号注销成功');
+          // 清空本地存储并跳转到首页
+          localStorage.clear();
+          updateUser(null);
+          navigate('/');
+        } catch (error) {
+          message.error(error instanceof Error ? error.message : '注销账号失败，请重试');
+        }
+      }
+    });
+  };
 
   const userMenuItems = [
     {
@@ -35,9 +59,17 @@ const Header: React.FC = () => {
       label: '退出登录',
       onClick: () => {
           localStorage.removeItem('token');
+          localStorage.removeItem('refreshToken');
           updateUser(null);
           navigate('/');
         }
+    },
+    {
+      key: 'deleteAccount',
+      icon: <DeleteOutlined />,
+      label: '注销账号',
+      danger: true,
+      onClick: handleDeleteAccount,
     },
   ];
 
