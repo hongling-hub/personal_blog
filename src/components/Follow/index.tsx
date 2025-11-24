@@ -74,7 +74,7 @@ export default function Follow() {
       ) : (
         <Empty
           image="https://gw.alipayobjects.com/zos/antfincdn/ZHrcdLPrvN/empty.svg"
-          imageStyle={{ height: 120 }}
+          styles={{ image: { height: 120 } }}
           description="暂无关注人发布的文章"
         />
       )}

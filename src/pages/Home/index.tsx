@@ -49,7 +49,15 @@ export default function Home() {
         setLoadingMore(true);
       }
       
-      const response = await articlesService.getList(page, 10);
+      // 根据当前标签页设置排序参数
+      let sortBy = 'publishTime'; // 默认按发布时间排序
+      if (activeTab === '1') {
+        sortBy = 'views'; // 推荐按阅读量排序
+      } else if (activeTab === '3') {
+        sortBy = 'likes'; // 热门按点赞量排序
+      }
+      
+      const response = await articlesService.getList(page, 10, sortBy);
       
       if (append) {
         setArticles(prev => [...prev, ...response.articles]);
@@ -65,7 +73,7 @@ export default function Home() {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [activeTab]);
 
   // 初始加载
   useEffect(() => {
@@ -77,14 +85,36 @@ export default function Home() {
     if (loadingMore || !hasMore) return;
     
     const nextPage = currentPage + 1;
-    await fetchArticles(nextPage, true);
-  }, [currentPage, hasMore, loadingMore, fetchArticles]);
+    
+    // 直接调用fetchArticles，避免依赖问题
+    try {
+      setLoadingMore(true);
+      
+      // 根据当前标签页设置排序参数
+      let sortBy = 'publishTime'; // 默认按发布时间排序
+      if (activeTab === '1') {
+        sortBy = 'views'; // 推荐按阅读量排序
+      } else if (activeTab === '3') {
+        sortBy = 'likes'; // 热门按点赞量排序
+      }
+      
+      const response = await articlesService.getList(nextPage, 10, sortBy);
+      
+      setArticles(prev => [...prev, ...response.articles]);
+      setHasMore(response.pagination.hasMore);
+      setCurrentPage(nextPage);
+    } catch (error) {
+      console.error('加载更多文章失败:', error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [currentPage, hasMore, loadingMore, activeTab]);
 
   // 监听滚动到底部
   useEffect(() => {
     if (!loadMoreRef.current || !hasMore) return;
 
-    observerRef.current = new IntersectionObserver(
+    const observer = new IntersectionObserver(
       (entries) => {
         if (entries[0].isIntersecting && !loadingMore) {
           loadMoreArticles();
@@ -93,18 +123,20 @@ export default function Home() {
       { threshold: 0.1 }
     );
 
-    observerRef.current.observe(loadMoreRef.current);
+    observer.observe(loadMoreRef.current);
 
     return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
-      }
+      observer.disconnect();
     };
-  }, [loadMoreArticles, hasMore, loadingMore]);
+  }, [hasMore, loadingMore, loadMoreArticles]);
 
   // 切换标签页时重置数据
   useEffect(() => {
     if (activeMenu === 'comprehensive') {
+      // 重置分页状态
+      setCurrentPage(1);
+      setHasMore(true);
+      setArticles([]);
       fetchArticles(1, false);
     }
   }, [activeTab, activeMenu, fetchArticles]);
@@ -113,23 +145,27 @@ export default function Home() {
   const getSortedArticles = () => {
     if (!articles.length) return [];
 
+    // 由于后端API已经按指定字段排序，这里只需要处理二级排序
     switch (activeTab) {
-      case '1': // 推荐
+      case '1': // 推荐 - 后端已按阅读量排序，这里处理阅读量相同时按点赞数排序
         return [...articles].sort((a, b) => {
-          // 先按阅读量降序
-          if (a.views !== b.views) {
+          // 如果阅读量相同，按点赞数降序
+          if (a.views === b.views) {
+            return b.likes - a.likes;
+          }
+          // 否则保持后端排序（阅读量降序）
+          return 0;
+        });
+      case '2': // 最新 - 后端已按发布时间排序，无需额外处理
+        return articles;
+      case '3': // 热门 - 后端已按点赞数排序，这里处理点赞数相同时按阅读量排序
+        return [...articles].sort((a, b) => {
+          // 如果点赞数相同，按阅读量降序
+          if (a.likes === b.likes) {
             return b.views - a.views;
           }
-          // 阅读量相同时按点赞量降序
-          return b.likes - a.likes;
-        });
-      case '2': // 最新
-        return [...articles].sort((a, b) => {
-          return new Date(b.publishTime).getTime() - new Date(a.publishTime).getTime();
-        });
-      case '3': // 热门
-        return [...articles].sort((a, b) => {
-          return b.likes - a.likes;
+          // 否则保持后端排序（点赞数降序）
+          return 0;
         });
       default:
         return articles;
@@ -186,8 +222,11 @@ export default function Home() {
         <ArticleList
           articles={getSortedArticles()}
           loading={loading}
+          loadingMore={loadingMore}
+          hasMore={hasMore}
           onArticleClick={(id) => navigate(`/article/${id}`)}
           showAction={false}
+          loadMoreRef={loadMoreRef}
         />
       )
     }

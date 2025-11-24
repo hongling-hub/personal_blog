@@ -61,10 +61,19 @@ router.get('/', async (req, res) => {
     // 获取文章总数
     const total = await Article.countDocuments(query);
     
+    // 排序参数
+    let sortOption = { publishTime: -1 }; // 默认按发布时间降序
+    
+    if (req.query.sortBy === 'likes') {
+      sortOption = { likes: -1, views: -1 }; // 按点赞量降序，点赞数相同时按阅读量降序
+    } else if (req.query.sortBy === 'views') {
+      sortOption = { views: -1, likes: -1 }; // 按阅读量降序，阅读量相同时按点赞数降序
+    }
+    
     // 获取文章列表
     const articles = await Article.find(query)
       .populate('author', 'username avatar isVerified bio')
-      .sort({ publishTime: -1 })
+      .sort(sortOption)
       .skip(skip)
       .limit(limit);
 

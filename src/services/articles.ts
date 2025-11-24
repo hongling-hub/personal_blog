@@ -55,8 +55,19 @@ export default {
   // 搜索文章
   search: (query: string) => fetch(`/api/articles/search?query=${encodeURIComponent(query)}`).then(res => res.json()),
 
-  // 获取文章列表（支持分页）
-  getList: (page = 1, limit = 10) => fetch(`/api/articles?page=${page}&limit=${limit}`).then(res => res.json()),
+  // 获取文章列表（支持分页和排序）
+  getList: (page = 1, limit = 10, sortBy?: string) => {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString()
+    });
+    
+    if (sortBy) {
+      params.append('sortBy', sortBy);
+    }
+    
+    return fetch(`/api/articles?${params.toString()}`).then(res => res.json());
+  },
 
   // 获取当前用户的所有文章（包括草稿，支持分页）
   getUserArticles: (page = 1, limit = 10) => fetch(`/api/articles/user?page=${page}&limit=${limit}`).then(res => res.json()),
